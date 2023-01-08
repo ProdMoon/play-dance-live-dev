@@ -2,13 +2,15 @@ import { OpenVidu } from 'openvidu-browser';
 
 import axios from 'axios';
 import React, { Component } from 'react';
-import './App.css';
+import './StreamArea.css';
 import UserVideoComponent from './UserVideoComponent';
 
-const APPLICATION_SERVER_URL = "https://boonthe.shop/";
+/** 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요. */
+const APPLICATION_SERVER_URL = "https://192.168.0.62/";  // 개발용 URL
+// const APPLICATION_SERVER_URL = "https://boonthe.shop/";  // 배포용 URL
 
 
-class App extends Component {
+class StreamArea extends Component {
     constructor(props) {
         super(props);
 
@@ -346,4 +348,4 @@ class App extends Component {
     }
 }
 
-export default App;
+export default StreamArea;
