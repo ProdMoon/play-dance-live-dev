@@ -1,4 +1,4 @@
-package com.example.manmu.web;
+package com.example.manmu.controller;
 
 import com.example.manmu.config.auth.dto.SessionUser;
 import lombok.RequiredArgsConstructor;
