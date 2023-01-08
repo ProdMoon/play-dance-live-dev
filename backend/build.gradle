@@ -24,34 +24,27 @@ repositories {
 dependencies {
 	implementation('org.springframework.boot:spring-boot-starter-mustache')
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'io.openvidu:openvidu-parent:2.0.0'
 	implementation 'io.openvidu:openvidu-java-client:2.25.0'
 
 
-//	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 
 
-
 //	추가
 	implementation('org.springframework.boot:spring-boot-starter-data-jpa')
-	implementation('com.h2database:h2')
 	implementation('org.springframework.boot:spring-boot-starter-jdbc')
-
 	implementation('org.springframework.session:spring-session-jdbc') // 권한 관련
 
-// 220102 추가
+	// 220102 추가
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 	testCompileOnly 'junit:junit:4.13'
@@ -62,6 +55,9 @@ dependencies {
 	implementation 'org.webjars:sockjs-client:1.5.1'
 	implementation 'org.webjars:stomp-websocket:2.3.3'
 	implementation 'org.springframework.boot:spring-boot-configuration-processor:2.7.7'
+
+	//sh
+	implementation 'mysql:mysql-connector-java'
 
 }
 
