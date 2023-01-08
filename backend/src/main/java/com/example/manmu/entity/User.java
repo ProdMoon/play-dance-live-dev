@@ -1,6 +1,7 @@
-package com.example.manmu.domain.user;
+package com.example.manmu.entity;
 
 import com.example.manmu.domain.BaseTimeEntity;
+import com.example.manmu.domain.user.Role;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor
-@Table(name= "users")
+@Table(name= "user")
 @Entity
 public class User extends BaseTimeEntity {
 

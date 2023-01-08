@@ -5,7 +5,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface BroadcastingRepository {
     public Room save(Room room);
     public Room delete(String roomId);
