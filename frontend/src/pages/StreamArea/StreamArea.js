@@ -5,7 +5,7 @@ import React, { Component } from 'react';
 import './StreamArea.css';
 import UserVideoComponent from './UserVideoComponent';
 
-/** 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요. */
+// 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
 const APPLICATION_SERVER_URL = "https://192.168.0.62/";  // 개발용 URL
 // const APPLICATION_SERVER_URL = "https://boonthe.shop/";  // 배포용 URL
 
@@ -334,6 +334,12 @@ class StreamArea extends Component {
     }
 
     async createSession(sessionId) {
+        // TODO: 여기서 참가자의 곡 정보들도 넘겨줘야 함.
+        // TODO:    { 
+        // TODO:        songs: [song1, song2, song3],
+        // TODO:        userId: 유저정보(로그인할때 얻어지는 id값)
+        // TODO:    }
+
         const response = await axios.post(APPLICATION_SERVER_URL + 'api/sessions', { customSessionId: sessionId }, {
             headers: { 'Content-Type': 'application/json', },
         });
