@@ -1,8 +1,9 @@
 // Pages
-import Chat from "../../components/Chat";
+import Chat from "../Chat/Chat";
 
 // MUI
 import { Grid, Paper } from "@mui/material";
+import GoogleLogin from "../GoogleLogin/GoogleLogin";
 
 const Home = () => {
   return (
@@ -10,6 +11,7 @@ const Home = () => {
       <Grid className="containerItem" item xs={3}>
         <Paper className="containerItem" elevation={5}>
           메뉴가 들어갈 공간입니다.
+          <GoogleLogin />
         </Paper>
       </Grid>
       <Grid className="containerItem" item xs={6}>

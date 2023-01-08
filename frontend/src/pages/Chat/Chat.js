@@ -1,4 +1,4 @@
-import { Typography, Paper, Grid, TextField } from "@mui/material";
+import { Typography, Box, Paper, Grid, TextField } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
 import SockJS from "sockjs-client";
 import Stomp from "stompjs";
@@ -12,7 +12,9 @@ const Chat = () => {
   const label = "채팅";
 
   useEffect(() => {
-    const socket = new SockJS("https://192.168.0.62/api/ws");  // 개발용 URL
+    // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
+    const socket = new SockJS("https://192.168.0.62/api/ws"); // 개발용 URL
+    // const socket = new SockJS("https://boonthe.shop/api/ws");  // 배포용 URL
     const stompClient = Stomp.over(socket);
     setClient(stompClient);
     stompClient.connect({}, (frame) => {
@@ -98,7 +100,9 @@ const Chat = () => {
           overflowY: "scroll",
         }}
       >
-        <div ref={chattingViewRef}>{chattingView()}</div>
+        <Box sx={{height:500}}>
+          <div ref={chattingViewRef}>{chattingView()}</div>
+        </Box>
       </Grid>
       <Grid item xs="auto">
         {inputBox()}
