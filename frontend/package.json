@@ -10,11 +10,14 @@
     "@mui/material": "^5.11.3",
     "axios": "^0.21.4",
     "express": "^4.18.2",
+    "net": "^1.0.2",
     "openvidu-browser": "2.25.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-router-dom": "^6.6.1",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,3 +1,6 @@
+// Pages
+import Chat from "../../components/Chat";
+
 // MUI
 import { Grid, Paper } from "@mui/material";
 
@@ -16,7 +19,7 @@ const Home = () => {
       </Grid>
       <Grid className="containerItem" item xs={3}>
         <Paper className="containerItem" elevation={5}>
-          채팅창이 들어갈 공간입니다.
+          <Chat />
         </Paper>
       </Grid>
     </Grid>
