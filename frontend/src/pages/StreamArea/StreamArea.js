@@ -1,13 +1,17 @@
 import { OpenVidu } from "openvidu-browser";
-
 import axios from "axios";
 import React, { Component } from "react";
-import "./StreamArea.css";
+
+// Pages
 import UserVideoComponent from "./UserVideoComponent";
+import { Button, Grid, Typography } from "@mui/material";
+
+// CSS
+import "./StreamArea.css";
 
 // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
-const APPLICATION_SERVER_URL = "https://192.168.0.62/"; // 개발용 URL
-// const APPLICATION_SERVER_URL = "https://boonthe.shop/";  // 배포용 URL
+// const APPLICATION_SERVER_URL = "https://192.168.0.62/"; // 개발용 URL
+const APPLICATION_SERVER_URL = "https://boonthe.shop/";  // 배포용 URL
 
 class StreamArea extends Component {
   constructor(props) {
@@ -46,6 +50,11 @@ class StreamArea extends Component {
     this.leaveSession();
   }
 
+  /* TODO:
+   * handleChangeSessionId 와 handleChangeUserName 함수를
+   * 대체해야 합니다.
+   */
+
   handleChangeSessionId(e) {
     this.setState({
       mySessionId: e.target.value,
@@ -57,6 +66,22 @@ class StreamArea extends Component {
       myUserName: e.target.value,
     });
   }
+
+  // begin modified functions
+
+  handleSetSessionId(id) {
+    this.setState({
+      mySessionId: id,
+    });
+  }
+
+  handleSetUserName(name) {
+    this.setState({
+      myUserName: name,
+    });
+  }
+
+  // end modified functions
 
   handleMainVideoStream(stream) {
     if (this.state.mainStreamManager !== stream) {
@@ -248,103 +273,68 @@ class StreamArea extends Component {
     const myUserName = this.state.myUserName;
 
     return (
-      <div className="container">
+      <div className="containerItem">
         {this.state.session === undefined ? (
           <div id="join">
-            <div id="join-dialog" className="jumbotron vertical-center">
-              <h1> Join a video session </h1>
-              <form className="form-group" onSubmit={this.joinSession}>
-                <p>
-                  <label>Participant: </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    id="userName"
-                    value={myUserName}
-                    onChange={this.handleChangeUserName}
-                    required
-                  />
-                </p>
-                <p>
-                  <label> Session: </label>
-                  <input
-                    className="form-control"
-                    type="text"
-                    id="sessionId"
-                    value={mySessionId}
-                    onChange={this.handleChangeSessionId}
-                    required
-                  />
-                </p>
-                <p className="text-center">
-                  <input
-                    className="btn btn-lg btn-success"
-                    name="commit"
-                    type="submit"
-                    value="JOIN"
-                  />
-                </p>
-              </form>
-            </div>
+            {/* TODO: handleSetSessionId 와 handleSetUserName 으로
+             * id와 name을 전달해야 합니다. */}
+            {this.joinSession()}
           </div>
         ) : null}
 
         {this.state.session !== undefined ? (
-          <div id="session">
-            <div id="session-header">
-              <h1 id="session-title">{mySessionId}</h1>
-              <input
-                className="btn btn-large btn-danger"
-                type="button"
-                id="buttonLeaveSession"
-                onClick={this.leaveSession}
-                value="Leave session"
-              />
-              <input
-                className="btn btn-large btn-danger"
-                type="button"
-                id="buttonPublishStream"
-                onClick={this.publishStream}
-                value="PUBLISH"
-              />
-            </div>
+          <Grid id="session" className="containerItem" container spacing={2} direction="column">
+            <Grid id="session-header" container item xs={1}>
+              <Grid item xs>
+                <Typography id="session-title" variant="h5">
+                  방 번호 : {mySessionId}
+                </Typography>
+              </Grid>
+              <Grid item xs>
+                <Button
+                  id="buttonLeaveSession"
+                  onClick={this.leaveSession}
+                  variant="text"
+                >
+                  세션 떠나기
+                </Button>
+                <Button
+                  id="buttonPublishStream"
+                  onClick={this.publishStream}
+                  variant="text"
+                >
+                  스트리밍 시작
+                </Button>
+              </Grid>
+            </Grid>
 
             {this.state.mainStreamManager !== undefined ? (
-              <div id="main-video" className="col-md-6">
-                <UserVideoComponent
+              <Grid id="main-video" item xs={1}>
+                {/* <UserVideoComponent
                   streamManager={this.state.mainStreamManager}
-                />
-                <input
-                  className="btn btn-large btn-success"
-                  type="button"
+                /> */}
+                <Button
                   id="buttonSwitchCamera"
                   onClick={this.switchCamera}
-                  value="Switch Camera"
-                />
-              </div>
-            ) : null}
-            <div id="video-container" className="col-md-6">
-              {this.state.publisher !== undefined ? (
-                <div
-                  className="stream-container col-md-6 col-xs-6"
-                  onClick={() =>
-                    this.handleMainVideoStream(this.state.publisher)
-                  }
+                  variant="text"
                 >
+                  카메라 전환
+                </Button>
+              </Grid>
+            ) : null}
+            <Grid id="video-container" container item xs="auto">
+              {this.state.publisher !== undefined ? (
+                <Grid item xs>
                   <UserVideoComponent streamManager={this.state.publisher} />
-                </div>
+                </Grid>
               ) : null}
               {this.state.subscribers.map((sub, i) => (
-                <div
-                  key={i}
-                  className="stream-container col-md-6 col-xs-6"
-                  onClick={() => this.handleMainVideoStream(sub)}
-                >
+                <Grid item xs key={i}>
                   <UserVideoComponent streamManager={sub} />
-                </div>
+                </Grid>
               ))}
-            </div>
-          </div>
+            </Grid>
+          </Grid>
         ) : null}
       </div>
     );
