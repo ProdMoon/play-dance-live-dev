@@ -4,6 +4,7 @@ import Chat from "../Chat/Chat";
 // MUI
 import { Grid, Paper } from "@mui/material";
 import GoogleLogin from "../GoogleLogin/GoogleLogin";
+import StreamArea from "../StreamArea/StreamArea";
 
 const Home = () => {
   return (
@@ -16,7 +17,7 @@ const Home = () => {
       </Grid>
       <Grid className="containerItem" item xs={6}>
         <Paper className="containerItem" elevation={5}>
-          메인 영상이 들어갈 공간입니다.
+          <StreamArea />
         </Paper>
       </Grid>
       <Grid className="containerItem" item xs={3}>
