@@ -4,10 +4,12 @@ import com.example.manmu.entity.Room;
 import com.example.manmu.entity.Song;
 import com.example.manmu.entity.User;
 import com.example.manmu.repository.BroadcastingRepository;
+import com.example.manmu.repository.UserRepository;
 import com.example.manmu.repository.WaitingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -15,11 +17,13 @@ import java.util.UUID;
 public class RoomService {
     private final WaitingRepository waitingRepository;
     private final BroadcastingRepository broadcastingRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public RoomService(WaitingRepository waitingRepository, BroadcastingRepository broadcastingRepository) {
+    public RoomService(WaitingRepository waitingRepository, BroadcastingRepository broadcastingRepository, UserRepository userRepository) {
         this.waitingRepository = waitingRepository;
         this.broadcastingRepository = broadcastingRepository;
+        this.userRepository = userRepository;
     }
 
     public Room createRoom(String roomId, User user, List<Song> songs) {
@@ -59,19 +63,28 @@ public class RoomService {
         }
     }
 
+    public Room findBroadcastByRoomId(String roomId) {
+        return broadcastingRepository.findRoom(roomId);
+    }
+
     public Room findbyUserId(Long userId) {
         for (Room room : waitingRepository.findAll()) {
             for (User user : room.getPublishers()) {
-                if (user.getId() == userId) {
+                if (user.getId().equals(userId)) {
                     return room;
                 }
             }
             for (User user : room.getSubscribers()) {
-                if (user.getId() == userId) {
+                if (user.getId().equals(userId)) {
                     return room;
                 }
             }
         }
         return null;
+    }
+
+    public User getUserById(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        return user.orElse(null);
     }
 }
