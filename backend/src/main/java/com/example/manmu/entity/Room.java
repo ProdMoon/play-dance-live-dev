@@ -18,8 +18,7 @@ import static java.util.Collections.synchronizedList;
 @NoArgsConstructor
 public class Room {
     private String roomId;
-    private Integer pubCount = 0;
-    private Integer subCount = 0;
+    private Integer userCount;
     private RoomState state;
     private List<Song> songs = synchronizedList(new ArrayList<>());
     private List<User> subscribers = synchronizedList(new ArrayList<>());
@@ -27,9 +26,11 @@ public class Room {
 
 
     @Builder
-    public Room(String roomId, RoomState state, List<Song> songs) {
+    public Room(String roomId, Integer userCount ,RoomState state, List<Song> songs) {
         this.roomId = roomId;
+        this.userCount = userCount;
         this.state = state;
+        this.songs = songs;
     }
 
 }
