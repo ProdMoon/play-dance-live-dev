@@ -33,13 +33,15 @@ public class RoomController {
         this.openvidu = new OpenVidu(openviduUrl, openviduSecret);
     }
 
-    @PostMapping("/api/rooms")
+    @PostMapping("/api/sessions")
     public ResponseEntity<String> makeRoom(@RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
         SessionProperties properties = SessionProperties.fromJson(params).build();
         Session session = openvidu.createSession(properties);
         List<Song> songs = params.get("songs") == null ? new ArrayList<>() : (List<Song>) params.get("songs");
-        Long userId = params.get("userid") == null ? null : (Long) params.get("userid");
+        Long userId = params.get("userId") == null ? null : (Long) params.get("userId");
+        System.out.println("userId = " + userId);
+        System.out.println("songs = " + songs);
         User user = roomService.getUserById(userId);
         Room room = roomService.createRoom(session.getSessionId(), user, songs);
         return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
