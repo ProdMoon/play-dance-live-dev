@@ -1,7 +1,7 @@
 package com.example.manmu.config.auth.dto;
 
 import com.example.manmu.domain.user.Role;
-import com.example.manmu.domain.user.User;
+import com.example.manmu.entity.User;
 import lombok.Builder;
 import lombok.Getter;
 

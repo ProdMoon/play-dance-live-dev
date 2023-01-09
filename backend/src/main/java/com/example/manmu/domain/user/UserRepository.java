@@ -3,6 +3,7 @@
 
 package com.example.manmu.domain.user;
 
+import com.example.manmu.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

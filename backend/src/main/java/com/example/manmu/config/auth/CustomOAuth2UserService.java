@@ -3,7 +3,7 @@ package com.example.manmu.config.auth;
 
 import com.example.manmu.config.auth.dto.OAuthAttributes;
 import com.example.manmu.config.auth.dto.SessionUser;
-import com.example.manmu.domain.user.User;
+import com.example.manmu.entity.User;
 import com.example.manmu.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
