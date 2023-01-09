@@ -4,6 +4,7 @@ import com.example.manmu.entity.Room;
 import com.example.manmu.entity.Song;
 import com.example.manmu.entity.User;
 import com.example.manmu.repository.RoomRepository;
+import com.example.manmu.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -14,9 +15,11 @@ import java.util.UUID;
 @Service
 public class RoomService {
     private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
     @Autowired
-    public RoomService(RoomRepository roomRepository) {
+    public RoomService(RoomRepository roomRepository , UserRepository userRepository) {
         this.roomRepository = roomRepository;
+        this.userRepository = userRepository;
     }
 
     public Room createRoom(String roomId, User user, List<Song> songs) {
@@ -26,7 +29,6 @@ public class RoomService {
                 .songs(songs)
                 .userCount(1)
                 .build();
-        room.getPublishers().add(user);
         return roomRepository.save(room);
     }
 
@@ -57,25 +59,25 @@ public class RoomService {
 //        }
 //    }
 
-    public Room findBroadcastByRoomId(String roomId) {
-        return broadcastingRepository.findRoom(roomId);
-    }
-
-    public Room findbyUserId(Long userId) {
-        for (Room room : waitingRepository.findAll()) {
-            for (User user : room.getPublishers()) {
-                if (user.getId().equals(userId)) {
-                    return room;
-                }
-            }
-            for (User user : room.getSubscribers()) {
-                if (user.getId().equals(userId)) {
-                    return room;
-                }
-            }
-        }
-        return null;
-    }
+//    public Room findBroadcastByRoomId(String roomId) {
+//        return broadcastingRepository.findRoom(roomId);
+//    }
+//
+//    public Room findbyUserId(Long userId) {
+//        for (Room room : waitingRepository.findAll()) {
+//            for (User user : room.getPublishers()) {
+//                if (user.getId().equals(userId)) {
+//                    return room;
+//                }
+//            }
+//            for (User user : room.getSubscribers()) {
+//                if (user.getId().equals(userId)) {
+//                    return room;
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     public User getUserById(Long userId) {
         Optional<User> user = userRepository.findById(userId);

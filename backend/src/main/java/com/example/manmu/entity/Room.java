@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,13 +17,17 @@ import static java.util.Collections.synchronizedList;
 @Getter
 @Setter
 @NoArgsConstructor
+@Entity
 public class Room {
+    @Id
     private String roomId;
+    @Column
     private Integer userCount;
+    @Column
     private RoomState state;
-    private List<Song> songs = synchronizedList(new ArrayList<>());
-    private List<User> subscribers = synchronizedList(new ArrayList<>());
-    private List<User> publishers = synchronizedList(new ArrayList<>());
+    @Column(name = "songs")
+    @OneToMany(mappedBy = "room")
+    private List<Song> songs;
 
 
     @Builder
