@@ -379,9 +379,10 @@ class StreamArea extends Component {
 
     const response = await axios.post(
       APPLICATION_SERVER_URL + "api/sessions",
-      { customSessionId: sessionId,
-        songs: ['song1', 'song2', 'song3'],
-        userId: '12345678' },
+      {
+        customSessionId: sessionId,
+        songs: ["song1", "song2", "song3"],
+      },
       {
         headers: { "Content-Type": "application/json" },
       }
