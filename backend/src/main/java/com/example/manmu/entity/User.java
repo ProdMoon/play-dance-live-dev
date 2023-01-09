@@ -1,6 +1,5 @@
 package com.example.manmu.entity;
 
-import com.example.manmu.domain.BaseTimeEntity;
 import com.example.manmu.domain.user.Role;
 import lombok.Builder;
 import lombok.Getter;

@@ -15,8 +15,8 @@ import java.util.UUID;
 import static java.util.Collections.synchronizedList;
 
 @Getter
-@Setter
 @NoArgsConstructor
+@Table(name= "room")
 @Entity
 public class Room {
     @Id
