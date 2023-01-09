@@ -33,19 +33,49 @@ public class RoomController {
         this.openvidu = new OpenVidu(openviduUrl, openviduSecret);
     }
 
-    public ResponseEntity<String> makeRoom(@RequestBody(required = false) Map<String, Object> params)
+//    public ResponseEntity<String> makeRoom(@RequestBody(required = false) Map<String, Object> params)
+//            throws OpenViduJavaClientException, OpenViduHttpException {
+//        SessionProperties properties = SessionProperties.fromJson(params).build();
+//        Session session = openvidu.createSession(properties);
+//        Room room = Room.builder()
+//                .roomId(session.getSessionId())
+//                .build();
+//        List<Song> songs = params.get("songs") == null ? new ArrayList<>() : (List<Song>) params.get("songs");
+//        Long userId = params.get("userid") == null ? null : (Long) params.get("userid");
+//        User user = roomService.getUserById(userId);
+//        roomService.createRoom(room.getRoomId(), user, songs);
+//        return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+//    }
+
+
+    @PostMapping("/api/matchroom")
+    public ResponseEntity<String> matchRoom(@RequestBody(required = false) Map<String, Object> params)
             throws OpenViduJavaClientException, OpenViduHttpException {
+        List<Song> songs = new ArrayList<>();
+        songs = (List<Song>) params.get("songs");
+
+        Collections.sort(songs);
+        for (int i = 0; i < rooms.size(); i++) {
+            List<Song> roomSongs = rooms.get(i).getSongs();
+            Collections.sort(roomSongs);
+            if (roomSongs.equals(songs)) {
+                Session session = openvidu.getActiveSession(rooms[i].sessionId);
+                ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
+                Connection connection = session.createConnection(properties);
+                return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
+            }
+        }
+
         SessionProperties properties = SessionProperties.fromJson(params).build();
         Session session = openvidu.createSession(properties);
-        Room room = Room.builder()
-                .roomId(session.getSessionId())
-                .build();
-        List<Song> songs = params.get("songs") == null ? new ArrayList<>() : (List<Song>) params.get("songs");
-        Long userId = params.get("userid") == null ? null : (Long) params.get("userid");
+        Long userId = (Long) params.get("userid");
         User user = roomService.getUserById(userId);
-        roomService.createRoom(room.getRoomId(), user, songs);
-        return new ResponseEntity<>(session.getSessionId(), HttpStatus.OK);
+        Room room = Room.builder().roomId(session.getSessionId()).build();
+        roomService.createRoom(room.getRoomId(),user,songs);
+        return new ResponseEntity<>(session.getSessionId(),HttpStatus.OK);
     }
+
+
 
     @PostMapping("/api/sessions/{sessionId}/connection")
     public ResponseEntity<String> createConnection(@PathVariable("sessionId") String sessionId,
@@ -59,20 +89,20 @@ public class RoomController {
         Connection connection = session.createConnection(properties);
         return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
     }
-
-    @PostMapping("/api/sessions/{beforeSessionId}/enter")
-    public ResponseEntity<String> enterRoom(@PathVariable("sessionId") String beforeSessionId,
-                                                   @RequestBody(required = false) Map<String, Object> params, Long id)
-            throws OpenViduJavaClientException, OpenViduHttpException {
-        Room room = roomService.findBroadcastByRoomId(beforeSessionId);
-        Session session = openvidu.getActiveSession(sessionId);
-        if (session == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
-        Connection connection = session.createConnection(properties);
-        return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
-    }
+//
+//    @PostMapping("/api/sessions/{beforeSessionId}/enter")
+//    public ResponseEntity<String> enterRoom(@PathVariable("sessionId") String beforeSessionId,
+//                                                   @RequestBody(required = false) Map<String, Object> params, Long id)
+//            throws OpenViduJavaClientException, OpenViduHttpException {
+//        Room room = roomService.findBroadcastByRoomId(beforeSessionId);
+//        Session session = openvidu.getActiveSession(sessionId);
+//        if (session == null) {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//        ConnectionProperties properties = ConnectionProperties.fromJson(params).build();
+//        Connection connection = session.createConnection(properties);
+//        return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
+//    }
 
     @PostMapping("/api/sessions/{sessionId}/ready")
     public ResponseEntity<String> readyRoom(@PathVariable("sessionId") String sessionId,
