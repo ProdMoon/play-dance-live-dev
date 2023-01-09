@@ -1,5 +1,5 @@
-import { Box, Button, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, Typography } from "@mui/material";
+import { useState } from "react";
 
 // const loginHandler = () => {
 //   return (
@@ -14,14 +14,7 @@ const GoogleLogin = () => {
     <Box>
       {userName === undefined ? (
         <Box>
-          <Button
-            onClick={() =>
-              window.open('https://192.168.0.62/api/oauth2/authorization/google', '_blank')
-            }
-            variant='text'
-          >
-            Google Login
-          </Button>
+          <a href="/oauth2/authorization/google">Google Login</a>
         </Box>
       ) : null}
       {userName !== undefined ? (
