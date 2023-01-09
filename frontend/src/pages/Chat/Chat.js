@@ -13,8 +13,8 @@ const Chat = () => {
 
   useEffect(() => {
     // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
-    const socket = new SockJS("https://192.168.0.62/api/ws"); // 개발용 URL
-    // const socket = new SockJS("https://boonthe.shop/api/ws");  // 배포용 URL
+    // const socket = new SockJS("https://192.168.0.62/api/ws"); // 개발용 URL
+    const socket = new SockJS("https://boonthe.shop/api/ws");  // 배포용 URL
     const stompClient = Stomp.over(socket);
     setClient(stompClient);
     stompClient.connect({}, (frame) => {
