@@ -11,7 +11,7 @@ import "./StreamArea.css";
 
 // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
 // const APPLICATION_SERVER_URL = "https://192.168.0.62/"; // 개발용 URL
-const APPLICATION_SERVER_URL = "https://boonthe.shop/";  // 배포용 URL
+const APPLICATION_SERVER_URL = "https://boonthe.shop/"; // 배포용 URL
 
 class StreamArea extends Component {
   constructor(props) {
@@ -36,6 +36,7 @@ class StreamArea extends Component {
     this.handleChangeUserName = this.handleChangeUserName.bind(this);
     this.handleMainVideoStream = this.handleMainVideoStream.bind(this);
     this.onbeforeunload = this.onbeforeunload.bind(this);
+    this.handleStreamMusic = this.handleStreamMusic.bind(this);
   }
 
   componentDidMount() {
@@ -102,6 +103,28 @@ class StreamArea extends Component {
     }
   }
 
+  // 음악의 URL을 받아서 Session에 연결된 모든 사용자에게 playMusic signal을 보내고,
+  // 현재 사용자의 브라우저에서도 재생합니다.
+  handleStreamMusic(e, songUrl) {
+    e.preventDefault();
+    const song = new Audio(songUrl);
+    this.state.session
+      .signal({
+        data: songUrl, // Any string (optional)
+        to: [], // Array of Connection objects (optional. Broadcast to everyone if empty)
+        type: "playMusic", // The type of message (optional)
+      })
+      .then(() => {
+        console.log("playMusic signal successfully sent");
+        song.loop = false;
+        song.volume = 1.0;
+        song.play();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
   joinSession() {
     // --- 1) Get an OpenVidu object ---
 
@@ -141,6 +164,20 @@ class StreamArea extends Component {
         // On every asynchronous exception...
         mySession.on("exception", (exception) => {
           console.warn(exception);
+        });
+
+        // 음악이 수신되면 재생합니다.
+        mySession.on("signal:playMusic", (event) => {
+          const song = new Audio(event.data);
+          song.loop = false;
+          song.volume = 1.0;
+          if (event.from !== myUserName) {
+            song.play();
+          }
+          console.log(event.data); // Message
+          console.log("event from : " + event.from); // Connection object of the sender
+          console.log("myUserName : " + myUserName);
+          console.log(event.type); // The type of message
         });
 
         // --- 4) Connect to the session with a valid user token ---
@@ -283,7 +320,13 @@ class StreamArea extends Component {
         ) : null}
 
         {this.state.session !== undefined ? (
-          <Grid id="session" className="containerItem" container spacing={2} direction="column">
+          <Grid
+            id="session"
+            className="containerItem"
+            container
+            spacing={2}
+            direction="column"
+          >
             <Grid id="session-header" container item xs={1}>
               <Grid item xs>
                 <Typography id="session-title" variant="h5">
@@ -319,6 +362,18 @@ class StreamArea extends Component {
                   variant="text"
                 >
                   카메라 전환
+                </Button>
+                <Button
+                  id="buttonStreamMusic"
+                  onClick={(e) =>
+                    this.handleStreamMusic(
+                      e,
+                      `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`
+                    )
+                  }
+                  variant="text"
+                >
+                  어텐션을 틀어보자
                 </Button>
               </Grid>
             ) : null}
