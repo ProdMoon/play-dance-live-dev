@@ -30,7 +30,7 @@ public class ChatController {
                                SimpMessageHeaderAccessor headerAccessor) {
         SessionUser user = (SessionUser) httpSession.getAttribute("user");
         // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", user.getName());
+        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
         return chatMessage;
     }
 
