@@ -15,6 +15,7 @@ import java.util.UUID;
 import static java.util.Collections.synchronizedList;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name= "room")
 @Entity
@@ -25,9 +26,10 @@ public class Room {
     private Integer userCount;
     @Column
     private RoomState state;
-    @Column(name = "songs")
-    @OneToMany(mappedBy = "room")
-    private List<Song> songs;
+
+    @Column
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
+    private List<Song> songs = synchronizedList(new ArrayList<>());
 
 
     @Builder
