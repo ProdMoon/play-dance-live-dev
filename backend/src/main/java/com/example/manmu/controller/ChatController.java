@@ -21,7 +21,14 @@ public class ChatController {
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
     public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
+
+        SessionUser user = (SessionUser) httpSession.getAttribute("user");
+        chatMessage.setSender(user.getName());
+
         return chatMessage;
+
+
+
     }
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
@@ -29,8 +36,9 @@ public class ChatController {
                                SimpMessageHeaderAccessor headerAccessor) {
         SessionUser user = (SessionUser) httpSession.getAttribute("user");
         // Add username in web socket session
-        // headerAccessor.getSessionAttributes().put("username", user.getName());
-        chatMessage.setSender(user.getName());
+
+         headerAccessor.getSessionAttributes().put("username", user.getName());
+//        chatMessage.setSender(user.getName());
 
         return chatMessage;
     }
