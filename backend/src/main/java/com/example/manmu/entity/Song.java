@@ -11,12 +11,13 @@ import javax.persistence.*;
 @Entity
 public class Song {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer songId;
     @Column
     private String songName;
     @Column
     private String singer;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
 }
