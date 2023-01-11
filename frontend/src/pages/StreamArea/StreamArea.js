@@ -25,6 +25,7 @@ class StreamArea extends Component {
       mainStreamManager: undefined, // Main video of the page. Will be the 'publisher' or one of the 'subscribers'
       publisher: undefined,
       subscribers: [],
+      myConnectionId: undefined,
     };
 
     this.joinSession = this.joinSession.bind(this);
@@ -37,6 +38,7 @@ class StreamArea extends Component {
     this.handleMainVideoStream = this.handleMainVideoStream.bind(this);
     this.onbeforeunload = this.onbeforeunload.bind(this);
     this.handleStreamMusic = this.handleStreamMusic.bind(this);
+    this.handleChangeConnectionId = this.handleChangeConnectionId.bind(this);
   }
 
   componentDidMount() {
@@ -83,6 +85,12 @@ class StreamArea extends Component {
   }
 
   // end modified functions
+
+  handleChangeConnectionId(connectionId) {
+    this.setState({
+      myConnectionId: connectionId,
+    });
+  }
 
   handleMainVideoStream(stream) {
     if (this.state.mainStreamManager !== stream) {
@@ -166,17 +174,23 @@ class StreamArea extends Component {
           console.warn(exception);
         });
 
-        // 음악이 수신되면 재생합니다.
+        // connection이 만들어질 때마다... (사용자 본인의 커넥션 포함)
+        mySession.on("connectionCreated", (event) => {
+          if (this.myConnectionId === undefined) {
+            this.handleChangeConnectionId(event.connection.connectionId);
+          }
+        })
+
+        // playMusic 시그널이 수신될 때마다...
         mySession.on("signal:playMusic", (event) => {
           const song = new Audio(event.data);
           song.loop = false;
           song.volume = 1.0;
-          if (event.from !== myUserName) {
+          if (event.from !== this.state.myConnectionId) {
             song.play();
           }
           console.log(event.data); // Message
-          console.log("event from : " + event.from); // Connection object of the sender
-          console.log("myUserName : " + myUserName);
+          console.log(event.from); // Connection object of the sender
           console.log(event.type); // The type of message
         });
 
@@ -264,6 +278,7 @@ class StreamArea extends Component {
       myUserName: "Participant" + Math.floor(Math.random() * 100),
       mainStreamManager: undefined,
       publisher: undefined,
+      myConnectionId: undefined,
     });
   }
 
@@ -416,12 +431,6 @@ class StreamArea extends Component {
   }
 
   async createSession(sessionId) {
-    // TODO: 여기서 참가자의 곡 정보들도 넘겨줘야 함.
-    // TODO:    {
-    // TODO:        songs: [song1, song2, song3],
-    // TODO:        userId: 유저정보(로그인할때 얻어지는 id값)
-    // TODO:    }
-
     const response = await axios.post(
       APPLICATION_SERVER_URL + "api/sessions",
       {
