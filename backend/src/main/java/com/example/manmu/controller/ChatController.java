@@ -4,7 +4,6 @@ package com.example.manmu.controller;
 import com.example.manmu.ChatMessage;
 import com.example.manmu.config.auth.dto.SessionUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -30,7 +29,9 @@ public class ChatController {
                                SimpMessageHeaderAccessor headerAccessor) {
         SessionUser user = (SessionUser) httpSession.getAttribute("user");
         // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
+        // headerAccessor.getSessionAttributes().put("username", user.getName());
+        chatMessage.setSender(user.getName());
+
         return chatMessage;
     }
 

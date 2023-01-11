@@ -1,10 +1,9 @@
 package com.example.manmu;
-
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Setter
+@Getter
 public class ChatMessage {
     private MessageType type;
     private String content;
