@@ -23,13 +23,14 @@ const GoogleLogin = () => {
         console.error(e);
       }
     }
-  });
+  }, [userName]);
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    e.preventDefault();
     setUserName(undefined);
     setUserEmail(undefined);
     setUserPicture(undefined);
-  }
+  };
 
   return (
     <Box>
@@ -43,7 +44,14 @@ const GoogleLogin = () => {
           <Avatar alt="profile image" src={userPicture} />
           <Typography>{userName}</Typography>
           <p />
-          <Button onClick={handleLogout} href="/api/logout">LOGOUT</Button>
+          <Button
+            onClick={(e) => {
+              handleLogout(e);
+            }}
+            href="/logout"
+          >
+            LOGOUT
+          </Button>
         </Box>
       ) : null}
     </Box>
