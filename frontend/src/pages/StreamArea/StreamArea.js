@@ -4,10 +4,10 @@ import React, { Component } from "react";
 
 // Pages
 import UserVideoComponent from "./UserVideoComponent";
-import { Button, Grid, Typography } from "@mui/material";
 
 // CSS
 import "./StreamArea.css";
+import { Button, Grid, Typography } from "@mui/material";
 
 // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
 // const APPLICATION_SERVER_URL = "https://192.168.0.62/"; // 개발용 URL
@@ -25,22 +25,30 @@ class StreamArea extends Component {
       mainStreamManager: undefined, // Main video of the page. Will be the 'publisher' or one of the 'subscribers'
       publisher: undefined,
       subscribers: [],
+      myConnectionId: undefined,
+      currentSongUrl: `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
+      songPlayFlag: false,
     };
 
     this.joinSession = this.joinSession.bind(this);
-    this.publishStream = this.publishStream.bind(this);
-    this.unpublishStream = this.unpublishStream.bind(this);
+    this.publishStream = this.publishStream.bind(this); // custom 함수
+    this.unpublishStream = this.unpublishStream.bind(this); // custom 함수
     this.leaveSession = this.leaveSession.bind(this);
     this.switchCamera = this.switchCamera.bind(this);
     this.handleChangeSessionId = this.handleChangeSessionId.bind(this);
     this.handleChangeUserName = this.handleChangeUserName.bind(this);
     this.handleMainVideoStream = this.handleMainVideoStream.bind(this);
     this.onbeforeunload = this.onbeforeunload.bind(this);
-    this.handleStreamMusic = this.handleStreamMusic.bind(this);
+    this.handleChangeConnectionId = this.handleChangeConnectionId.bind(this); // custom 함수
+    this.handleChangeAudioSource = this.handleChangeAudioSource.bind(this); // custom 함수
+    this.createAudioSource = this.createAudioSource.bind(this); // custom 함수
+    this.handlePlaySong = this.handlePlaySong.bind(this); // custom 함수
   }
 
   componentDidMount() {
     window.addEventListener("beforeunload", this.onbeforeunload);
+    this.audioRef = React.createRef();
+    this.localAudioRef = React.createRef();
   }
 
   componentWillUnmount() {
@@ -84,6 +92,12 @@ class StreamArea extends Component {
 
   // end modified functions
 
+  handleChangeConnectionId(connectionId) {
+    this.setState({
+      myConnectionId: connectionId,
+    });
+  }
+
   handleMainVideoStream(stream) {
     if (this.state.mainStreamManager !== stream) {
       this.setState({
@@ -103,26 +117,42 @@ class StreamArea extends Component {
     }
   }
 
-  // 음악의 URL을 받아서 Session에 연결된 모든 사용자에게 playMusic signal을 보내고,
-  // 현재 사용자의 브라우저에서도 재생합니다.
-  handleStreamMusic(e, songUrl) {
+  handleChangeSongPlayFlag(e, boolean) {
     e.preventDefault();
-    const song = new Audio(songUrl);
-    this.state.session
-      .signal({
-        data: songUrl, // Any string (optional)
-        to: [], // Array of Connection objects (optional. Broadcast to everyone if empty)
-        type: "playMusic", // The type of message (optional)
-      })
-      .then(() => {
-        console.log("playMusic signal successfully sent");
-        song.loop = false;
-        song.volume = 1.0;
-        song.play();
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    this.setState({
+      songPlayFlag: boolean,
+    });
+  }
+
+  async connectSourceToDest(src, dst) {
+    src.connect(dst);
+  }
+
+  async createAudioSource() {
+    const audioCtx = new AudioContext();
+    const dest = audioCtx.createMediaStreamDestination();
+    const source = audioCtx.createMediaElementSource(this.audioRef.current);
+    await this.connectSourceToDest(source, dest);
+    const audioSource = dest.stream; // audioSource 변수가 openvidu 연결에 사용할 audiosource 입니다.
+    return audioSource;
+  }
+
+  async handleChangeAudioSource(e) {
+    e.preventDefault();
+    // TODO: openvidu 현재 publisher의 audiosource를 source로 바꿔주어야...
+    const source = await this.createAudioSource();
+    const publisher = this.state.publisher;
+    const mediaStream = await this.OV.getUserMedia({
+      audioSource: source.getTracks()[0],
+    });
+    await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
+    console.log("changed audiosource to mp3!!");
+  }
+
+  handlePlaySong(e) {
+    e.preventDefault();
+    this.audioRef.current.play();
+    this.localAudioRef.current.play();
   }
 
   joinSession() {
@@ -166,18 +196,11 @@ class StreamArea extends Component {
           console.warn(exception);
         });
 
-        // 음악이 수신되면 재생합니다.
-        mySession.on("signal:playMusic", (event) => {
-          const song = new Audio(event.data);
-          song.loop = false;
-          song.volume = 1.0;
-          if (event.from !== myUserName) {
-            song.play();
+        // connection이 만들어질 때마다... (사용자 본인의 커넥션 포함)
+        mySession.on("connectionCreated", (event) => {
+          if (this.myConnectionId === undefined) {
+            this.handleChangeConnectionId(event.connection.connectionId);
           }
-          console.log(event.data); // Message
-          console.log("event from : " + event.from); // Connection object of the sender
-          console.log("myUserName : " + myUserName);
-          console.log(event.type); // The type of message
         });
 
         // --- 4) Connect to the session with a valid user token ---
@@ -264,6 +287,7 @@ class StreamArea extends Component {
       myUserName: "Participant" + Math.floor(Math.random() * 100),
       mainStreamManager: undefined,
       publisher: undefined,
+      myConnectionId: undefined,
     });
   }
 
@@ -364,17 +388,28 @@ class StreamArea extends Component {
                   카메라 전환
                 </Button>
                 <Button
-                  id="buttonStreamMusic"
-                  onClick={(e) =>
-                    this.handleStreamMusic(
-                      e,
-                      `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`
-                    )
-                  }
+                  id="buttonStreamSong"
+                  onClick={(e) => this.handleChangeAudioSource(e)}
                   variant="text"
                 >
-                  어텐션을 틀어보자
+                  audiosource를 mp3 file로 바꾸기
                 </Button>
+                <Button onClick={(e) => this.handlePlaySong(e)}>mp3 재생</Button>
+                <audio
+                  ref={this.audioRef}
+                  src={this.state.currentSongUrl}
+                  controls
+                />
+                <audio
+                  ref={this.localAudioRef}
+                  src={this.state.currentSongUrl}
+                  controls
+                />
+                {/* <SongStream
+                  playFlag={this.state.songPlayFlag}
+                  songUrl={this.state.currentSongUrl}
+                  onAudioSourceChange={this.handleChangeAudioSource}
+                /> */}
               </Grid>
             ) : null}
             <Grid id="video-container" container item xs="auto">
@@ -416,12 +451,6 @@ class StreamArea extends Component {
   }
 
   async createSession(sessionId) {
-    // TODO: 여기서 참가자의 곡 정보들도 넘겨줘야 함.
-    // TODO:    {
-    // TODO:        songs: [song1, song2, song3],
-    // TODO:        userId: 유저정보(로그인할때 얻어지는 id값)
-    // TODO:    }
-
     const response = await axios.post(
       APPLICATION_SERVER_URL + "api/sessions",
       {
