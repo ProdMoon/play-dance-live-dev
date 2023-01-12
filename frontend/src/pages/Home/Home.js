@@ -11,7 +11,6 @@ const Home = () => {
     <Grid className="container" container spacing={2}>
       <Grid className="containerItem" item xs={3}>
         <Paper className="containerItem" elevation={5}>
-          메뉴가 들어갈 공간입니다.
           <GoogleLogin />
         </Paper>
       </Grid>
