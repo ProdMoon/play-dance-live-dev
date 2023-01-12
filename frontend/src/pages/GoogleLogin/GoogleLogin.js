@@ -10,7 +10,7 @@ const GoogleLogin = () => {
   useEffect(async () => {
     if (userName === undefined) {
       try {
-        const response = await axios.get("/api/userInfo", {
+        const response = await axios.get("/api/userinfo", {
           headers: { "Content-Type": "application/json" },
         });
         console.log(response);
@@ -25,6 +25,12 @@ const GoogleLogin = () => {
     }
   });
 
+  const handleLogout = () => {
+    setUserName(undefined);
+    setUserEmail(undefined);
+    setUserPicture(undefined);
+  }
+
   return (
     <Box>
       {userName === undefined ? (
@@ -37,7 +43,7 @@ const GoogleLogin = () => {
           <Avatar alt="profile image" src={userPicture} />
           <Typography>{userName}</Typography>
           <p />
-          <Button href="/logout">LOGOUT</Button>
+          <Button onClick={handleLogout} href="/api/logout">LOGOUT</Button>
         </Box>
       ) : null}
     </Box>
