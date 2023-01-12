@@ -10,20 +10,21 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @Controller
 @RequiredArgsConstructor
 public class ChatController {
 
-    private final HttpSession httpSession;
+//    private final HttpSession httpSession;
 
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
     public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
 
-        SessionUser user = (SessionUser) httpSession.getAttribute("user");
-        chatMessage.setSender(user.getName());
+//        SessionUser user = (SessionUser) httpSession.getAttribute("user");
+//        chatMessage.setSender(user.getName());
 
         return chatMessage;
 
@@ -33,11 +34,14 @@ public class ChatController {
     @MessageMapping("/chat.addUser")
     @SendTo("/topic/public")
     public ChatMessage addUser(@Payload ChatMessage chatMessage,
-                               SimpMessageHeaderAccessor headerAccessor) {
+                               SimpMessageHeaderAccessor headerAccessor, HttpServletRequest request) {
+
+        HttpSession httpSession = request.getSession();
+
         SessionUser user = (SessionUser) httpSession.getAttribute("user");
         // Add username in web socket session
 
-         headerAccessor.getSessionAttributes().put("username", user.getName());
+        headerAccessor.getSessionAttributes().put("username", user.getName());
 //        chatMessage.setSender(user.getName());
 
         return chatMessage;
