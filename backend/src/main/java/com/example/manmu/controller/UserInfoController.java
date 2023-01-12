@@ -32,7 +32,8 @@ public class UserInfoController {
             return user;
 
         }else{
-            throw new RuntimeException("user not found in session");
+//             throw new RuntimeException("user not found in session");
+            return null;
         }
     }
 
