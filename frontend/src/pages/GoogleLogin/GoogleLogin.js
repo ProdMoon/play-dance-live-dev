@@ -25,11 +25,18 @@ const GoogleLogin = () => {
     }
   }, [userName]);
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
-    setUserName(undefined);
-    setUserEmail(undefined);
-    setUserPicture(undefined);
+    try {
+      const response = await axios.post("/logout");
+      if (response) {
+        setUserName(undefined);
+        setUserEmail(undefined);
+        setUserPicture(undefined);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -48,7 +55,6 @@ const GoogleLogin = () => {
             onClick={(e) => {
               handleLogout(e);
             }}
-            href="/logout"
           >
             LOGOUT
           </Button>
