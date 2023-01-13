@@ -87,11 +87,28 @@ public class RoomService {
         return null;
     }
 
-    public Room enterRoomTest(String roomId, String userId) {
-        Room foundRoom = testRepository.findById(roomId);
-        if(foundRoom != null) {
-            foundRoom.setUserCount(foundRoom.getUserCount() + 1);
-            return foundRoom;
+    public Room enterRoomTest(String roomId, String userId, String direction) {
+        if ((userId == null) && (roomId.equals("default"))) {
+            return testRepository.getFirst();
+        }
+        if (direction.equals("current")) {
+            Room foundRoom = testRepository.findById(roomId);
+            if (foundRoom != null) {
+                foundRoom.setUserCount(foundRoom.getUserCount() + 1);
+                return foundRoom;
+            }
+        } else if (direction.equals("next")) {
+            Room currentRoom = testRepository.findById(roomId);
+            Room nextRoom = testRepository.getNext(roomId);
+            currentRoom.setUserCount(currentRoom.getUserCount() - 1);
+            nextRoom.setUserCount(nextRoom.getUserCount() + 1);
+            return nextRoom;
+        } else {
+            Room currentRoom = testRepository.findById(roomId);
+            Room prevRoom = testRepository.getPrev(roomId);
+            currentRoom.setUserCount(currentRoom.getUserCount() - 1);
+            prevRoom.setUserCount(prevRoom.getUserCount() + 1);
+            return prevRoom;
         }
         return null;
     }

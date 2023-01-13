@@ -25,95 +25,110 @@ public class RoomController {
     @Autowired
     private final RoomService roomService;
 
-    @PostMapping("/api/room/create")
-    public Room createRoomControl(@RequestBody Map<String, Object> params) {
-        String userId = (String) params.get("userId");
-        List<Song> songs = (List<Song>) params.get("songs");
-        Room room = roomService.createRoom(userId, songs);
-        return room;
-    }
-
-//    @PostMapping("/api/create")
-//    public Room TestCreateRoom(@RequestBody(required = false) Map<String, Object> params) {
+//    @PostMapping("/api/room/create")
+//    public Room createRoomControl(@RequestBody Map<String, Object> params) {
 //        String userId = (String) params.get("userId");
 //        List<Song> songs = (List<Song>) params.get("songs");
-//        Room room = roomService.createRoomTest(userId, songs);
+//        Room room = roomService.createRoom(userId, songs);
 //        return room;
 //    }
 
-    @PostMapping("/api/room/match")
-    public Room matchRoomControl(@RequestBody Map<String, Object> params){
+    @PostMapping("/api/room/create")
+    public ResponseEntity<Room> TestCreateRoom(@RequestBody(required = false) Map<String, Object> params) {
         String userId = (String) params.get("userId");
         List<Song> songs = (List<Song>) params.get("songs");
-        return roomService.matchRoom(songs, userId);
+        Room room = roomService.createRoomTest(userId, songs);
+        if (room != null) {
+            return new ResponseEntity<>(room, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
-//    @PostMapping("/api/match")
-//    public Room TestMatchRoom(@RequestBody Map<String, Object> params){
+//    @PostMapping("/api/room/match")
+//    public Room matchRoomControl(@RequestBody Map<String, Object> params){
 //        String userId = (String) params.get("userId");
 //        List<Song> songs = (List<Song>) params.get("songs");
-//        return roomService.matchRoomTest(songs, userId);
+//        return roomService.matchRoom(songs, userId);
 //    }
 
-    @PostMapping("/api/room/enter")
-    public Room enterRoomControl(@RequestBody Map<String, Object> params){
+    @PostMapping("/api/room/match")
+    public ResponseEntity<Room> TestMatchRoom(@RequestBody Map<String, Object> params){
         String userId = (String) params.get("userId");
-        String roomId = (String) params.get("roomId");
-        Room room = roomService.enterRoom(roomId, userId);
-        if(room != null) {
-            return room;
+        List<Song> songs = (List<Song>) params.get("songs");
+        Room room = roomService.matchRoomTest(songs, userId);
+        if (room != null) {
+            return new ResponseEntity<>(room, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return null;
     }
 
-//    @PostMapping("/api/enter")
-//    public Room TestEnterRoom(@RequestBody Map<String, Object> params){
+//    @PostMapping("/api/room/enter")
+//    public Room enterRoomControl(@RequestBody Map<String, Object> params){
 //        String userId = (String) params.get("userId");
 //        String roomId = (String) params.get("roomId");
-//        Room room = roomService.enterRoomTest(roomId, userId);
+//        Room room = roomService.enterRoom(roomId, userId);
 //        if(room != null) {
 //            return room;
 //        }
 //        return null;
 //    }
 
-    @GetMapping("/api/findAllRooms")
-    public List<Room> findAllRoomsControl(){
-        return roomService.findAllRooms();
+    @PostMapping("/api/room/enter")
+    public ResponseEntity<Room> TestEnterRoom(@RequestBody Map<String, Object> params){
+        String userId = (String) params.get("userId");
+        String roomId = (String) params.get("roomId");
+        String direction = (String) params.get("direction");
+        Room room = roomService.enterRoomTest(roomId, userId, direction);
+        if (room != null) {
+            return new ResponseEntity<>(room, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-//    @GetMapping("/api/findAllRooms")
-//    public List<Room> TestfindAllRooms(){
-//        return roomService.findAllRoomsTest();
+//    @GetMapping("/api/room/findAllRooms")
+//    public List<Room> findAllRoomsControl(){
+//        return roomService.findAllRooms();
 //    }
 
-    @GetMapping("/api/findAllPlaying")
-    public List<Room> findAllPlayingControl(){
-        return roomService.findRoomsByStatePlaying();
+    @GetMapping("/api/room/findAllRooms")
+    public ResponseEntity<List<Room>> TestFindAllRooms(){
+        List<Room> allRooms =  roomService.findAllRoomsTest();
+        return new ResponseEntity<>(allRooms, HttpStatus.OK);
     }
 
-
-//    @GetMapping("/api/findAllPlaying")
-//    public List<Room> TestfindAllPlaying(){
-//        return roomService.findRoomsByStatePlayingTest();
+//    @GetMapping("/api/room/findAllPlaying")
+//    public List<Room> findAllPlayingControl(){
+//        return roomService.findRoomsByStatePlaying();
 //    }
 
-    @PostMapping("/api/startBroadcast")
-    public Room StartBroadcastControl(@RequestBody Map<String, String> params){
-        return roomService.startBroadcasting(params.get("roomId"));
-    }
-//    @PostMapping("/api/startBroadcast")
-//    public Room TestStartBroadcast(@RequestBody Map<String, String> params){
-//        return roomService.startBroadcastingTest(params.get("roomId"));
-//    }
 
-    @PostMapping("/api/exitBroadcast")
-    public List<Room> TestExitBroadcastControl(@RequestBody Map<String, String> params){
-        return roomService.exitBroadcast(params.get("roomId"));
+    @GetMapping("/api/room/findAllPlaying")
+    public ResponseEntity<List<Room>> TestFindAllPlaying(){
+        List<Room> allPlayingRooms = roomService.findRoomsByStatePlayingTest();
+        return new ResponseEntity<>(allPlayingRooms, HttpStatus.OK);
     }
 
-//    @PostMapping("/api/exitBroadcast")
-//    public List<Room> TestExitBroadcast(@RequestBody Map<String, String> params){
-//        return roomService.exitBroadcastTest(params.get("roomId"));
+//    @PostMapping("/api/room/startBroadcast")
+//    public Room StartBroadcastControl(@RequestBody Map<String, String> params){
+//        return roomService.startBroadcasting(params.get("roomId"));
 //    }
+
+    @PostMapping("/api/room/startBroadcast")
+    public ResponseEntity<Room> TestStartBroadcast(@RequestBody Map<String, String> params){
+        Room room =  roomService.startBroadcastingTest(params.get("roomId"));
+        return new ResponseEntity<>(room, HttpStatus.OK);
+    }
+
+//    @PostMapping("/api/room/exitBroadcast")
+//    public List<Room> TestExitBroadcastControl(@RequestBody Map<String, String> params){
+//        return roomService.exitBroadcast(params.get("roomId"));
+//    }
+
+    @PostMapping("/api/room/exitBroadcast")
+    public ResponseEntity<List<Room>> TestExitBroadcast(@RequestBody Map<String, String> params){
+        List<Room> rooms = roomService.exitBroadcastTest(params.get("roomId"));
+        return new ResponseEntity<>(rooms, HttpStatus.OK);
+    }
 }
