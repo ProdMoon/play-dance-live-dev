@@ -3,10 +3,9 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useLoginContext } from "../Home/Home";
 
-
 const GoogleLogin = () => {
   const [userInfo, setUserInfo] = useLoginContext();
-  
+
   useEffect(async () => {
     if (userInfo.userName === undefined) {
       try {
@@ -15,11 +14,12 @@ const GoogleLogin = () => {
         });
         console.log(response);
         if (response !== null) {
-          setUserInfo({
+          setUserInfo((prevState) => ({
+            ...prevState,
             userName: response.data.name,
             userEmail: response.data.email,
             userPicture: response.data.picture,
-          });
+          }));
         }
       } catch (e) {
         console.error(e);
@@ -36,6 +36,7 @@ const GoogleLogin = () => {
           userName: undefined,
           userEmail: undefined,
           userPicture: undefined,
+          roomId: undefined,
         });
       }
     } catch (e) {
