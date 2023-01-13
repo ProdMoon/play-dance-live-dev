@@ -19,6 +19,7 @@ const Chat = () => {
     setClient(stompClient);
     stompClient.connect({}, (frame) => {
       console.log("Connected: " + frame);
+      // TODO : "topic/public"대신 "topic/{roomId}"로 바꿔야 함.
       stompClient.subscribe("/topic/public", (message) => {
         const messageBody = JSON.parse(message.body);
         if (messageBody.type === "CHAT") {

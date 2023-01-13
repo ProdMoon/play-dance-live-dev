@@ -1,30 +1,53 @@
-// Pages
+import { createContext, useContext, useState } from "react";
+
+import { Grid, Paper } from "@mui/material";
+
+import GoogleLogin from "../GoogleLogin/GoogleLogin";
+import Room from "../Room/Room";
 import Chat from "../Chat/Chat";
 
-// MUI
-import { Grid, Paper } from "@mui/material";
-import GoogleLogin from "../GoogleLogin/GoogleLogin";
-import StreamArea from "../StreamArea/StreamArea";
+export const LoginContext = createContext();
+
+const LoginContextProvider = ({ children }) => {
+  const userInfoObject = useState({
+    userName: undefined,
+    userEmail: undefined,
+    userPicture: undefined,
+    roomId: undefined,
+  });
+  return (
+    <LoginContext.Provider value={userInfoObject}>
+      {children}
+    </LoginContext.Provider>
+  );
+};
+
+export function useLoginContext() {
+  const value = useContext(LoginContext);
+  return value;
+}
 
 const Home = () => {
   return (
-    <Grid className="container" container spacing={2}>
-      <Grid className="containerItem" item xs={3}>
-        <Paper className="containerItem" elevation={5}>
-          <GoogleLogin />
-        </Paper>
+    <LoginContextProvider>
+      <Grid className="container" container spacing={2}>
+        <Grid className="containerItem" item xs={3}>
+          <Paper className="containerItem" elevation={5}>
+            <GoogleLogin />
+          </Paper>
+        </Grid>
+        <Grid className="containerItem" item xs={6}>
+          <Paper className="containerItem" elevation={5}>
+            <Room />
+          </Paper>
+        </Grid>
+        <Grid className="containerItem" item xs={3}>
+          <Paper className="containerItem" elevation={5}>
+            <Chat />
+          </Paper>
+        </Grid>
       </Grid>
-      <Grid className="containerItem" item xs={6}>
-        <Paper className="containerItem" elevation={5}>
-          <StreamArea />
-        </Paper>
-      </Grid>
-      <Grid className="containerItem" item xs={3}>
-        <Paper className="containerItem" elevation={5}>
-          <Chat />
-        </Paper>
-      </Grid>
-    </Grid>
+    </LoginContextProvider>
   );
 };
 
