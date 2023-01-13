@@ -1,38 +1,42 @@
 import { Avatar, Box, Button, Typography } from "@mui/material";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useLoginContext } from "../Home/Home";
+
 
 const GoogleLogin = () => {
-  const [userName, setUserName] = useState(undefined);
-  const [userEmail, setUserEmail] = useState(undefined);
-  const [userPicture, setUserPicture] = useState(undefined);
-
+  const [userInfo, setUserInfo] = useLoginContext();
+  
   useEffect(async () => {
-    if (userName === undefined) {
+    if (userInfo.userName === undefined) {
       try {
         const response = await axios.get("/api/userinfo", {
           headers: { "Content-Type": "application/json" },
         });
         console.log(response);
         if (response !== null) {
-          setUserName(response.data.name);
-          setUserEmail(response.data.email);
-          setUserPicture(response.data.picture);
+          setUserInfo({
+            userName: response.data.name,
+            userEmail: response.data.email,
+            userPicture: response.data.picture,
+          });
         }
       } catch (e) {
         console.error(e);
       }
     }
-  }, [userName]);
+  }, [userInfo.userName]);
 
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
       const response = await axios.post("/logout");
       if (response) {
-        setUserName(undefined);
-        setUserEmail(undefined);
-        setUserPicture(undefined);
+        setUserInfo({
+          userName: undefined,
+          userEmail: undefined,
+          userPicture: undefined,
+        });
       }
     } catch (e) {
       console.error(e);
@@ -41,15 +45,15 @@ const GoogleLogin = () => {
 
   return (
     <Box>
-      {userName === undefined ? (
+      {userInfo.userName === undefined ? (
         <Box>
           <Button href="/oauth2/authorization/google">GOOGLE LOGIN</Button>
         </Box>
       ) : null}
-      {userName !== undefined ? (
+      {userInfo.userName !== undefined ? (
         <Box>
-          <Avatar alt="profile image" src={userPicture} />
-          <Typography>{userName}</Typography>
+          <Avatar alt="profile image" src={userInfo.userPicture} />
+          <Typography>{userInfo.userName}</Typography>
           <p />
           <Button
             onClick={(e) => {

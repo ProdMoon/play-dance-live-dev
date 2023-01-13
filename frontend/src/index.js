@@ -1,19 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// Pages
 import Home from "./pages/Home/Home";
-import StreamArea from "./pages/StreamArea/StreamArea"
+import StreamArea from "./pages/StreamArea/StreamArea";
 
 // import registerServiceWorker from "./registerServiceWorker";
 
-// CSS
 import "./index.css";
-// Roboto fonts
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
