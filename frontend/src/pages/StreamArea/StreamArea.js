@@ -1,12 +1,12 @@
 import { OpenVidu } from "openvidu-browser";
 import axios from "axios";
-import React, { Component } from "react";
+import React, { useContext, Component } from "react";
 
 import UserVideoComponent from "./UserVideoComponent";
+import { LoginContext } from "../Home/Home";
 
 import "./StreamArea.css";
 import { Button, Grid, Typography } from "@mui/material";
-import { LoginContext } from "../Home/Home";
 
 // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
 // const APPLICATION_SERVER_URL = "https://192.168.0.62/"; // 개발용 URL
@@ -20,8 +20,8 @@ class StreamArea extends Component {
 
     // These properties are in the state's component in order to re-render the HTML whenever their values change
     this.state = {
-      mySessionId: this.context.roomId,
-      myUserName: this.context.userName,
+      mySessionId: undefined,
+      myUserName: undefined,
       session: undefined,
       mainStreamManager: undefined, // Main video of the page. Will be the 'publisher' or one of the 'subscribers'
       publisher: undefined,
@@ -44,6 +44,8 @@ class StreamArea extends Component {
     this.handleChangeAudioSource = this.handleChangeAudioSource.bind(this); // custom 함수
     this.createAudioSource = this.createAudioSource.bind(this); // custom 함수
     this.handlePlaySong = this.handlePlaySong.bind(this); // custom 함수
+    this.handleSetSessionId = this.handleSetSessionId.bind(this); // custom
+    this.handleSetUserName = this.handleSetUserName.bind(this); // custom
   }
 
   componentDidMount() {
@@ -284,8 +286,8 @@ class StreamArea extends Component {
     this.setState({
       session: undefined,
       subscribers: [],
-      mySessionId: "SessionA",
-      myUserName: "Participant" + Math.floor(Math.random() * 100),
+      mySessionId: undefined,
+      myUserName: undefined,
       mainStreamManager: undefined,
       publisher: undefined,
       myConnectionId: undefined,
@@ -331,6 +333,7 @@ class StreamArea extends Component {
   }
 
   render() {
+    const userInfo = this.context;
     const mySessionId = this.state.mySessionId;
     const myUserName = this.state.myUserName;
 
@@ -338,8 +341,8 @@ class StreamArea extends Component {
       <div className="containerItem">
         {this.state.session === undefined ? (
           <div id="join">
-            {/* TODO: handleSetSessionId 와 handleSetUserName 으로
-             * id와 name을 전달해야 합니다. */}
+            {this.handleSetSessionId(userInfo.roomId)}
+            {this.handleSetUserName(userInfo.userName)}
             {this.joinSession()}
           </div>
         ) : null}
@@ -395,7 +398,9 @@ class StreamArea extends Component {
                 >
                   audiosource를 mp3 file로 바꾸기
                 </Button>
-                <Button onClick={(e) => this.handlePlaySong(e)}>mp3 재생</Button>
+                <Button onClick={(e) => this.handlePlaySong(e)}>
+                  mp3 재생
+                </Button>
                 <audio
                   ref={this.audioRef}
                   src={this.state.currentSongUrl}

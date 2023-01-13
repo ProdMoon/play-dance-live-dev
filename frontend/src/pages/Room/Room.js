@@ -19,7 +19,10 @@ const Room = () => {
           .then((response) => {
             const data = response.data;
             console.log("current roomId : " + data.roomId);
-            setUserInfo({ roomId: data.roomId });
+            setUserInfo((prevState) => ({
+              ...prevState,
+              roomId: data.roomId,
+            }));
           });
       } catch (error) {
         console.error(error);
@@ -38,7 +41,10 @@ const Room = () => {
         .then((response) => {
           const data = response.data;
           console.log("created roomId : " + data.roomId);
-          setUserInfo({ roomId: data.roomId });
+          setUserInfo((prevState) => ({
+            ...prevState,
+            roomId: data.roomId,
+          }));
         });
     } catch (error) {
       console.error(error);
