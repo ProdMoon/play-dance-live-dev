@@ -5,11 +5,15 @@ import com.example.manmu.entity.Room;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import static java.util.Collections.synchronizedList;
 
 @Repository
 public class TestRepository {
-    List<Room> rooms = new ArrayList<>();
+
+    List<Room> rooms = synchronizedList(new LinkedList<>());
 
     public Room save(Room room) {
         rooms.add(room);
@@ -48,5 +52,47 @@ public class TestRepository {
         }
         rooms.remove(roomId);
         return rooms;
+    }
+
+    public Room getNext(String roomId) {
+        if (rooms.isEmpty()) {
+            return null;
+        }
+        Room currentRoom = rooms.stream()
+                .filter(room -> room.getRoomId().equals(roomId))
+                .findFirst()
+                .orElse(null);
+        if (currentRoom == null) {
+            return null;
+        }
+        int index = rooms.indexOf(currentRoom);
+        if (index == rooms.size() - 1) {
+            return rooms.get(0);
+        } else {
+            return rooms.get((index + 1) % rooms.size());
+        }
+    }
+
+    public Room getPrev(String roomId) {
+        if (rooms.isEmpty()) {
+            return null;
+        }
+        Room currentRoom = rooms.stream()
+                .filter(room -> room.getRoomId().equals(roomId))
+                .findFirst()
+                .orElse(null);
+        if (currentRoom == null) {
+            return null;
+        }
+        int index = rooms.indexOf(currentRoom);
+        if (index == 0) {
+            return currentRoom;
+        } else {
+            return rooms.get((index - 1) % rooms.size());
+        }
+    }
+
+    public Room getFirst() {
+       return rooms.get(0);
     }
 }
