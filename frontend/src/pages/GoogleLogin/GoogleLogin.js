@@ -23,13 +23,21 @@ const GoogleLogin = () => {
         console.error(e);
       }
     }
-  });
+  }, [userName]);
 
-  const handleLogout = () => {
-    setUserName(undefined);
-    setUserEmail(undefined);
-    setUserPicture(undefined);
-  }
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("/logout");
+      if (response) {
+        setUserName(undefined);
+        setUserEmail(undefined);
+        setUserPicture(undefined);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   return (
     <Box>
@@ -43,7 +51,13 @@ const GoogleLogin = () => {
           <Avatar alt="profile image" src={userPicture} />
           <Typography>{userName}</Typography>
           <p />
-          <Button onClick={handleLogout} href="/api/logout">LOGOUT</Button>
+          <Button
+            onClick={(e) => {
+              handleLogout(e);
+            }}
+          >
+            LOGOUT
+          </Button>
         </Box>
       ) : null}
     </Box>

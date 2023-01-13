@@ -24,13 +24,5 @@ public class IndexController {
         return "index";
 
     }
-
-    @GetMapping(path = "/api/logout")
-    public String logout(SessionStatus sessionStatus) {
-
-        sessionStatus.setComplete();
-
-        return "/";
-    }
 }
 

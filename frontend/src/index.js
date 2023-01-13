@@ -9,8 +9,7 @@ import {
 import Home from "./pages/Home/Home";
 import StreamArea from "./pages/StreamArea/StreamArea"
 
-// Functions
-import registerServiceWorker from "./registerServiceWorker";
+// import registerServiceWorker from "./registerServiceWorker";
 
 // CSS
 import "./index.css";
@@ -35,4 +34,4 @@ ReactDOM.render(
   <RouterProvider router={router} />,
   document.getElementById("root")
 );
-registerServiceWorker();
+// registerServiceWorker();
