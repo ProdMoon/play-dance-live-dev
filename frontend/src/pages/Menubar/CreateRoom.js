@@ -115,7 +115,7 @@ const CreateRoom = () => {
 
   return (
     <>
-      {userInfo.userName === undefined ? (
+      {userInfo.userName !== undefined ? (
         <div>
           <Button onClick={(e) => toggleOpen(e)} variant='contained'>
             {formOpened ? '닫기' : '참가하기'}
