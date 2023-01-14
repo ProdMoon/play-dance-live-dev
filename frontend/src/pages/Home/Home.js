@@ -1,10 +1,10 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from 'react';
 
-import { Grid, Paper } from "@mui/material";
+import { Grid, Paper } from '@mui/material';
 
-import GoogleLogin from "../GoogleLogin/GoogleLogin";
-import Room from "../Room/Room";
-import Chat from "../Chat/Chat";
+import GoogleLogin from '../GoogleLogin/GoogleLogin';
+import Room from '../Room/Room';
+import Chat from '../Chat/Chat';
 
 export const LoginContext = createContext();
 
@@ -30,19 +30,19 @@ export function useLoginContext() {
 const Home = () => {
   return (
     <LoginContextProvider>
-      <Grid className="container" container spacing={2}>
-        <Grid className="containerItem" item xs={3}>
-          <Paper className="containerItem" elevation={5}>
+      <Grid className='container' container spacing={2}>
+        <Grid className='containerItem' item xs={3}>
+          <Paper className='containerItem' elevation={5}>
             <GoogleLogin />
           </Paper>
         </Grid>
-        <Grid className="containerItem" item xs={6}>
-          <Paper className="containerItem" elevation={5}>
+        <Grid className='containerItem' item xs={6}>
+          <Paper className='containerItem' elevation={5}>
             <Room />
           </Paper>
         </Grid>
-        <Grid className="containerItem" item xs={3}>
-          <Paper className="containerItem" elevation={5}>
+        <Grid className='containerItem' item xs={3}>
+          <Paper className='containerItem' elevation={5}>
             <Chat />
           </Paper>
         </Grid>

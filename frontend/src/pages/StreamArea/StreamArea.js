@@ -1,16 +1,16 @@
-import { OpenVidu } from "openvidu-browser";
-import axios from "axios";
-import React, { useContext, Component } from "react";
+import { OpenVidu } from 'openvidu-browser';
+import axios from 'axios';
+import React, { Component } from 'react';
 
-import UserVideoComponent from "./UserVideoComponent";
-import { LoginContext } from "../Home/Home";
+import UserVideoComponent from './UserVideoComponent';
+import { LoginContext } from '../Home/Home';
 
-import "./StreamArea.css";
-import { Button, Grid, Typography } from "@mui/material";
+import './StreamArea.css';
+import { Button, Grid, Typography } from '@mui/material';
 
 // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
-// const APPLICATION_SERVER_URL = "https://192.168.0.62/"; // 개발용 URL
-const APPLICATION_SERVER_URL = "https://boonthe.shop/"; // 배포용 URL
+// const APPLICATION_SERVER_URL = 'https://192.168.0.62/'; // 개발용 URL
+const APPLICATION_SERVER_URL = 'https://boonthe.shop/'; // 배포용 URL
 
 class StreamArea extends Component {
   static contextType = LoginContext;
@@ -49,13 +49,13 @@ class StreamArea extends Component {
   }
 
   componentDidMount() {
-    window.addEventListener("beforeunload", this.onbeforeunload);
+    window.addEventListener('beforeunload', this.onbeforeunload);
     this.audioRef = React.createRef();
     this.localAudioRef = React.createRef();
   }
 
   componentWillUnmount() {
-    window.removeEventListener("beforeunload", this.onbeforeunload);
+    window.removeEventListener('beforeunload', this.onbeforeunload);
   }
 
   onbeforeunload(event) {
@@ -149,7 +149,7 @@ class StreamArea extends Component {
       audioSource: source.getTracks()[0],
     });
     await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
-    console.log("changed audiosource to mp3!!");
+    console.log('changed audiosource to mp3!!');
   }
 
   handlePlaySong(e) {
@@ -175,7 +175,7 @@ class StreamArea extends Component {
         // --- 3) Specify the actions when events take place in the session ---
 
         // On every new Stream received...
-        mySession.on("streamCreated", (event) => {
+        mySession.on('streamCreated', (event) => {
           // Subscribe to the Stream to receive it. Second parameter is undefined
           // so OpenVidu doesn't create an HTML video by its own
           var subscriber = mySession.subscribe(event.stream, undefined);
@@ -189,18 +189,18 @@ class StreamArea extends Component {
         });
 
         // On every Stream destroyed...
-        mySession.on("streamDestroyed", (event) => {
+        mySession.on('streamDestroyed', (event) => {
           // Remove the stream from 'subscribers' array
           this.deleteSubscriber(event.stream.streamManager);
         });
 
         // On every asynchronous exception...
-        mySession.on("exception", (exception) => {
+        mySession.on('exception', (exception) => {
           console.warn(exception);
         });
 
         // connection이 만들어질 때마다... (사용자 본인의 커넥션 포함)
-        mySession.on("connectionCreated", (event) => {
+        mySession.on('connectionCreated', (event) => {
           if (this.myConnectionId === undefined) {
             this.handleChangeConnectionId(event.connection.connectionId);
           }
@@ -217,13 +217,13 @@ class StreamArea extends Component {
             .then()
             .catch((error) => {
               console.log(
-                "There was an error connecting to the session:",
+                'There was an error connecting to the session:',
                 error.code,
-                error.message
+                error.message,
               );
             });
         });
-      }
+      },
     );
   }
 
@@ -239,9 +239,9 @@ class StreamArea extends Component {
       videoSource: undefined, // The source of video. If undefined default webcam
       publishAudio: true, // Whether you want to start publishing with your audio unmuted or not
       publishVideo: true, // Whether you want to start publishing with your video enabled or not
-      resolution: "320x470", // The resolution of your video
+      resolution: '320x470', // The resolution of your video
       frameRate: 30, // The frame rate of your video
-      insertMode: "APPEND", // How the video is inserted in the target element 'video-container'
+      insertMode: 'APPEND', // How the video is inserted in the target element 'video-container'
       mirror: false, // Whether to mirror your local video or not
     });
 
@@ -251,13 +251,13 @@ class StreamArea extends Component {
 
     // Obtain the current video device in use
     var devices = await this.OV.getDevices();
-    var videoDevices = devices.filter((device) => device.kind === "videoinput");
+    var videoDevices = devices.filter((device) => device.kind === 'videoinput');
     var currentVideoDeviceId = publisher.stream
       .getMediaStream()
       .getVideoTracks()[0]
       .getSettings().deviceId;
     var currentVideoDevice = videoDevices.find(
-      (device) => device.deviceId === currentVideoDeviceId
+      (device) => device.deviceId === currentVideoDeviceId,
     );
 
     // Set the main video in the page to display our webcam and store our Publisher
@@ -298,12 +298,13 @@ class StreamArea extends Component {
     try {
       const devices = await this.OV.getDevices();
       var videoDevices = devices.filter(
-        (device) => device.kind === "videoinput"
+        (device) => device.kind === 'videoinput',
       );
 
       if (videoDevices && videoDevices.length > 1) {
         var newVideoDevice = videoDevices.filter(
-          (device) => device.deviceId !== this.state.currentVideoDevice.deviceId
+          (device) =>
+            device.deviceId !== this.state.currentVideoDevice.deviceId,
         );
 
         if (newVideoDevice.length > 0) {
@@ -338,9 +339,9 @@ class StreamArea extends Component {
     const myUserName = this.state.myUserName;
 
     return (
-      <div className="containerItem">
+      <div className='containerItem'>
         {this.state.session === undefined ? (
-          <div id="join">
+          <div id='join'>
             {this.handleSetSessionId(userInfo.roomId)}
             {this.handleSetUserName(userInfo.userName)}
             {this.joinSession()}
@@ -349,30 +350,30 @@ class StreamArea extends Component {
 
         {this.state.session !== undefined ? (
           <Grid
-            id="session"
-            className="containerItem"
+            id='session'
+            className='containerItem'
             container
             spacing={2}
-            direction="column"
+            direction='column'
           >
-            <Grid id="session-header" container item xs={1}>
+            <Grid id='session-header' container item xs={1}>
               <Grid item xs>
-                <Typography id="session-title" variant="h5">
+                <Typography id='session-title' variant='h5'>
                   방 번호 : {mySessionId}
                 </Typography>
               </Grid>
               <Grid item xs>
                 <Button
-                  id="buttonLeaveSession"
+                  id='buttonLeaveSession'
                   onClick={this.leaveSession}
-                  variant="text"
+                  variant='text'
                 >
                   세션 떠나기
                 </Button>
                 <Button
-                  id="buttonPublishStream"
+                  id='buttonPublishStream'
                   onClick={this.publishStream}
-                  variant="text"
+                  variant='text'
                 >
                   스트리밍 시작
                 </Button>
@@ -380,21 +381,21 @@ class StreamArea extends Component {
             </Grid>
 
             {this.state.mainStreamManager !== undefined ? (
-              <Grid id="main-video" item xs={1}>
+              <Grid id='main-video' item xs={1}>
                 {/* <UserVideoComponent
                   streamManager={this.state.mainStreamManager}
                 /> */}
                 <Button
-                  id="buttonSwitchCamera"
+                  id='buttonSwitchCamera'
                   onClick={this.switchCamera}
-                  variant="text"
+                  variant='text'
                 >
                   카메라 전환
                 </Button>
                 <Button
-                  id="buttonStreamSong"
+                  id='buttonStreamSong'
                   onClick={(e) => this.handleChangeAudioSource(e)}
-                  variant="text"
+                  variant='text'
                 >
                   audiosource를 mp3 file로 바꾸기
                 </Button>
@@ -418,7 +419,7 @@ class StreamArea extends Component {
                 /> */}
               </Grid>
             ) : null}
-            <Grid id="video-container" container item xs="auto">
+            <Grid id='video-container' container item xs='auto'>
               {this.state.publisher !== undefined ? (
                 <Grid item xs>
                   <UserVideoComponent streamManager={this.state.publisher} />
@@ -458,25 +459,25 @@ class StreamArea extends Component {
 
   async createSession(sessionId) {
     const response = await axios.post(
-      APPLICATION_SERVER_URL + "api/sessions",
+      APPLICATION_SERVER_URL + 'api/sessions',
       {
         customSessionId: sessionId,
-        songs: ["song1", "song2", "song3"],
+        songs: ['song1', 'song2', 'song3'],
       },
       {
-        headers: { "Content-Type": "application/json" },
-      }
+        headers: { 'Content-Type': 'application/json' },
+      },
     );
     return response.data; // The sessionId
   }
 
   async createToken(sessionId) {
     const response = await axios.post(
-      APPLICATION_SERVER_URL + "api/sessions/" + sessionId + "/connections",
+      APPLICATION_SERVER_URL + 'api/sessions/' + sessionId + '/connections',
       {},
       {
-        headers: { "Content-Type": "application/json" },
-      }
+        headers: { 'Content-Type': 'application/json' },
+      },
     );
     return response.data; // The token
   }

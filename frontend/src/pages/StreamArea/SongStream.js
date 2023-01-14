@@ -1,4 +1,6 @@
-import React, { useRef, useEffect } from "react";
+// 주의 : 현재 사용되지 않는 파일입니다.
+
+import React, { useRef, useEffect } from 'react';
 
 function SongStream(props) {
   const playFlag = props.playFlag;
@@ -8,9 +10,8 @@ function SongStream(props) {
   const audioRef = useRef(null);
 
   useEffect(() => {
-    console.log("playFlag changed! " + playFlag);
+    console.log('playFlag changed! ' + playFlag);
     if (playFlag === true) {
-      console.log("얘가 출력이 되어야하거든?")
       audioRef.current.play();
     }
   }, [playFlag]);
@@ -33,7 +34,7 @@ function SongStream(props) {
 
   return (
     <div>
-      <audio ref={audioRef} src={songUrl} controls/>
+      <audio ref={audioRef} src={songUrl} controls />
     </div>
   );
 }
