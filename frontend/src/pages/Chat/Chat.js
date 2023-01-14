@@ -1,29 +1,31 @@
-import { Typography, Box, Paper, Grid, TextField } from '@mui/material';
 import { useState, useEffect, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
+import { Typography, Box, Grid, TextField, Popover } from '@mui/material';
+import { useLoginContext } from '../Home/Home';
 
 const Chat = () => {
+  const [userInfo, setUserInfo] = useLoginContext();
+
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [client, setClient] = useState(null);
-  const username = sessionStorage.getItem('id');
+
+  const [anchorEl, setAnchorEl] = useState(null); // for Popover
+
+  const username = userInfo.userName ?? undefined;
   const chattingViewRef = useRef();
   const label = '채팅';
 
   useEffect(() => {
-    // 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
-    // const socket = new SockJS("https://192.168.0.62/api/ws"); // 개발용 URL
-    const socket = new SockJS('https://boonthe.shop/api/ws'); // 배포용 URL
+    const socket = new SockJS(`https://${process.env.REACT_APP_HOST}/api/ws`);
     const stompClient = Stomp.over(socket);
     setClient(stompClient);
     stompClient.connect({}, (frame) => {
       console.log('Connected: ' + frame);
-      // TODO : "topic/public"대신 "topic/{roomId}"로 바꿔야 함.
-      stompClient.subscribe('/topic/public', (message) => {
+      stompClient.subscribe(`/topic/${userInfo.roomId}`, (message) => {
         const messageBody = JSON.parse(message.body);
         if (messageBody.type === 'CHAT') {
-          // TODO: if (messageBody.roomId === currentRoomId) 일때만 채팅 수신
           setMessages((prevMessages) => [...prevMessages, message]);
           scrollDown();
         }
@@ -36,26 +38,30 @@ const Chat = () => {
     });
   }, []);
 
+  const sendMessage = () => {
+    const chatMessage = {
+      sender: username,
+      content: message,
+      type: 'CHAT',
+      roomId: userInfo.roomId,
+    };
+    client.send('/app/chat.sendMessage', {}, JSON.stringify(chatMessage));
+    setMessage('');
+  };
+
   const handleKeyPress = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      sendMessage();
+      if (username === undefined) {
+        setAnchorEl(event.currentTarget);
+      } else {
+        sendMessage();
+      }
     }
   };
 
   const scrollDown = () => {
     chattingViewRef.current.scrollIntoView(false);
-  };
-
-  const sendMessage = () => {
-    // e.preventDefault();
-    const chatMessage = {
-      sender: username,
-      content: message,
-      type: 'CHAT',
-    };
-    client.send('/app/chat.sendMessage', {}, JSON.stringify(chatMessage));
-    setMessage('');
   };
 
   const chattingView = () => {
@@ -73,19 +79,50 @@ const Chat = () => {
     );
   };
 
+  const PopoverForAnonymous = () => {
+    const handleClosePopover = () => {
+      setAnchorEl(null);
+    };
+
+    const open = Boolean(anchorEl);
+
+    return (
+      <Popover
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClosePopover}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+      >
+        <Typography sx={{ p: 2 }}>
+          댓글을 남기려면 로그인이 필요합니다!
+        </Typography>
+      </Popover>
+    );
+  };
+
   const inputBox = () => {
     return (
-      <TextField
-        fullWidth
-        multiline
-        rows={2}
-        placeholder='Enter키로 메시지 전송'
-        value={message}
-        onChange={(event) => {
-          setMessage(event.target.value);
-        }}
-        onKeyPress={handleKeyPress}
-      />
+      <div>
+        <TextField
+          fullWidth
+          multiline
+          rows={2}
+          placeholder='Enter키로 메시지 전송'
+          value={message}
+          onChange={(event) => {
+            setMessage(event.target.value);
+          }}
+          onKeyPress={handleKeyPress}
+        />
+        <PopoverForAnonymous />
+      </div>
     );
   };
 

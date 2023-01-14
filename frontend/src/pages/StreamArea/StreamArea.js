@@ -8,9 +8,7 @@ import { LoginContext } from '../Home/Home';
 import './StreamArea.css';
 import { Button, Grid, Typography } from '@mui/material';
 
-// 개발용과 배포용 코드가 다릅니다. 필요에 따라 주석을 해제하여 사용하세요.
-// const APPLICATION_SERVER_URL = 'https://192.168.0.62/'; // 개발용 URL
-const APPLICATION_SERVER_URL = 'https://boonthe.shop/'; // 배포용 URL
+const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
 class StreamArea extends Component {
   static contextType = LoginContext;
