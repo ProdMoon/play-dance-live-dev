@@ -197,13 +197,6 @@ class StreamArea extends Component {
           console.warn(exception);
         });
 
-        // connection이 만들어질 때마다... (사용자 본인의 커넥션 포함)
-        mySession.on('connectionCreated', (event) => {
-          if (this.myConnectionId === undefined) {
-            this.handleChangeConnectionId(event.connection.connectionId);
-          }
-        });
-
         // --- 4) Connect to the session with a valid user token ---
 
         // Get a token from the OpenVidu deployment
@@ -212,9 +205,16 @@ class StreamArea extends Component {
           // 'streamCreated' (property Stream.connection.data), and will be appended to DOM as the user's nickname
           mySession
             .connect(token, { clientData: this.state.myUserName })
-            .then()
+            .then((connection) => { // connection 객체를 받습니다.
+              // 본인의 connectionId 를 설정해줍니다.
+              console.log(mySession.streamManagers);
+              console.log(connection);
+              if (this.myConnectionId === undefined) {
+                this.handleChangeConnectionId(connection.connectionId);
+              }
+            })
             .catch((error) => {
-              console.log(
+              console.error(
                 'There was an error connecting to the session:',
                 error.code,
                 error.message,
@@ -410,11 +410,6 @@ class StreamArea extends Component {
                   src={this.state.currentSongUrl}
                   controls
                 />
-                {/* <SongStream
-                  playFlag={this.state.songPlayFlag}
-                  songUrl={this.state.currentSongUrl}
-                  onAudioSourceChange={this.handleChangeAudioSource}
-                /> */}
               </Grid>
             ) : null}
             <Grid id='video-container' container item xs='auto'>

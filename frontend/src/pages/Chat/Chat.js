@@ -18,25 +18,28 @@ const Chat = () => {
   const label = '채팅';
 
   useEffect(() => {
-    const socket = new SockJS(`https://${process.env.REACT_APP_HOST}/api/ws`);
-    const stompClient = Stomp.over(socket);
-    setClient(stompClient);
-    stompClient.connect({}, (frame) => {
-      console.log('Connected: ' + frame);
-      stompClient.subscribe(`/topic/${userInfo.roomId}`, (message) => {
-        const messageBody = JSON.parse(message.body);
-        if (messageBody.type === 'CHAT') {
-          setMessages((prevMessages) => [...prevMessages, message]);
-          scrollDown();
-        }
+    if (userInfo.roomId !== undefined) {
+      const socket = new SockJS(`https://${process.env.REACT_APP_HOST}/api/ws`);
+      const stompClient = Stomp.over(socket);
+      setClient(stompClient);
+      stompClient.connect({}, (frame) => {
+        console.log('Connected: ' + frame);
+        console.log(userInfo.roomId);
+        stompClient.subscribe(`/topic/public`, (message) => {
+          const messageBody = JSON.parse(message.body);
+          if (messageBody.type === 'CHAT') {
+            setMessages((prevMessages) => [...prevMessages, message]);
+            scrollDown();
+          }
+        });
+        stompClient.send(
+          '/app/chat.addUser',
+          {},
+          JSON.stringify({ sender: username, type: 'JOIN' }),
+        );
       });
-      stompClient.send(
-        '/app/chat.addUser',
-        {},
-        JSON.stringify({ sender: username, type: 'JOIN' }),
-      );
-    });
-  }, []);
+    }
+  }, [userInfo.roomId]);
 
   const sendMessage = () => {
     const chatMessage = {

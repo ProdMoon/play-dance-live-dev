@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react';
 
 import { Grid, Paper } from '@mui/material';
 
-import GoogleLogin from '../GoogleLogin/GoogleLogin';
+import Menubar from '../Menubar/Menubar';
 import Room from '../Room/Room';
 import Chat from '../Chat/Chat';
 
@@ -33,7 +33,7 @@ const Home = () => {
       <Grid className='container' container spacing={2}>
         <Grid className='containerItem' item xs={3}>
           <Paper className='containerItem' elevation={5}>
-            <GoogleLogin />
+            <Menubar />
           </Paper>
         </Grid>
         <Grid className='containerItem' item xs={6}>

@@ -28,7 +28,7 @@ const Room = () => {
         console.error(error);
       }
     }
-  }, []);
+  }, [userInfo.roomId]);
 
   const createRoom = (e) => {
     e.preventDefault();
