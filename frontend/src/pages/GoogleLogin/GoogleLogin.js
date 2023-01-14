@@ -1,7 +1,7 @@
-import { Avatar, Box, Button, Typography } from "@mui/material";
-import axios from "axios";
-import { useEffect } from "react";
-import { useLoginContext } from "../Home/Home";
+import { Avatar, Box, Button, Typography } from '@mui/material';
+import axios from 'axios';
+import { useEffect } from 'react';
+import { useLoginContext } from '../Home/Home';
 
 const GoogleLogin = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -9,8 +9,8 @@ const GoogleLogin = () => {
   useEffect(async () => {
     if (userInfo.userName === undefined) {
       try {
-        const response = await axios.get("/api/userinfo", {
-          headers: { "Content-Type": "application/json" },
+        const response = await axios.get('/api/userinfo', {
+          headers: { 'Content-Type': 'application/json' },
         });
         console.log(response);
         if (response !== null) {
@@ -30,7 +30,7 @@ const GoogleLogin = () => {
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/logout");
+      const response = await axios.post('/logout');
       if (response) {
         setUserInfo({
           userName: undefined,
@@ -48,12 +48,12 @@ const GoogleLogin = () => {
     <Box>
       {userInfo.userName === undefined ? (
         <Box>
-          <Button href="/oauth2/authorization/google">GOOGLE LOGIN</Button>
+          <Button href='/oauth2/authorization/google'>GOOGLE LOGIN</Button>
         </Box>
       ) : null}
       {userInfo.userName !== undefined ? (
         <Box>
-          <Avatar alt="profile image" src={userInfo.userPicture} />
+          <Avatar alt='profile image' src={userInfo.userPicture} />
           <Typography>{userInfo.userName}</Typography>
           <p />
           <Button

@@ -1,8 +1,8 @@
-import { Button } from "@mui/material";
-import axios from "axios";
-import { useEffect } from "react";
-import { useLoginContext } from "../Home/Home";
-import StreamArea from "../StreamArea/StreamArea";
+import { Button } from '@mui/material';
+import axios from 'axios';
+import { useEffect } from 'react';
+import { useLoginContext } from '../Home/Home';
+import StreamArea from '../StreamArea/StreamArea';
 
 const Room = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -11,14 +11,14 @@ const Room = () => {
     if (userInfo.roomId === undefined) {
       try {
         axios
-          .post("/api/room/enter", {
+          .post('/api/room/enter', {
             userId: userInfo.userEmail ?? null,
-            roomId: "default",
-            direction: "current",
+            roomId: 'default',
+            direction: 'current',
           })
           .then((response) => {
             const data = response.data;
-            console.log("current roomId : " + data.roomId);
+            console.log('current roomId : ' + data.roomId);
             setUserInfo((prevState) => ({
               ...prevState,
               roomId: data.roomId,
@@ -34,13 +34,13 @@ const Room = () => {
     e.preventDefault();
     try {
       axios
-        .post("/api/room/create", {
+        .post('/api/room/create', {
           userId: userInfo.userEmail ?? null,
-          songs: ["attention", "hype boy", "ditto"],
+          songs: ['attention', 'hype boy', 'ditto'],
         })
         .then((response) => {
           const data = response.data;
-          console.log("created roomId : " + data.roomId);
+          console.log('created roomId : ' + data.roomId);
           setUserInfo((prevState) => ({
             ...prevState,
             roomId: data.roomId,
@@ -52,11 +52,11 @@ const Room = () => {
   };
 
   return (
-    <div className="containerItem">
+    <div className='containerItem'>
       {userInfo.roomId === undefined ? (
         <div>
           열려있는 방이 없습니다
-          <Button onClick={(e) => createRoom(e)} variant="text">
+          <Button onClick={(e) => createRoom(e)} variant='text'>
             (로그인먼저하고) 방 생성하기
           </Button>
         </div>
