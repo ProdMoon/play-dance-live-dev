@@ -129,6 +129,11 @@ const StreamArea = () => {
     localAudioRef.current.play();
   };
 
+  const handleReady = (e) => {
+    e.preventDefault();
+    
+  }
+
   const joinSession = () => {
     // 1) OpenVidu object를 받아옵니다.
     const newOV = new OpenVidu();
@@ -372,7 +377,7 @@ const StreamArea = () => {
               >
                 카메라 전환
               </Button>
-              <Button variant='contained'>READY</Button>
+              <Button onClick={handleReady} variant='contained'>READY</Button>
               <audio ref={audioRef} src={currentSongUrl} />
               <audio ref={localAudioRef} src={currentSongUrl} />
             </Grid>

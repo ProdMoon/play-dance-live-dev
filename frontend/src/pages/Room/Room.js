@@ -17,7 +17,8 @@ const Room = () => {
           })
           .then((response) => {
             const data = response.data;
-            if (data.isEmpty === false) {
+            console.log(data);
+            if (data.empty === false) {
               console.info('Current roomId is ' + data.roomId);
               setUserInfo((prevState) => ({
                 ...prevState,

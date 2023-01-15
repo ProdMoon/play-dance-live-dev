@@ -11,6 +11,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [client, setClient] = useState(null);
+  const [subscription, setSubscription] = useState(null);
 
   const [anchorEl, setAnchorEl] = useState(null); // for Popover
 
@@ -20,24 +21,54 @@ const Chat = () => {
 
   useEffect(() => {
     if (userInfo.roomId !== undefined) {
-      const socket = new SockJS(`https://${process.env.REACT_APP_HOST}/api/ws`);
-      const stompClient = Stomp.over(socket);
-      setClient(stompClient);
-      stompClient.connect({}, (frame) => {
-        console.info('[Chat] Connected: ' + frame);
-        stompClient.subscribe(`/topic/public`, (message) => {
-          const messageBody = JSON.parse(message.body);
-          if (messageBody.type === 'CHAT') {
-            setMessages((prevMessages) => [...prevMessages, message]);
-            scrollDown();
-          }
+      if (client === null) {
+        const socket = new SockJS(
+          `https://${process.env.REACT_APP_HOST}/api/ws`,
+        );
+        const stompClient = Stomp.over(socket);
+        setClient(stompClient);
+        stompClient.connect({}, (frame) => {
+          console.info('[Chat] Connected: ' + frame);
+          setSubscription(
+            stompClient.subscribe(`/topic/${userInfo.roomId}`, (message) => {
+              const messageBody = JSON.parse(message.body);
+              if (messageBody.type === 'CHAT') {
+                setMessages((prevMessages) => [...prevMessages, message]);
+                scrollDown();
+              }
+            }),
+          );
+          stompClient.send(
+            '/app/chat.addUser',
+            {},
+            JSON.stringify({
+              roomId: userInfo.roomId,
+              sender: username,
+              type: 'JOIN',
+            }),
+          );
         });
-        stompClient.send(
+      } else {
+        client.unsubscribe(subscription.id);
+        setSubscription(
+          client.subscribe(`/topic/${userInfo.roomId}`, (message) => {
+            const messageBody = JSON.parse(message.body);
+            if (messageBody.type === 'CHAT') {
+              setMessages((prevMessages) => [...prevMessages, message]);
+              scrollDown();
+            }
+          }),
+        );
+        client.send(
           '/app/chat.addUser',
           {},
-          JSON.stringify({ sender: username, type: 'JOIN' }),
+          JSON.stringify({
+            roomId: userInfo.roomId,
+            sender: username,
+            type: 'JOIN',
+          }),
         );
-      });
+      }
     }
   }, [userInfo.roomId]);
 
