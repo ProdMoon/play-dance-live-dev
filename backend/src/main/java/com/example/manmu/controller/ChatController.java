@@ -9,6 +9,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -19,25 +20,21 @@ import javax.servlet.http.HttpSession;
 @RequiredArgsConstructor
 public class ChatController {
 
-//    private final HttpSession httpSession;
+    private final SimpMessagingTemplate template;
 
     @MessageMapping("/chat.sendMessage")
-    @SendTo("/topic/{roomId}")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage, @PathVariable String roomId) {
-//        SessionUser user = (SessionUser) httpSession.getAttribute("user");
-//        chatMessage.setSender(user.getName());
-        return chatMessage;
+    public void sendMessage(@Payload ChatMessage chatMessage) {
+        template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
     }
 
     @MessageMapping("/chat.addUser")
-    @SendTo("/topic/{roomId}")
-    public ChatMessage addUser(@Payload ChatMessage chatMessage,
+    public void addUser(@Payload ChatMessage chatMessage,
                                SimpMessageHeaderAccessor headerAccessor, HttpServletRequest request) {
         HttpSession httpSession = request.getSession();
         SessionUser user = (SessionUser) httpSession.getAttribute("user");
         // Add username in web socket session
         headerAccessor.getSessionAttributes().put("username", user.getName());
-        return chatMessage;
+        template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
     }
 
 }
