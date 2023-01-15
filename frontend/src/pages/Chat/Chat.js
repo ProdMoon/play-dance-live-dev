@@ -4,7 +4,7 @@ import Stomp from 'stompjs';
 
 import { Typography, Box, Grid, TextField } from '@mui/material';
 
-import PopoverComponent from '../../components/PopoverComponent/PopoverComponent';
+import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
 
 const Chat = () => {

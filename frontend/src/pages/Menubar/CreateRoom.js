@@ -5,7 +5,7 @@ import { Button, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-import PopoverComponent from '../../components/PopoverComponent/PopoverComponent';
+import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
 
 const CreateRoom = () => {
