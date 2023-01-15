@@ -17,6 +17,11 @@ export default function SocketContextProvider({ children }) {
   // 자식 요소들에 read/set이 제공되는 States
   const messagesObject = useState([]);
 
+  const voteAObject = useState(1);
+  const voteBObject = useState(1);
+  const progAObject = useState(50);
+  const progBObject = useState(50);
+
   // 자식 요소들에 read-only로 제공되는 States
   const [client, setClient] = useState(null);
 
@@ -26,6 +31,8 @@ export default function SocketContextProvider({ children }) {
   function socketSubscription () {
     const [messages, setMessages] = messagesObject;
     const username = userInfo.userName ?? undefined;
+    const [voteA, setVoteA] = voteAObject;
+    const [voteB, setVoteB] = voteBObject;
 
     setSubscription(
       // 다음과 같은 type들을 구독합니다.
@@ -35,6 +42,11 @@ export default function SocketContextProvider({ children }) {
         // 채팅 요청...
         if (messageBody.type === 'CHAT') {
           setMessages((prevMessages) => [...prevMessages, message]);
+        }
+        // vote animation
+        if (messageBody.type === 'VOTE-click') {
+          (messageBody.value === 'A') ? setVoteA((prevState) => {return prevState + 1})
+                                      : setVoteB((prevState) => {return prevState + 1});
         }
       }),
     );
@@ -81,6 +93,10 @@ export default function SocketContextProvider({ children }) {
   return (
     <SocketContext.Provider value={{
       messages: messagesObject,
+      voteAs : voteAObject,
+      voteBs : voteBObject,
+      progAs : progAObject,
+      progBs : progBObject,
       client: client,
     }}>
       {children}

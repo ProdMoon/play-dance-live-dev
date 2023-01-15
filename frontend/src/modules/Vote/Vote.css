@@ -3,16 +3,6 @@
     --color-b: #6699cc;
 }
 
-body {
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    background-color: #6c6c6c;
-}
-* {
-    box-sizing: inherit;
-}
-
 .vote {
     position: relative;
     height: 5rem;

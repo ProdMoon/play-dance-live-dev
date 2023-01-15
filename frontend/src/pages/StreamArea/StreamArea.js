@@ -426,9 +426,9 @@ const StreamArea = () => {
           </Grid>
         </Grid>
       ) : null}
-      {/* <Grid item xs='auto'>
+      <Grid item xs='auto'>
         <Vote />
-      </Grid> */}
+      </Grid>
     </div>
   );
 };
