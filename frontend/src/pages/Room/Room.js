@@ -1,6 +1,7 @@
-import axios from 'axios';
 import { useEffect } from 'react';
-import { useLoginContext } from '../Home/Home';
+import axios from 'axios';
+
+import { useLoginContext } from '../../context/LoginContext';
 import StreamArea from '../StreamArea/StreamArea';
 
 const Room = () => {

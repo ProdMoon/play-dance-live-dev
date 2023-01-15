@@ -1,7 +1,10 @@
-import { Avatar, Box, Button, Typography } from '@mui/material';
-import axios from 'axios';
 import { useEffect } from 'react';
-import { useLoginContext } from '../Home/Home';
+import axios from 'axios';
+
+import { Avatar, Box, Button, Typography } from '@mui/material';
+
+import { useLoginContext } from '../../context/LoginContext';
+
 
 const GoogleLogin = () => {
   const [userInfo, setUserInfo] = useLoginContext();

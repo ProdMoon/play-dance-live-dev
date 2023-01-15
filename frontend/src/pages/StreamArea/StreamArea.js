@@ -1,12 +1,12 @@
+import { useEffect, useState, createRef } from 'react';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
-import { useEffect, useState, createRef } from 'react';
 
 import './StreamArea.css';
 import { Button, Grid, Typography } from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
-import { useLoginContext } from '../Home/Home';
+import { useLoginContext } from '../../context/LoginContext';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 

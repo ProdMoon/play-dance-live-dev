@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
+
 import { Typography, Box, Grid, TextField } from '@mui/material';
-import { useLoginContext } from '../Home/Home';
+
 import PopoverComponent from '../../components/PopoverComponent/PopoverComponent';
+import { useLoginContext } from '../../context/LoginContext';
 
 const Chat = () => {
   const [userInfo, setUserInfo] = useLoginContext();

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Grid, Paper } from '@mui/material';
 
@@ -6,28 +6,7 @@ import Menubar from '../Menubar/Menubar';
 import Room from '../Room/Room';
 import Chat from '../Chat/Chat';
 import LogoPage from './LogoPage';
-
-const LoginContext = createContext();
-
-const LoginContextProvider = ({ children }) => {
-  const userInfoObject = useState({
-    userName: undefined,
-    userEmail: undefined,
-    userPicture: undefined,
-    roomId: undefined,
-    isPublisher: false,
-  });
-  return (
-    <LoginContext.Provider value={userInfoObject}>
-      {children}
-    </LoginContext.Provider>
-  );
-};
-
-export function useLoginContext() {
-  const value = useContext(LoginContext);
-  return value;
-}
+import LoginContextProvider from '../../context/LoginContext';
 
 const Home = () => {
   const [entered, setEntered] = useState(false);
