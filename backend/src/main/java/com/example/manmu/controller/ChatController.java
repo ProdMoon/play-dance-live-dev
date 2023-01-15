@@ -3,7 +3,12 @@ package com.example.manmu.controller;
 
 import com.example.manmu.ChatMessage;
 import com.example.manmu.config.auth.dto.SessionUser;
+import com.example.manmu.entity.ChatVote;
+import com.example.manmu.entity.Room;
+import com.example.manmu.repository.TestRepository;
+import com.example.manmu.service.VoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -21,6 +26,9 @@ import javax.servlet.http.HttpSession;
 public class ChatController {
 
     private final SimpMessagingTemplate template;
+    private final VoteService voteService;
+
+    private final TestRepository testRepository;
 
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage) {
@@ -37,6 +45,25 @@ public class ChatController {
         template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
     }
 
+    @MessageMapping("/chat.vote")
+    public void Message(@Payload ChatVote chatVote) {
+        String roomId = chatVote.getRoomId();
+        Integer poll = chatVote.getPoll();
+        if (chatVote.getIsEnd() == true) {
+            Integer result = voteService.getMatchResult(roomId);
+            chatVote.setResult(result);
+            template.convertAndSend("/topic/" + chatVote.getRoomId(), chatVote);}
+        else {
+            voteService.setVoteCount(roomId, poll);
+            Integer userCount = voteService.setUserCount(roomId);
+            Room room = testRepository.findById(roomId);
+
+            if (userCount == room.getUserCount() ) {
+                Integer result = voteService.getMatchResult(roomId);
+                chatVote.setResult(result);
+            }
+        }
+    }
 }
 
 
