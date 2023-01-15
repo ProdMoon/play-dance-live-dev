@@ -7,8 +7,6 @@ import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor
-@Table(name= "song")
-@Entity
 public class Song {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +15,5 @@ public class Song {
     private String songName;
     @Column
     private String singer;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
-    private Room room;
+
 }

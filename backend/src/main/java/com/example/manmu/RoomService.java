@@ -19,21 +19,21 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RoomService {
-    @Autowired
-    private final RoomRepository roomRepository;
+//    @Autowired
+//    private final RoomRepository roomRepository;
     @Autowired
     private final TestRepository testRepository;
 
 
-    public Room createRoom(String userId, List<Song> songs) {
-        Room room = Room.builder()
-                .roomId(UUID.randomUUID().toString())
-                .state(RoomState.WAITING)
-                .songs(songs)
-                .userCount(1)
-                .build();
-        return roomRepository.save(room);
-    }
+//    public Room createRoom(String userId, List<Song> songs) {
+//        Room room = Room.builder()
+//                .roomId(UUID.randomUUID().toString())
+//                .state(RoomState.WAITING)
+//                .songs(songs)
+//                .userCount(1)
+//                .build();
+//        return roomRepository.save(room);
+//    }
 
     public Room createRoomTest(String userId, List<Song> songs) {
         Room room = Room.builder()
@@ -45,20 +45,20 @@ public class RoomService {
         return testRepository.save(room);
     }
 
-    public Room matchRoom(List<Song> songs, String userId) {
-        // TODO: implement enterRoom method when user enters room.
-        List<Room> rooms = roomRepository.findAll();
-        for (Room room : rooms) {
-            List<Song> roomSongsCopy = new ArrayList<>(room.getSongs());
-            roomSongsCopy.retainAll(songs);
-            if (roomSongsCopy.size() == songs.size() && room.getUserCount()<2) {
-                room.setUserCount(room.getUserCount() + 1);
-                roomRepository.save(room);
-                return room;
-            }
-        }
-        return createRoom(userId, songs);
-    }
+//    public Room matchRoom(List<Song> songs, String userId) {
+//        // TODO: implement enterRoom method when user enters room.
+//        List<Room> rooms = roomRepository.findAll();
+//        for (Room room : rooms) {
+//            List<Song> roomSongsCopy = new ArrayList<>(room.getSongs());
+//            roomSongsCopy.retainAll(songs);
+//            if (roomSongsCopy.size() == songs.size() && room.getUserCount()<2) {
+//                room.setUserCount(room.getUserCount() + 1);
+//                roomRepository.save(room);
+//                return room;
+//            }
+//        }
+//        return createRoom(userId, songs);
+//    }
 
     public Room matchRoomTest(List<Song> songs, String userId) {
         // TODO: implement enterRoom method when user enters room.
@@ -77,15 +77,15 @@ public class RoomService {
         return createRoomTest(userId, songs);
     }
 
-    public Room enterRoom(String roomId, String userId) {
-        Optional<Room> room = roomRepository.findById(roomId);
-        if (room.isPresent()) {
-            Room foundRoom = room.get();
-            foundRoom.setUserCount(foundRoom.getUserCount() + 1);
-            return foundRoom;
-        }
-        return null;
-    }
+//    public Room enterRoom(String roomId, String userId) {
+//        Optional<Room> room = roomRepository.findById(roomId);
+//        if (room.isPresent()) {
+//            Room foundRoom = room.get();
+//            foundRoom.setUserCount(foundRoom.getUserCount() + 1);
+//            return foundRoom;
+//        }
+//        return null;
+//    }
 
     public Room enterRoomTest(String roomId, String userId, String direction) {
         if ((userId == null) && (roomId.equals("default"))) {
@@ -113,29 +113,29 @@ public class RoomService {
         return null;
     }
 
-    public List<Room> findAllRooms() {
-        return roomRepository.findAll();
-    }
+//    public List<Room> findAllRooms() {
+//        return roomRepository.findAll();
+//    }
 
     public List<Room> findAllRoomsTest() {
         return testRepository.findAll();
     }
 
 
-    public List<Room> findRoomsByStatePlaying() {
-        return roomRepository.findByState(RoomState.PLAYING);
-    }
+//    public List<Room> findRoomsByStatePlaying() {
+//        return roomRepository.findByState(RoomState.PLAYING);
+//    }
 
     public List<Room> findRoomsByStatePlayingTest() {
         return testRepository.findByState(RoomState.PLAYING);
     }
 
-    public Room startBroadcasting(String roomId) {
-        Room room = roomRepository.findById(roomId).get();
-        room.setState(RoomState.PLAYING);
-        roomRepository.save(room);
-        return room;
-    }
+//    public Room startBroadcasting(String roomId) {
+//        Room room = roomRepository.findById(roomId).get();
+//        room.setState(RoomState.PLAYING);
+//        roomRepository.save(room);
+//        return room;
+//    }
 
     public Room startBroadcastingTest(String roomId) {
         Room room = testRepository.findById(roomId);
@@ -143,10 +143,10 @@ public class RoomService {
         testRepository.save(room);
         return room;
     }
-    public List<Room> exitBroadcast(String roomId) {
-        roomRepository.deleteById(roomId);
-        return roomRepository.findAll();
-    }
+//    public List<Room> exitBroadcast(String roomId) {
+//        roomRepository.deleteById(roomId);
+//        return roomRepository.findAll();
+//    }
 
     public List<Room> exitBroadcastTest(String roomId) {
         testRepository.delete(roomId);

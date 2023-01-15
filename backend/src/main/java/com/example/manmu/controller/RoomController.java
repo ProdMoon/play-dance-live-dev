@@ -84,7 +84,8 @@ public class RoomController {
         if (room != null) {
             return new ResponseEntity<>(room, HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        room.setEmpty(true);
+        return new ResponseEntity<>(room, HttpStatus.OK);
     }
 
 //    @GetMapping("/api/room/findAllRooms")
