@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
-import { Typography, Box, Grid, TextField, Popover } from '@mui/material';
+import { Typography, Box, Grid, TextField } from '@mui/material';
 import { useLoginContext } from '../Home/Home';
+import PopoverComponent from '../../components/PopoverComponent/PopoverComponent';
 
 const Chat = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -10,6 +11,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [client, setClient] = useState(null);
+  const [subscription, setSubscription] = useState(null);
 
   const [anchorEl, setAnchorEl] = useState(null); // for Popover
 
@@ -18,25 +20,57 @@ const Chat = () => {
   const label = '채팅';
 
   useEffect(() => {
-    const socket = new SockJS(`https://${process.env.REACT_APP_HOST}/api/ws`);
-    const stompClient = Stomp.over(socket);
-    setClient(stompClient);
-    stompClient.connect({}, (frame) => {
-      console.log('Connected: ' + frame);
-      stompClient.subscribe(`/topic/${userInfo.roomId}`, (message) => {
-        const messageBody = JSON.parse(message.body);
-        if (messageBody.type === 'CHAT') {
-          setMessages((prevMessages) => [...prevMessages, message]);
-          scrollDown();
-        }
-      });
-      stompClient.send(
-        '/app/chat.addUser',
-        {},
-        JSON.stringify({ sender: username, type: 'JOIN' }),
-      );
-    });
-  }, []);
+    if (userInfo.roomId !== undefined) {
+      if (client === null) {
+        const socket = new SockJS(
+          `https://${process.env.REACT_APP_HOST}/api/ws`,
+        );
+        const stompClient = Stomp.over(socket);
+        setClient(stompClient);
+        stompClient.connect({}, (frame) => {
+          console.info('[Chat] Connected: ' + frame);
+          setSubscription(
+            stompClient.subscribe(`/topic/${userInfo.roomId}`, (message) => {
+              const messageBody = JSON.parse(message.body);
+              if (messageBody.type === 'CHAT') {
+                setMessages((prevMessages) => [...prevMessages, message]);
+                scrollDown();
+              }
+            }),
+          );
+          stompClient.send(
+            '/app/chat.addUser',
+            {},
+            JSON.stringify({
+              roomId: userInfo.roomId,
+              sender: username,
+              type: 'JOIN',
+            }),
+          );
+        });
+      } else {
+        client.unsubscribe(subscription.id);
+        setSubscription(
+          client.subscribe(`/topic/${userInfo.roomId}`, (message) => {
+            const messageBody = JSON.parse(message.body);
+            if (messageBody.type === 'CHAT') {
+              setMessages((prevMessages) => [...prevMessages, message]);
+              scrollDown();
+            }
+          }),
+        );
+        client.send(
+          '/app/chat.addUser',
+          {},
+          JSON.stringify({
+            roomId: userInfo.roomId,
+            sender: username,
+            type: 'JOIN',
+          }),
+        );
+      }
+    }
+  }, [userInfo.roomId]);
 
   const sendMessage = () => {
     const chatMessage = {
@@ -79,34 +113,6 @@ const Chat = () => {
     );
   };
 
-  const PopoverForAnonymous = () => {
-    const handleClosePopover = () => {
-      setAnchorEl(null);
-    };
-
-    const open = Boolean(anchorEl);
-
-    return (
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClosePopover}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-      >
-        <Typography sx={{ p: 2 }}>
-          댓글을 남기려면 로그인이 필요합니다!
-        </Typography>
-      </Popover>
-    );
-  };
-
   const inputBox = () => {
     return (
       <div>
@@ -121,7 +127,11 @@ const Chat = () => {
           }}
           onKeyPress={handleKeyPress}
         />
-        <PopoverForAnonymous />
+        <PopoverComponent
+          useStateForAnchor={[anchorEl, setAnchorEl]}
+          message='채팅에 참여하기 위해서는 로그인이 필요합니다!'
+          position='top'
+        />
       </div>
     );
   };

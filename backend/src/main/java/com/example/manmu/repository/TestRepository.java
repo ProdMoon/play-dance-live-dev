@@ -3,7 +3,6 @@ package com.example.manmu.repository;
 import com.example.manmu.RoomState;
 import com.example.manmu.entity.Room;
 import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,11 +65,22 @@ public class TestRepository {
             return null;
         }
         int index = rooms.indexOf(currentRoom);
-        if (index == rooms.size() - 1) {
-            return rooms.get(0);
-        } else {
-            return rooms.get((index + 1) % rooms.size());
+        int nextIndex = findNextIndex(index);
+        return rooms.get(nextIndex);
+    }
+
+    private int findNextIndex(int currentIndex) {
+        int nextIndex = currentIndex + 1;
+        if (nextIndex >= rooms.size()) {
+            nextIndex = 0;
         }
+        while (rooms.get(nextIndex) == null) {
+            nextIndex++;
+            if (nextIndex >= rooms.size()) {
+                nextIndex = 0;
+            }
+        }
+        return nextIndex;
     }
 
     public Room getPrev(String roomId) {
@@ -93,6 +103,11 @@ public class TestRepository {
     }
 
     public Room getFirst() {
-       return rooms.get(0);
+        if (rooms.size() >= 1) {
+            return rooms.get(0);
+        }
+        return new Room().builder()
+                .isEmpty(true)
+                .build();
     }
 }

@@ -12,7 +12,6 @@ const GoogleLogin = () => {
         const response = await axios.get('/api/userinfo', {
           headers: { 'Content-Type': 'application/json' },
         });
-        console.log(response);
         if (response !== null) {
           setUserInfo((prevState) => ({
             ...prevState,
