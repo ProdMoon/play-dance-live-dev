@@ -36,8 +36,8 @@ const Room = () => {
 
   return (
     <div className='containerItem'>
-      {userInfo.roomId === undefined ? <div>열려있는 방이 없습니다</div> : null}
-      {userInfo.roomId !== undefined ? <StreamArea /> : null}
+      {userInfo.roomId !== undefined ? <div>열려있는 방이 없습니다</div> : null}
+      {userInfo.roomId === undefined ? <StreamArea /> : null}
     </div>
   );
 };

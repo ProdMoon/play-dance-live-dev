@@ -36,6 +36,7 @@ const GoogleLogin = () => {
           userEmail: undefined,
           userPicture: undefined,
           roomId: undefined,
+          isPublisher: false,
         });
       }
     } catch (e) {
