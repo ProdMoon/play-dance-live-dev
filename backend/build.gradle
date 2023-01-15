@@ -55,6 +55,8 @@ dependencies {
 	implementation 'org.webjars:sockjs-client:1.5.1'
 	implementation 'org.webjars:stomp-websocket:2.3.3'
 	implementation 'org.springframework.boot:spring-boot-configuration-processor:2.7.7'
+	implementation group: 'org.springframework.data', name: 'spring-data-redis', version: '2.7.0'
+	implementation group: 'redis.clients', name: 'jedis', version: '3.9.0'
 
 	//sh
 	implementation 'mysql:mysql-connector-java'

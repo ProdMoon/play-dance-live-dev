@@ -1,9 +1,9 @@
 package com.example.manmu.repository;
 
-import com.example.manmu.RoomState;
 import com.example.manmu.entity.Room;
+import com.example.manmu.entity.RoomDto;
 import org.springframework.stereotype.Repository;
-import java.util.ArrayList;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,15 +23,15 @@ public class TestRepository {
         return rooms;
     }
 
-    public List<Room> findByState(RoomState state) {
-        List<Room> result = new ArrayList<>();
-        for (Room room : rooms) {
-            if (room.getState() == state) {
-                result.add(room);
-            }
-        }
-        return result;
-    }
+//    public List<Room> findByState(RoomState state) {
+//        List<Room> result = new ArrayList<>();
+//        for (Room room : rooms) {
+//            if (room.getState() == state) {
+//                result.add(room);
+//            }
+//        }
+//        return result;
+//    }
 
     public Room findById(String roomId){
         for (Room room : rooms) {
@@ -105,9 +105,15 @@ public class TestRepository {
     public Room getFirst() {
         if (rooms.size() >= 1) {
             return rooms.get(0);
+
         }
         return new Room().builder()
                 .isEmpty(true)
                 .build();
+    }
+
+    public RoomDto getTail() {
+        Room roomEntity =  rooms.get(rooms.size() - 1);
+        return new RoomDto(roomEntity);
     }
 }

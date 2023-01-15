@@ -1,156 +1,123 @@
 package com.example.manmu;
 
-import com.example.manmu.entity.Room;
-import com.example.manmu.entity.Song;
-import com.example.manmu.entity.User;
-//import com.example.manmu.repository.RoomRepository;
-import com.example.manmu.repository.TestRepository;
-import com.example.manmu.repository.UserRepository;
+import com.example.manmu.entity.*;
+import com.example.manmu.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
 @Service
 @RequiredArgsConstructor
 public class RoomService {
-//    @Autowired
-//    private final RoomRepository roomRepository;
-    @Autowired
-    private final TestRepository testRepository;
+    private final PlayingRoomRepository playingRoomRepository;
+    private final WaitingRoomRepository waitingRoomRepository;
 
-
-//    public Room createRoom(String userId, List<Song> songs) {
-//        Room room = Room.builder()
-//                .roomId(UUID.randomUUID().toString())
-//                .state(RoomState.WAITING)
-//                .songs(songs)
-//                .userCount(1)
-//                .build();
-//        return roomRepository.save(room);
-//    }
-
-    public Room createRoomTest(String userId, List<Song> songs) {
-        Room room = Room.builder()
+    public RoomDto createRoom(String userId, List<Song> songs) {
+        RoomDto roomDto = RoomDto.builder()
                 .roomId(UUID.randomUUID().toString())
-                .state(RoomState.WAITING)
                 .songs(songs)
-                .userCount(1)
+                .users(new ArrayList<>())
+                .prev(waitingRoomRepository.getLast())
+                .isEmpty(false)
                 .build();
-        return testRepository.save(room);
+        roomDto.getUsers().add(userId);
+        if(roomDto.getPrev() != null) {
+            Room prevRoom = waitingRoomRepository.getLast();
+            prevRoom.setNext(roomDto.toEntity());
+        }
+        waitingRoomRepository.save(roomDto.toEntity());
+        return roomDto;
     }
 
-//    public Room matchRoom(List<Song> songs, String userId) {
-//        // TODO: implement enterRoom method when user enters room.
-//        List<Room> rooms = roomRepository.findAll();
-//        for (Room room : rooms) {
-//            List<Song> roomSongsCopy = new ArrayList<>(room.getSongs());
-//            roomSongsCopy.retainAll(songs);
-//            if (roomSongsCopy.size() == songs.size() && room.getUserCount()<2) {
-//                room.setUserCount(room.getUserCount() + 1);
-//                roomRepository.save(room);
-//                return room;
-//            }
-//        }
-//        return createRoom(userId, songs);
-//    }
-
-    public Room matchRoomTest(List<Song> songs, String userId) {
+    public RoomDto matchRoom(List<Song> songs, String userId) {
         // TODO: implement enterRoom method when user enters room.
-        List<Room> rooms = testRepository.findAll();
+        List<Room> rooms = (List<Room>) waitingRoomRepository.findAll();
         for (Room room : rooms) {
             List<Song> roomSongsCopy = new ArrayList<>(room.getSongs());
             roomSongsCopy.retainAll(songs);
             if (roomSongsCopy.size() == songs.size()) {
-                if(room.getUserCount() < 2) {
-                    room.setUserCount(room.getUserCount() + 1);
-                    testRepository.save(room);
-                    return room;
+                return new RoomDto(room);
                 }
             }
-        }
-        return createRoomTest(userId, songs);
+        return createRoom(userId, songs);
     }
 
-//    public Room enterRoom(String roomId, String userId) {
-//        Optional<Room> room = roomRepository.findById(roomId);
-//        if (room.isPresent()) {
-//            Room foundRoom = room.get();
-//            foundRoom.setUserCount(foundRoom.getUserCount() + 1);
-//            return foundRoom;
-//        }
-//        return null;
-//    }
-
-    public Room enterRoomTest(String roomId, String userId, String direction) {
+    public RoomDto enterRoom(String roomId, String userId, String direction) {
         if ((userId == null) && (roomId.equals("default"))) {
-            return testRepository.getFirst();
+            Room room =  waitingRoomRepository.getFirst();
+            if (room != null) {
+                return new RoomDto(room);
+            }
+        }
+        if((userId != null) && (roomId.equals("default"))) {
+            Room room =  waitingRoomRepository.getFirst();
+            if (room != null) {
+                room.getUsers().add(userId);
+                waitingRoomRepository.save(room);
+                return new RoomDto(room);
+            }
         }
         if (direction.equals("current")) {
-            Room foundRoom = testRepository.findById(roomId);
+            Room foundRoom = playingRoomRepository.findById(roomId).get();
             if (foundRoom != null) {
-                foundRoom.setUserCount(foundRoom.getUserCount() + 1);
-                return foundRoom;
+                return new RoomDto(foundRoom);
             }
         } else if (direction.equals("next")) {
-            Room currentRoom = testRepository.findById(roomId);
-            Room nextRoom = testRepository.getNext(roomId);
-            currentRoom.setUserCount(currentRoom.getUserCount() - 1);
-            nextRoom.setUserCount(nextRoom.getUserCount() + 1);
-            return nextRoom;
-        } else {
-            Room currentRoom = testRepository.findById(roomId);
-            Room prevRoom = testRepository.getPrev(roomId);
-            currentRoom.setUserCount(currentRoom.getUserCount() - 1);
-            prevRoom.setUserCount(prevRoom.getUserCount() + 1);
-            return prevRoom;
+            Room currentRoom = playingRoomRepository.findById(roomId).get();
+            Room nextRoom = currentRoom.getNext();
+            currentRoom.getUsers().remove(userId);
+            nextRoom.getUsers().add(userId);
+            return new RoomDto(nextRoom);
+        } else if (direction.equals("prev")) {
+            Room currentRoom = playingRoomRepository.findById(roomId).get();
+            Room prevRoom = currentRoom.getPrev();
+            currentRoom.getUsers().remove(userId);
+            prevRoom.getUsers().add(userId);
+            return new RoomDto(prevRoom);
+        }
+        Room room =  waitingRoomRepository.getFirst();
+        if (room != null) {
+            return new RoomDto(room);
         }
         return null;
     }
 
-//    public List<Room> findAllRooms() {
-//        return roomRepository.findAll();
-//    }
-
-    public List<Room> findAllRoomsTest() {
-        return testRepository.findAll();
+    public List<RoomDto> getWaitingRooms(){
+        List<Room> rooms = (List<Room>) waitingRoomRepository.findAll();
+        List<RoomDto> roomDtos = new ArrayList<>();
+        for (Room room : rooms) {
+            roomDtos.add(new RoomDto(room));
+        }
+        return roomDtos;
     }
 
-
-//    public List<Room> findRoomsByStatePlaying() {
-//        return roomRepository.findByState(RoomState.PLAYING);
-//    }
-
-    public List<Room> findRoomsByStatePlayingTest() {
-        return testRepository.findByState(RoomState.PLAYING);
+    public List<RoomDto> getPlayingRooms(){
+        List<Room> rooms = (List<Room>) waitingRoomRepository.findAll();
+        List<RoomDto> roomDtos = new ArrayList<>();
+        for (Room room : rooms) {
+            roomDtos.add(new RoomDto(room));
+        }
+        return roomDtos;
     }
 
-//    public Room startBroadcasting(String roomId) {
-//        Room room = roomRepository.findById(roomId).get();
-//        room.setState(RoomState.PLAYING);
-//        roomRepository.save(room);
-//        return room;
-//    }
-
-    public Room startBroadcastingTest(String roomId) {
-        Room room = testRepository.findById(roomId);
-        room.setState(RoomState.PLAYING);
-        testRepository.save(room);
-        return room;
-    }
-//    public List<Room> exitBroadcast(String roomId) {
-//        roomRepository.deleteById(roomId);
-//        return roomRepository.findAll();
-//    }
-
-    public List<Room> exitBroadcastTest(String roomId) {
-        testRepository.delete(roomId);
-        return testRepository.findAll();
+    public RoomDto startPlaying(String roomId) {
+        Room room = waitingRoomRepository.findById(roomId).get();
+        waitingRoomRepository.delete(room);
+        room.getPrev().setNext(room.getNext());
+        room.getNext().setPrev(room.getPrev());
+        playingRoomRepository.save(room);
+        room.setPrev(playingRoomRepository.getLast());
+        room.getPrev().setNext(room);
+        return new RoomDto(room);
     }
 
+    public void exitPlaying(String roomId) {
+        Room exitRoom = playingRoomRepository.findById(roomId).get();
+        exitRoom.getPrev().setNext(exitRoom.getNext());
+        exitRoom.getNext().setPrev(exitRoom.getPrev());
+        playingRoomRepository.delete(exitRoom);
+    }
 }
