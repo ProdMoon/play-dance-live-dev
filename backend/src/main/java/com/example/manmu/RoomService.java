@@ -3,7 +3,7 @@ package com.example.manmu;
 import com.example.manmu.entity.Room;
 import com.example.manmu.entity.Song;
 import com.example.manmu.entity.User;
-import com.example.manmu.repository.RoomRepository;
+//import com.example.manmu.repository.RoomRepository;
 import com.example.manmu.repository.TestRepository;
 import com.example.manmu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
