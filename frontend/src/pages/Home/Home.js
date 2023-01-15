@@ -1,12 +1,13 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 import { Grid, Paper } from '@mui/material';
 
 import Menubar from '../Menubar/Menubar';
 import Room from '../Room/Room';
 import Chat from '../Chat/Chat';
+import LogoPage from './LogoPage';
 
-export const LoginContext = createContext();
+const LoginContext = createContext();
 
 const LoginContextProvider = ({ children }) => {
   const userInfoObject = useState({
@@ -28,7 +29,13 @@ export function useLoginContext() {
 }
 
 const Home = () => {
-  return (
+  const [entered, setEntered] = useState(false);
+
+  const handleEnter = () => {
+    setEntered(true);
+  };
+
+  return entered ? (
     <LoginContextProvider>
       <Grid className='container' container spacing={2}>
         <Grid className='containerItem' item xs={3}>
@@ -48,6 +55,16 @@ const Home = () => {
         </Grid>
       </Grid>
     </LoginContextProvider>
+  ) : (
+    <div
+      className='container'
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <LogoPage handler={handleEnter} />
+    </div>
   );
 };
 

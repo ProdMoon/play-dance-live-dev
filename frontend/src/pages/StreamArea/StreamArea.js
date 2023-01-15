@@ -11,10 +11,11 @@ import { useLoginContext } from '../Home/Home';
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
 const StreamArea = () => {
+  const [userInfo, setUserInfo] = useLoginContext();
   const [OV, setOV] = useState(null);
   const [mySessionId, setMySessionId] = useState('SessionA');
   const [myUserName, setMyUserName] = useState(
-    '익명' + Math.floor(Math.random() * 100),
+    userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
   );
   const [session, setSession] = useState(undefined);
   const [mainStreamManager, setMainStreamManager] = useState(undefined);
@@ -27,13 +28,11 @@ const StreamArea = () => {
   );
   const [songPlayFlag, setSongPlayFlag] = useState(false);
 
-  const [userInfo, setUserInfo] = useLoginContext();
-
   const audioRef = createRef();
   const localAudioRef = createRef();
 
   useEffect(() => {
-    if (session === undefined) {
+    if (userInfo.roomId !== undefined && session === undefined) {
       joinSession();
     }
 
@@ -41,7 +40,13 @@ const StreamArea = () => {
     return () => {
       window.removeEventListener('beforeunload', onbeforeunload);
     };
-  }, []);
+  }, [userInfo.roomId]);
+
+  useEffect(() => {
+    subscribers.map((subscriber) => {
+
+    })
+  }, [subscribers])
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -213,7 +218,9 @@ const StreamArea = () => {
     setSession(undefined);
     setSubscribers([]);
     setMySessionId('SessionA');
-    setMyUserName('Participant' + Math.floor(Math.random() * 100));
+    setMyUserName(
+      userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
+    );
     setMainStreamManager(undefined);
     setPublisher(undefined);
     setMyConnectionId(undefined);

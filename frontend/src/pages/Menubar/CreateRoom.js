@@ -4,14 +4,16 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useLoginContext } from '../Home/Home';
 import { useState } from 'react';
 import axios from 'axios';
+import PopoverComponent from '../../components/PopoverComponent/PopoverComponent';
 
 const CreateRoom = () => {
   const [userInfo, setUserInfo] = useLoginContext();
-
   const [formOpened, setFormOpened] = useState(false);
 
   const CreateRoomForm = () => {
     const [checkedList, setCheckedList] = useState(new Map());
+    const [anchorEl, setAnchorEl] = useState(null); // for Popover
+
     const songList = [
       [
         'attention',
@@ -42,8 +44,10 @@ const CreateRoom = () => {
     const handleSubmit = (e) => {
       e.preventDefault();
       if (checkedList.size < 3) {
-        alert('3개 이상의 곡을 선택하세요!');
+        // 3개 미만의 곡이 선택되면 알림 popover를 띄웁니다.
+        setAnchorEl(e.currentTarget);
       } else {
+        // 선택한 곡이 3개 이상이면, 선택된 곡들을 서버로 보내서 새로운 방을 생성합니다(또는 이미 있는 방에 참가합니다).
         const confirmedList = [];
         checkedList.forEach((value, key) => {
           confirmedList.push(key);
@@ -56,7 +60,7 @@ const CreateRoom = () => {
             })
             .then((response) => {
               const data = response.data;
-              console.info('created roomId : ' + data.roomId);
+              console.info('Created room (roomId: ' + data.roomId + ')');
               setUserInfo((prevState) => ({
                 ...prevState,
                 roomId: data.roomId,
@@ -104,6 +108,11 @@ const CreateRoom = () => {
         <Button type='submit' variant='contained'>
           GO FOR THE DANCE BATTLE
         </Button>
+        <PopoverComponent
+          useStateForAnchor={[anchorEl, setAnchorEl]}
+          message='3개 이상의 곡을 선택하세요!'
+          position='bottom'
+        />
       </form>
     );
   };
