@@ -5,7 +5,7 @@ import com.example.manmu.RoomState;
 import com.example.manmu.entity.Room;
 import com.example.manmu.entity.Song;
 import com.example.manmu.entity.User;
-import com.example.manmu.repository.RoomRepository;
+//import com.example.manmu.repository.RoomRepository;
 import com.example.manmu.repository.UserRepository;
 import io.openvidu.java.client.*;
 import lombok.RequiredArgsConstructor;
@@ -81,10 +81,6 @@ public class RoomController {
         String roomId = (String) params.get("roomId");
         String direction = (String) params.get("direction");
         Room room = roomService.enterRoomTest(roomId, userId, direction);
-        if (room != null) {
-            return new ResponseEntity<>(room, HttpStatus.OK);
-        }
-        room.setEmpty(true);
         return new ResponseEntity<>(room, HttpStatus.OK);
     }
 
