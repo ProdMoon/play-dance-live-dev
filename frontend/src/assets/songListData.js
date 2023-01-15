@@ -1,4 +1,4 @@
-export const SongList = [
+export const SongListData = [
   [
     'attention',
     {

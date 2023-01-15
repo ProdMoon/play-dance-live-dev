@@ -16,6 +16,10 @@ export default function SocketContextProvider({ children }) {
 
   // 자식 요소들에 read/set이 제공되는 States
   const messagesObject = useState([]);
+  const roundStartObject = useState(0);
+  const roundEndObject = useState(0);
+  const songVersionObject = useState('normal');
+  const isOwnerTurnObject = useState(true);
 
   // 자식 요소들에 read-only로 제공되는 States
   const [client, setClient] = useState(null);
@@ -23,7 +27,7 @@ export default function SocketContextProvider({ children }) {
   // 여기서만 사용하는 States
   const [subscription, setSubscription] = useState(null);
 
-  function socketSubscription () {
+  function socketSubscription() {
     const [messages, setMessages] = messagesObject;
     const username = userInfo.userName ?? undefined;
 
@@ -35,6 +39,31 @@ export default function SocketContextProvider({ children }) {
         // 채팅 요청...
         if (messageBody.type === 'CHAT') {
           setMessages((prevMessages) => [...prevMessages, message]);
+        }
+
+        // 라운드 시작 신호...
+        if (messageBody.type === 'ROUND_START') {
+          const setRoundStart = roundStartObject[1];
+          const setSongVersion = songVersionObject[1];
+          const setIsOwnerTurn = isOwnerTurnObject[1];
+          setRoundStart(messageBody.currentRound);
+          setSongVersion(messageBody.songVersion);
+          setIsOwnerTurn(messageBody.isOwnerTurn);
+        }
+
+        // 라운드 종료 신호...
+        if (messageBody.type === 'ROUND_END') {
+          const setRoundEnd = roundEndObject[1];
+          const setSongVersion = songVersionObject[1];
+          const setIsOwnerTurn = isOwnerTurnObject[1];
+          setRoundEnd(messageBody.currentRound);
+          setSongVersion(messageBody.songVersion);
+          setIsOwnerTurn(messageBody.isOwnerTurn);
+        }
+
+        // TODO: 투표 시작 신호...
+        if (messageBody.type === 'VOTE_START') {
+          console.log('투표 시작 신호를 받았습니다.');
         }
       }),
     );
@@ -50,7 +79,7 @@ export default function SocketContextProvider({ children }) {
     );
   }
 
-  function initSocket () {
+  function initSocket() {
     const socket = new SockJS(`https://${process.env.REACT_APP_HOST}/api/ws`);
     const stompClient = Stomp.over(socket);
     stompClient.connect({}, (frame) => {
@@ -63,7 +92,7 @@ export default function SocketContextProvider({ children }) {
     if (client !== null) {
       socketSubscription();
     }
-  }, [client])
+  }, [client]);
 
   useEffect(() => {
     if (userInfo.roomId !== undefined) {
@@ -79,10 +108,16 @@ export default function SocketContextProvider({ children }) {
   }, [userInfo.roomId]);
 
   return (
-    <SocketContext.Provider value={{
-      messages: messagesObject,
-      client: client,
-    }}>
+    <SocketContext.Provider
+      value={{
+        messages: messagesObject,
+        client: client,
+        roundStart: roundStartObject,
+        roundEnd: roundEndObject,
+        songVersion: songVersionObject,
+        isOwnerTurn: isOwnerTurnObject,
+      }}
+    >
       {children}
     </SocketContext.Provider>
   );

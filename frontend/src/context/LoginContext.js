@@ -14,6 +14,7 @@ export default function LoginContextProvider({ children }) {
     userPicture: undefined,
     roomId: undefined,
     isPublisher: false,
+    isRoomOwner: false,
     songs: undefined,
   });
   return (

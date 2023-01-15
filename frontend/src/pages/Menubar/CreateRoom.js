@@ -7,7 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
-import { SongList } from '../../assets/songList';
+import { SongListData } from '../../assets/songListData';
 
 const CreateRoom = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -17,7 +17,7 @@ const CreateRoom = () => {
     const [checkedList, setCheckedList] = useState(new Map());
     const [anchorEl, setAnchorEl] = useState(null); // for Popover
 
-    const songList = SongList;
+    const songList = SongListData;
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -32,7 +32,7 @@ const CreateRoom = () => {
         });
         try {
           axios
-            .post('/api/room/create', {
+            .post('/api/room/match', {
               userId: userInfo.userEmail,
               songs: confirmedList,
             })
@@ -43,6 +43,7 @@ const CreateRoom = () => {
                 ...prevState,
                 roomId: data.roomId,
                 isPublisher: true,
+                isRoomOwner: data.isRoomOwner, // TODO: 서버는 isRoomOwner 값을 줘야 합니다.
                 songs: data.songs,
               }));
             });
