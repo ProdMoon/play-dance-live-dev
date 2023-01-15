@@ -106,6 +106,8 @@ public class TestRepository {
         if (rooms.size() >= 1) {
             return rooms.get(0);
         }
-        return null;
+        return new Room().builder()
+                .isEmpty(true)
+                .build();
     }
 }

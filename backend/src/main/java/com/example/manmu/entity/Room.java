@@ -26,10 +26,11 @@ public class Room {
     private boolean isEmpty;
 
     @Builder
-    public Room(String roomId, Integer userCount ,RoomState state, List<Song> songs) {
+    public Room(String roomId, Integer userCount ,RoomState state, List<Song> songs, boolean isEmpty) {
         this.roomId = roomId;
         this.userCount = userCount;
         this.state = state;
         this.songs = songs;
+        this.isEmpty = isEmpty;
     }
 }
