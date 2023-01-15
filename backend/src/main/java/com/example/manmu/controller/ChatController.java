@@ -4,11 +4,13 @@ package com.example.manmu.controller;
 import com.example.manmu.ChatMessage;
 import com.example.manmu.config.auth.dto.SessionUser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -21,7 +23,7 @@ public class ChatController {
 
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/{roomId}")
-    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) {
+    public ChatMessage sendMessage(@Payload ChatMessage chatMessage, @PathVariable String roomId) {
 //        SessionUser user = (SessionUser) httpSession.getAttribute("user");
 //        chatMessage.setSender(user.getName());
         return chatMessage;
