@@ -15,6 +15,7 @@ const LoginContextProvider = ({ children }) => {
     userEmail: undefined,
     userPicture: undefined,
     roomId: undefined,
+    isPublisher: false,
   });
   return (
     <LoginContext.Provider value={userInfoObject}>

@@ -64,6 +64,7 @@ const CreateRoom = () => {
               setUserInfo((prevState) => ({
                 ...prevState,
                 roomId: data.roomId,
+                isPublisher: true,
               }));
             });
         } catch (error) {
