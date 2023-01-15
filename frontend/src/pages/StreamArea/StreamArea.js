@@ -7,6 +7,7 @@ import { Button, Grid, Typography } from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
+import Vote from '../../modules/Vote/Vote';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
@@ -50,7 +51,7 @@ const StreamArea = () => {
     if (session !== undefined && userInfo.isPublisher === true) {
       publishStream();
     }
-  }, [session])
+  }, [session]);
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -138,8 +139,7 @@ const StreamArea = () => {
 
   const handleReady = (e) => {
     e.preventDefault();
-    
-  }
+  };
 
   const joinSession = () => {
     // 1) OpenVidu object를 받아옵니다.
@@ -403,7 +403,9 @@ const StreamArea = () => {
               >
                 카메라 전환
               </Button>
-              <Button onClick={handleReady} variant='contained'>READY</Button>
+              <Button onClick={handleReady} variant='contained'>
+                READY
+              </Button>
               <audio ref={audioRef} src={currentSongUrl} />
               <audio ref={localAudioRef} src={currentSongUrl} />
             </Grid>
@@ -422,6 +424,9 @@ const StreamArea = () => {
           </Grid>
         </Grid>
       ) : null}
+      {/* <Grid item xs='auto'>
+        <Vote />
+      </Grid> */}
     </div>
   );
 };
