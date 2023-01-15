@@ -35,8 +35,9 @@ const StreamArea = () => {
   useEffect(() => {
     if (userInfo.roomId !== undefined) {
       if (OV !== null) {
-        leaveSession();
+        narrowlyLeaveSession();
       }
+      setMySessionId(userInfo.roomId);
       joinSession();
     }
     window.addEventListener('beforeunload', onbeforeunload);
@@ -44,6 +45,12 @@ const StreamArea = () => {
       window.removeEventListener('beforeunload', onbeforeunload);
     };
   }, [userInfo.roomId]);
+
+  useEffect(() => {
+    if (session !== undefined && userInfo.isPublisher === true) {
+      publishStream();
+    }
+  }, [session])
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -176,9 +183,6 @@ const StreamArea = () => {
         .then(() => {
           setOV(newOV);
           setSession(mySession);
-          if (userInfo.isPublisher === true) {
-            publishStream();
-          }
         })
         .catch((error) => {
           console.error(
@@ -261,6 +265,28 @@ const StreamArea = () => {
     }));
   };
 
+  const narrowlyLeaveSession = () => {
+    // 새로운 방송을 하기 위해 현재 방을 나갈 때만 호출되는 좁은 범위의 leaveSession입니다.
+    const mySession = session;
+
+    if (mySession) {
+      mySession.disconnect();
+    }
+
+    // 모든 속성을 비워줍니다...
+    setOV(null);
+    setMySessionId('default');
+    setMyUserName(
+      userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
+    );
+    setSession(undefined);
+    setMainStreamManager(undefined);
+    setPublisher(undefined);
+    setSubscribers([]);
+    setCurrentVideoDevice(undefined);
+    setMyConnectionId(undefined);
+  };
+
   const switchCamera = async () => {
     try {
       const devices = await OV.getDevices();
@@ -340,7 +366,7 @@ const StreamArea = () => {
 
   return (
     <div className='containerItem'>
-      {session === undefined ? (
+      {session !== undefined ? (
         <Grid
           id='session'
           className='containerItem'
@@ -365,7 +391,7 @@ const StreamArea = () => {
             </Grid>
           </Grid>
 
-          {mainStreamManager === undefined ? (
+          {mainStreamManager !== undefined ? (
             <Grid id='main-video' item xs={1}>
               {/* <UserVideoComponent
                   streamManager={mainStreamManager}

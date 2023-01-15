@@ -7,6 +7,7 @@ import Room from '../Room/Room';
 import Chat from '../Chat/Chat';
 import LogoPage from './LogoPage';
 import LoginContextProvider from '../../context/LoginContext';
+import SocketContextProvider from '../../context/SocketContext';
 
 const Home = () => {
   const [entered, setEntered] = useState(false);
@@ -17,23 +18,25 @@ const Home = () => {
 
   return entered ? (
     <LoginContextProvider>
-      <Grid className='container' container spacing={2}>
-        <Grid className='containerItem' item xs={3}>
-          <Paper className='containerItem' elevation={5}>
-            <Menubar />
-          </Paper>
+      <SocketContextProvider>
+        <Grid className='container' container spacing={2}>
+          <Grid className='containerItem' item xs={3}>
+            <Paper className='containerItem' elevation={5}>
+              <Menubar />
+            </Paper>
+          </Grid>
+          <Grid className='containerItem' item xs={6}>
+            <Paper className='containerItem' elevation={5}>
+              <Room />
+            </Paper>
+          </Grid>
+          <Grid className='containerItem' item xs={3}>
+            <Paper className='containerItem' elevation={5}>
+              <Chat />
+            </Paper>
+          </Grid>
         </Grid>
-        <Grid className='containerItem' item xs={6}>
-          <Paper className='containerItem' elevation={5}>
-            <Room />
-          </Paper>
-        </Grid>
-        <Grid className='containerItem' item xs={3}>
-          <Paper className='containerItem' elevation={5}>
-            <Chat />
-          </Paper>
-        </Grid>
-      </Grid>
+      </SocketContextProvider>
     </LoginContextProvider>
   ) : (
     <div

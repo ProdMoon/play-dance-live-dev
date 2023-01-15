@@ -1,78 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
-import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
 
 import { Typography, Box, Grid, TextField } from '@mui/material';
 
 import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
+import { useSocketContext } from '../../context/SocketContext';
 
 const Chat = () => {
   const [userInfo, setUserInfo] = useLoginContext();
+  const socketContext = useSocketContext();
+  const client = socketContext.client;
+  const [messages, setMessages] = socketContext.messages;
 
-  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
-  const [client, setClient] = useState(null);
-  const [subscription, setSubscription] = useState(null);
-
   const [anchorEl, setAnchorEl] = useState(null); // for Popover
 
-  const username = userInfo.userName ?? undefined;
   const chattingViewRef = useRef();
+
+  const username = userInfo.userName ?? undefined;
   const label = '채팅';
 
   useEffect(() => {
-    if (userInfo.roomId !== undefined) {
-      if (client === null) {
-        const socket = new SockJS(
-          `https://${process.env.REACT_APP_HOST}/api/ws`,
-        );
-        const stompClient = Stomp.over(socket);
-        setClient(stompClient);
-        stompClient.connect({}, (frame) => {
-          console.info('[Chat] Connected: ' + frame);
-          setSubscription(
-            stompClient.subscribe(`/topic/${userInfo.roomId}`, (message) => {
-              const messageBody = JSON.parse(message.body);
-              if (messageBody.type === 'CHAT') {
-                setMessages((prevMessages) => [...prevMessages, message]);
-                scrollDown();
-              }
-            }),
-          );
-          stompClient.send(
-            '/app/chat.addUser',
-            {},
-            JSON.stringify({
-              roomId: userInfo.roomId,
-              sender: username,
-              type: 'JOIN',
-            }),
-          );
-        });
-      } else {
-        client.unsubscribe(subscription.id);
-        setSubscription(
-          client.subscribe(`/topic/${userInfo.roomId}`, (message) => {
-            const messageBody = JSON.parse(message.body);
-            if (messageBody.type === 'CHAT') {
-              setMessages((prevMessages) => [...prevMessages, message]);
-              scrollDown();
-            }
-          }),
-        );
-        client.send(
-          '/app/chat.addUser',
-          {},
-          JSON.stringify({
-            roomId: userInfo.roomId,
-            sender: username,
-            type: 'JOIN',
-          }),
-        );
-      }
-    }
-  }, [userInfo.roomId]);
+    scrollDown();
+  }, [messages]);
 
   const sendMessage = () => {
     const chatMessage = {
