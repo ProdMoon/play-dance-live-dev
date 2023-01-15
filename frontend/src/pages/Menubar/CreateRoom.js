@@ -7,6 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
+import { SongList } from '../../assets/songList';
 
 const CreateRoom = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -16,32 +17,7 @@ const CreateRoom = () => {
     const [checkedList, setCheckedList] = useState(new Map());
     const [anchorEl, setAnchorEl] = useState(null); // for Popover
 
-    const songList = [
-      [
-        'attention',
-        {
-          label: 'Newjeans - Attention',
-          normalSrc: `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
-          doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/attention_double.mp3`,
-        },
-      ],
-      [
-        'candy',
-        {
-          label: 'NCT DREAM - Candy',
-          normalSrc: `${process.env.PUBLIC_URL}/resources/musics/candy_normal.mp3`,
-          doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/candy_double.mp3`,
-        },
-      ],
-      [
-        'amunorae',
-        {
-          label: 'ZICO - 아무노래',
-          normalSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_normal.mp3`,
-          doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_double.mp3`,
-        },
-      ],
-    ];
+    const songList = SongList;
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -67,6 +43,7 @@ const CreateRoom = () => {
                 ...prevState,
                 roomId: data.roomId,
                 isPublisher: true,
+                songs: data.songs,
               }));
             });
         } catch (error) {

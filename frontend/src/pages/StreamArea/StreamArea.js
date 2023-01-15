@@ -139,6 +139,7 @@ const StreamArea = () => {
 
   const handleReady = (e) => {
     e.preventDefault();
+    
   };
 
   const joinSession = () => {
@@ -262,6 +263,7 @@ const StreamArea = () => {
       ...prevState,
       roomId: undefined,
       isPublisher: false,
+      songs: undefined,
     }));
   };
 

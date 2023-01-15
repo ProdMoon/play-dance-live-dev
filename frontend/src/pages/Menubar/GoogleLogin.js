@@ -40,6 +40,7 @@ const GoogleLogin = () => {
           userPicture: undefined,
           roomId: undefined,
           isPublisher: false,
+          songs: undefined,
         });
       }
     } catch (e) {
