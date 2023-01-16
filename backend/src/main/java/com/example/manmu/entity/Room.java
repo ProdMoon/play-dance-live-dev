@@ -15,7 +15,12 @@ import static java.util.Collections.synchronizedList;
 @NoArgsConstructor
 public class Room {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String roomId;
+    @Column
+    private String winner;
+    @Column
+    private Integer poll;
     @Column
     private Integer userCount;
     @Column
@@ -24,6 +29,7 @@ public class Room {
     private List<Song> songs = synchronizedList(new ArrayList<>());
     @Column
     private boolean isEmpty;
+
 
     @Builder
     public Room(String roomId, Integer userCount ,RoomState state, List<Song> songs, boolean isEmpty) {
