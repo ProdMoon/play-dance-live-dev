@@ -42,9 +42,9 @@ const CreateRoom = () => {
               setUserInfo((prevState) => ({
                 ...prevState,
                 roomId: data.roomId,
-                isPublisher: true,
-                isRoomOwner: data.isRoomOwner, // TODO: 서버는 isRoomOwner 값을 줘야 합니다.
                 songs: data.songs,
+                isPublisher: true,
+                roomOwner: data.roomOwner,
               }));
             });
         } catch (error) {

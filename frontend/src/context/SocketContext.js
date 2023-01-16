@@ -16,10 +16,13 @@ export default function SocketContextProvider({ children }) {
 
   // 자식 요소들에 read/set이 제공되는 States
   const messagesObject = useState([]);
-  const roundStartObject = useState(0);
-  const roundEndObject = useState(0);
-  const songVersionObject = useState('normal');
-  const isOwnerTurnObject = useState(true);
+
+  const gameInfoObject = useState({
+    sender: null,
+    signalType: null,
+    currentRound: 0,
+    songVersion: 'normal',
+  });
 
   const voteAObject = useState(1);
   const voteBObject = useState(1);
@@ -50,22 +53,24 @@ export default function SocketContextProvider({ children }) {
 
         // 라운드 시작 신호...
         if (messageBody.type === 'ROUND_START') {
-          const setRoundStart = roundStartObject[1];
-          const setSongVersion = songVersionObject[1];
-          const setIsOwnerTurn = isOwnerTurnObject[1];
-          setRoundStart(messageBody.currentRound);
-          setSongVersion(messageBody.songVersion);
-          setIsOwnerTurn(messageBody.isOwnerTurn);
+          const [gameInfo, setGameInfo] = gameInfoObject;
+          setGameInfo({
+            sender: messageBody.sender,
+            type: messageBody.type, // 'ROUND_START'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          })
         }
 
         // 라운드 종료 신호...
         if (messageBody.type === 'ROUND_END') {
-          const setRoundEnd = roundEndObject[1];
-          const setSongVersion = songVersionObject[1];
-          const setIsOwnerTurn = isOwnerTurnObject[1];
-          setRoundEnd(messageBody.currentRound);
-          setSongVersion(messageBody.songVersion);
-          setIsOwnerTurn(messageBody.isOwnerTurn);
+          const [gameInfo, setGameInfo] = gameInfoObject;
+          setGameInfo({
+            sender: messageBody.sender,
+            type: messageBody.type, // 'ROUND_END'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          })
         }
 
         // TODO: 투표 시작 신호...
@@ -75,8 +80,13 @@ export default function SocketContextProvider({ children }) {
 
         // vote animation
         if (messageBody.type === 'VOTE-click') {
-          (messageBody.value === 'A') ? setVoteA((prevState) => {return prevState + 1})
-                                      : setVoteB((prevState) => {return prevState + 1});
+          messageBody.value === 'A'
+            ? setVoteA((prevState) => {
+                return prevState + 1;
+              })
+            : setVoteB((prevState) => {
+                return prevState + 1;
+              });
         }
       }),
     );
@@ -125,14 +135,11 @@ export default function SocketContextProvider({ children }) {
       value={{
         messages: messagesObject,
         client: client,
-        roundStart: roundStartObject,
-        roundEnd: roundEndObject,
-        songVersion: songVersionObject,
-        isOwnerTurn: isOwnerTurnObject,
-        voteAs : voteAObject,
-        voteBs : voteBObject,
-        progAs : progAObject,
-        progBs : progBObject,
+        gameInfo: gameInfoObject,
+        voteAs: voteAObject,
+        voteBs: voteBObject,
+        progAs: progAObject,
+        progBs: progBObject,
       }}
     >
       {children}

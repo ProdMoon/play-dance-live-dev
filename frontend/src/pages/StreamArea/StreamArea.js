@@ -1,4 +1,4 @@
-import { useEffect, useState, createRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 
@@ -8,10 +8,18 @@ import { Button, Grid, Typography } from '@mui/material';
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
 import Vote from '../../modules/Vote/Vote';
-import GameStart from './GameStart';
 import { useSocketContext } from '../../context/SocketContext';
+import { SongListData } from '../../assets/songListData';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
+
+// SongListData에서 곡 데이터를 가져오고, 이를 Map 자료형에 저장합니다.
+const listVersionSongList = SongListData;
+const songList = new Map(); // 우리가 사용할 곡 리스트
+listVersionSongList.map((song) => {
+  const [key, value] = song;
+  songList.set(key, value);
+});
 
 const StreamArea = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -27,19 +35,14 @@ const StreamArea = () => {
   const [currentVideoDevice, setCurrentVideoDevice] = useState(undefined);
   const [myConnectionId, setMyConnectionId] = useState(undefined);
   const [currentSongUrl, setCurrentSongUrl] = useState(null);
-  const [songPlayFlag, setSongPlayFlag] = useState(false);
-  const [playingState, setPlayingState] = useState(false);
 
   // Websocket 관련 States
   const socketContextObjects = useSocketContext();
   const client = socketContextObjects.client;
-  const [roundStart, setRoundStart] = socketContextObjects.roundStart;
-  const [roundEnd, setRoundEnd] = socketContextObjects.roundEnd;
-  const [songVersion, setSongVersion] = socketContextObjects.songVersion;
-  const [isOwnerTurn, setIsOwnerTurn] = socketContextObjects.isOwnerTurn;
+  const [gameInfo, setGameInfo] = socketContextObjects.gameInfoObject;
 
-  const audioRef = createRef();
-  const localAudioRef = createRef();
+  const audioRef = useRef();
+  const localAudioRef = useRef();
 
   useEffect(() => {
     if (userInfo.roomId !== undefined) {
@@ -55,72 +58,80 @@ const StreamArea = () => {
     };
   }, [userInfo.roomId]);
 
+  const onbeforeunload = (event) => {
+    leaveSession();
+  };
+
   useEffect(() => {
     if (session !== undefined && userInfo.isPublisher === true) {
       publishStream();
     }
   }, [session]);
 
-  // currentSongUrl이 바뀌면 자동으로 노래 재생을 시작합니다.
-  useEffect(() => {
-    if (roundStart > 0) {
-      handleToggleAudioSource().then(() => {
+  useEffect(async () => {
+    // 시작 신호 수신 시 행동
+    if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
+      if (gameInfo.type === 'ROUND_START') {
+        const songName = userInfo.songs[gameInfo.currentRound - 1];
+        const songObject = songList.get(songName);
+
+        // 틀어야 할 노래 version에 따라 알맞은 src를 넣어줍니다.
+        switch (gameInfo.songVersion) {
+          case 'normal':
+            setCurrentSongUrl(songObject.normalSrc);
+            break;
+          case 'double':
+            setCurrentSongUrl(songObject.doubleSrc);
+            break;
+          default:
+            console.error('잘못된 song Version 요청입니다.');
+        }
+
+        // 스트림의 track을 audioSource로 설정해주고 노래를 재생합니다.
+        await replaceTrackToAudioSource();
         handlePlaySong();
-        localAudioRef.current.addEventListener('ended', () => {
+        localAudioRef.current.addEventListener('ended', sendEndMessage);
+
+        // Clean-up
+        return () => {
+          localAudioRef.current.removeEventListener('ended', sendEndMessage);
+        };
+      }
+    }
+
+    // 종료 신호 수신 시 행동
+    if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
+      if (gameInfo.type === 'ROUND_END') {
+        if (userInfo.roomOwner === userInfo.userEmail) {
+          // 내가 방장이라면, 먼저 시작했을 것이므로 다른 참가자에게 시작 신호를 보내줍니다.
           client.send(
-            '/app/chat.sendMessage',
+            '/app/chat.sendGameSignal',
             {},
             JSON.stringify({
-              type: 'ROUND_END',
+              type: 'ROUND_START',
               sender: userInfo.userName,
               roomId: userInfo.roomId,
-              currentRound: roundStart,
-              isOwnerTurn: userInfo.isRoomOwner,
-              songVersion: songVersion,
+              currentRound: gameInfo.currentRound,
+              songVersion: gameInfo.songVersion,
             }),
           );
-          localAudioRef.current.removeEventListener('ended');
-          handleToggleAudioSource();
-        });
-      });
+        } else {
+          // 내가 방장이 아니라면, 투표 신호를 보냅니다.
+          client.send(
+            '/app/chat.sendGameSignal',
+            {},
+            JSON.stringify({
+              type: 'VOTE_START',
+              sender: userInfo.userName,
+              roomId: userInfo.roomId,
+              currentRound: gameInfo.currentRound,
+              songVersion: gameInfo.songVersion,
+            }),
+          );
+        }
+      }
     }
-  }, [currentSongUrl]);
-
-  const onbeforeunload = (event) => {
-    leaveSession();
-  };
-
-  const handleSetSessionId = (id) => {
-    setMySessionId(id);
-  };
-
-  const handleSetUserName = (name) => {
-    setMyUserName(name);
-  };
-
-  const handleChangeConnectionId = (connectionId) => {
-    setMyConnectionId(connectionId);
-  };
-
-  const handleMainVideoStream = (stream) => {
-    if (mainStreamManager !== stream) {
-      setMainStreamManager(stream);
-    }
-  };
-
-  const deleteSubscriber = (streamManager) => {
-    let newSubscribers = [...subscribers];
-    let index = subscribers.indexOf(streamManager, 0);
-    if (index > -1) {
-      newSubscribers.splice(index, 1);
-      setSubscribers(newSubscribers);
-    }
-  };
-
-  const handleChangeSongPlayFlag = (e, boolean) => {
-    e.preventDefault();
-    setSongPlayFlag(boolean);
-  };
+  }, [gameInfo]);
 
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
@@ -131,64 +142,82 @@ const StreamArea = () => {
     return audioSource;
   };
 
-  const handleToggleAudioSource = async (e) => {
-    e.preventDefault();
-    if (playingState === false) {
-      try {
-        const source = await createAudioSource();
+  async function replaceTrackToAudioSource() {
+    try {
+      const source = await createAudioSource();
+      const mediaStream = await OV.getUserMedia({
+        audioSource: source.getTracks()[0],
+      });
+      await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
+      console.info('Changed audiosource to mp3!!');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function replaceTrackToAudioDevice() {
+    try {
+      const devices = await OV.getDevices();
+      const audioDevices = devices.filter(
+        (device) => device.kind === 'audioinput',
+      );
+      if (audioDevices) {
         const mediaStream = await OV.getUserMedia({
-          audioSource: source.getTracks()[0],
+          audioSource: audioDevices[0].deviceId,
         });
         await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
-        console.info('Changed audiosource to mp3!!');
-      } catch (e) {
-        console.error(e);
+        console.info('Changed audiosource to microphone!!');
       }
-    } else {
-      try {
-        const devices = await OV.getDevices();
-        const audioDevices = devices.filter(
-          (device) => device.kind === 'audioinput',
-        );
-        if (audioDevices) {
-          const mediaStream = await OV.getUserMedia({
-            audioSource: audioDevices[0].deviceId,
-          });
-          await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
-          console.info('Changed audiosource to microphone!!');
-        }
-      } catch (e) {
-        console.error(e);
-      }
+    } catch (e) {
+      console.error(e);
     }
-    setPlayingState((prevState) => !prevState);
-  };
+  }
 
   const handlePlaySong = () => {
     audioRef.current.play();
     localAudioRef.current.play();
   };
 
-  const handleSetCurrentSongUrl = (url) => {
-    setCurrentSongUrl(url);
-  };
-
   const handleReady = (e) => {
     e.preventDefault();
-    // TODO: 레디를 누르면 모두에게 신호가 가야 함.
-    // TODO: [Backend] chat.sendMessage 대신 다른 URI를 사용하는 것이 좋음.
     client.send(
-      '/app/chat.sendMessage',
+      '/app/chat.sendGameSignal',
       {},
       JSON.stringify({
         type: 'ROUND_START',
-        sender: userInfo.userName,
+        sender:
+          userInfo.roomOwner === userInfo.userEmail
+            ? 'fakeSender'
+            : userInfo.userName,
         roomId: userInfo.roomId,
         currentRound: 1,
-        isOwnerTurn: true,
         songVersion: 'normal',
       }),
     );
+  };
+
+  function sendEndMessage() {
+    client.send(
+      '/app/chat.sendGameSignal',
+      {},
+      JSON.stringify({
+        type: 'ROUND_END',
+        sender: userInfo.userEmail,
+        roomId: userInfo.roomId,
+        currentRound: gameInfo.currentRound,
+        songVersion: gameInfo.songVersion,
+      }),
+    );
+    replaceTrackToAudioDevice();
+  }
+
+  const deleteSubscriber = (streamManager) => {
+    let newSubscribers = [...subscribers];
+    let index = subscribers.indexOf(streamManager, 0);
+    if (index > -1) {
+      newSubscribers.splice(index, 1);
+      setSubscribers(newSubscribers);
+    }
   };
 
   const joinSession = () => {
@@ -311,9 +340,9 @@ const StreamArea = () => {
     setUserInfo((prevState) => ({
       ...prevState,
       roomId: undefined,
-      isPublisher: false,
-      isRoomOwner: false,
       songs: undefined,
+      isPublisher: false,
+      roomOwner: false,
     }));
   };
 
@@ -420,7 +449,6 @@ const StreamArea = () => {
     <div className='containerItem'>
       {session !== undefined ? (
         <>
-          <GameStart handleSetCurrentSongUrl={handleSetCurrentSongUrl} />
           <Grid
             id='session'
             className='containerItem'
