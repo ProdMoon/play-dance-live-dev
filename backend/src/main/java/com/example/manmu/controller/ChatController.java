@@ -54,14 +54,16 @@ public class ChatController {
 
     @MessageMapping("/chat.vote")
     public void Message(@Payload ChatVote chatVote) {
+        String type = chatVote.getType();
+        String sender = chatVote.getSender();
         String roomId = chatVote.getRoomId();
         String winner = chatVote.getWinner();
         Integer poll = chatVote.getPoll();
-        Integer round = chatVote.getRound();
+        Integer currentRound = chatVote.getCurrentRound();
 
         voteService.setMatchInfo(roomId, "winner", winner);
         voteService.setMatchInfo(roomId, "poll", poll);
-        voteService.setMatchInfo(roomId, "round", round);
+        voteService.setMatchInfo(roomId, "currentRound", currentRound);
 
         template.convertAndSend("/topic/" + roomId, chatVote);
         }
