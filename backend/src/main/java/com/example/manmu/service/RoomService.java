@@ -41,7 +41,7 @@ public class RoomService {
     public RoomDto matchRoom(List<Song> songs, String userId) {
         List<Room> rooms = (List<Room>) waitingRoomRepository.findAll();
         for (Room matchRoom : rooms) {
-            List<Song> roomSongsCopy = matchRoom.getSongs();
+            List<Song> roomSongsCopy = (List<Song>) matchRoom.getSongs();
             roomSongsCopy.retainAll(songs);
             if (roomSongsCopy.size() == songs.size()) {
                 matchRoom.getUsers().add(userId);
