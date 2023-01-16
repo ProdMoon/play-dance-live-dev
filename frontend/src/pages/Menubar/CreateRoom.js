@@ -1,10 +1,12 @@
+import { useState } from 'react';
+import axios from 'axios';
+
 import { Button, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useLoginContext } from '../Home/Home';
-import { useState } from 'react';
-import axios from 'axios';
-import PopoverComponent from '../../components/PopoverComponent/PopoverComponent';
+
+import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
+import { useLoginContext } from '../../context/LoginContext';
 
 const CreateRoom = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -64,6 +66,7 @@ const CreateRoom = () => {
               setUserInfo((prevState) => ({
                 ...prevState,
                 roomId: data.roomId,
+                isPublisher: true,
               }));
             });
         } catch (error) {

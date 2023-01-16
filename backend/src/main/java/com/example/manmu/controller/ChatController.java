@@ -4,7 +4,8 @@ package com.example.manmu.controller;
 import com.example.manmu.ChatMessage;
 import com.example.manmu.config.auth.dto.SessionUser;
 import com.example.manmu.entity.ChatVote;
-import com.example.manmu.repository.TestRepository;
+import com.example.manmu.entity.Room;
+import com.example.manmu.repository.PlayingRoomRepository;
 import com.example.manmu.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,7 +23,7 @@ public class ChatController {
 
     private final SimpMessagingTemplate template;
     private final VoteService voteService;
-    private final TestRepository testRepository;
+    private final PlayingRoomRepository playingRoomRepository;
 
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage) {
@@ -45,7 +46,6 @@ public class ChatController {
         String winner = chatVote.getWinner();
         Integer poll = chatVote.getPoll();
         Integer round = chatVote.getRound();
-
 
         voteService.setMatchInfo(roomId, "winner", winner);
         voteService.setMatchInfo(roomId, "poll", poll);
