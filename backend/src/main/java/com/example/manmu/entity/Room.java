@@ -21,6 +21,7 @@ public class Room implements Serializable {
     transient boolean isEmpty;
     transient String roomOwner;
 
+
     @Builder
     public Room(String roomId, List<String> users, List<Song> songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
         this.roomId = roomId;

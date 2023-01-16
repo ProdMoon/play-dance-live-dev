@@ -23,7 +23,6 @@ public class ChatController {
 
     private final SimpMessagingTemplate template;
     private final VoteService voteService;
-
     private final PlayingRoomRepository playingRoomRepository;
 
     @MessageMapping("/chat.sendMessage")
@@ -44,22 +43,24 @@ public class ChatController {
     @MessageMapping("/chat.vote")
     public void Message(@Payload ChatVote chatVote) {
         String roomId = chatVote.getRoomId();
+        String winner = chatVote.getWinner();
         Integer poll = chatVote.getPoll();
-        if (chatVote.getIsEnd() == true) {
-            Integer result = voteService.getMatchResult(roomId);
-            chatVote.setResult(result);
-            template.convertAndSend("/topic/" + chatVote.getRoomId(), chatVote);}
-        else {
-            voteService.setVoteCount(roomId, poll);
-            Integer userCount = voteService.setUserCount(roomId);
-            // Room entity는 controller 단에서 제어 되면 안됨 -> service에서 제어해주어야 함.
-            Room room = playingRoomRepository.findById(roomId).orElse(null);
-            if (userCount == room.getUsers().size())  {
-                Integer result = voteService.getMatchResult(roomId);
-                chatVote.setResult(result);
-            }
+        Integer round = chatVote.getRound();
+
+        voteService.setMatchInfo(roomId, "winner", winner);
+        voteService.setMatchInfo(roomId, "poll", poll);
+        voteService.setMatchInfo(roomId, "round", round);
+
+        template.convertAndSend("/topic/" + roomId, chatVote);
         }
     }
-}
+
+
+
+
+
+
+
+
 
 
