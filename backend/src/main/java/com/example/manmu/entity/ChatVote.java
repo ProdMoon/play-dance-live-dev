@@ -7,12 +7,16 @@ import lombok.Setter;
 @Setter
 public class ChatVote {
 
+    private String type;
+
+    private String sender;
+
     private String roomId;
 
     private String winner;
 
     private Integer poll;
 
-    private Integer round;
+    private Integer currentRound;
 
 }

@@ -39,7 +39,14 @@ const StreamArea = () => {
   // Websocket 관련 States
   const socketContextObjects = useSocketContext();
   const client = socketContextObjects.client;
-  const [gameInfo, setGameInfo] = socketContextObjects.gameInfoObject;
+  const [gameInfo, setGameInfo] = socketContextObjects.gameInfo;
+
+  // Vote 관련 States
+  const [voteA, setVoteA] = socketContextObjects.voteAs;
+  const [voteB, setVoteB] = socketContextObjects.voteBs;
+  const [voteView, setVoteView] = useState(false);
+  const [winnerView, setWinnerView] = useState(false);
+  const [songLabel, setSongLabel] = useState(null);
 
   const audioRef = useRef();
   const localAudioRef = useRef();
@@ -70,8 +77,11 @@ const StreamArea = () => {
 
   useEffect(async () => {
     // 시작 신호 수신 시 행동
-    if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
-      if (gameInfo.type === 'ROUND_START') {
+    if (gameInfo.type === 'ROUND_START') {
+      // 먼저 열려있는 알림창을 닫습니다.
+      setWinnerView(false);
+
+      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
         const songName = userInfo.songs[gameInfo.currentRound - 1];
         const songObject = songList.get(songName);
 
@@ -90,18 +100,21 @@ const StreamArea = () => {
         // 스트림의 track을 audioSource로 설정해주고 노래를 재생합니다.
         await replaceTrackToAudioSource();
         handlePlaySong();
-        localAudioRef.current.addEventListener('ended', sendEndMessage);
+        localAudioRef.current.addEventListener('ended', sendRoundEndMessage);
 
         // Clean-up
         return () => {
-          localAudioRef.current.removeEventListener('ended', sendEndMessage);
+          localAudioRef.current.removeEventListener(
+            'ended',
+            sendRoundEndMessage,
+          );
         };
       }
     }
 
     // 종료 신호 수신 시 행동
-    if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
-      if (gameInfo.type === 'ROUND_END') {
+    if (gameInfo.type === 'ROUND_END') {
+      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
         if (userInfo.roomOwner === userInfo.userEmail) {
           // 내가 방장이라면, 먼저 시작했을 것이므로 다른 참가자에게 시작 신호를 보내줍니다.
           client.send(
@@ -129,6 +142,56 @@ const StreamArea = () => {
             }),
           );
         }
+      }
+    }
+
+    // 투표 시작 신호 수신 시 행동
+    if (gameInfo.type === 'VOTE_START') {
+      const songName = userInfo.songs[gameInfo.currentRound]; // songs는 index 0부터 시작하므로, currentRound를 사용하면 다음 라운드 곡을 지칭함.
+      const songObject = songList.get(songName);
+
+      setSongLabel(songObject.label);
+
+      // 투표창을 띄웁니다.
+      setVoteView(true);
+
+      // 방장이라면, 8초를 센 후에 투표를 종료시킵니다.
+      if (userInfo.roomOwner === userInfo.userEmail) {
+        const tick = setTimeout(() => {
+          sendVoteEndMessage();
+        }, 8000);
+
+        // Clean-up
+        return () => clearTimeout(tick);
+      }
+    }
+
+    // 투표 종료 신호 수신 시 행동
+    if (gameInfo.type === 'VOTE_END') {
+      // 투표창을 닫습니다.
+      setVoteView(false);
+
+      // 승리한 곡 버전을 표시합니다.
+      setWinnerView(true);
+
+      // 방장이 아닌 참가자라면, 3초 후에 다음 라운드 시작 신호를 보냅니다. (그래야 방장이 신호를 받음)
+      if (userInfo.isPublisher && userInfo.roomOwner !== userInfo.userEmail) {
+        const tick = setTimeout(() => {
+          client.send(
+            '/app/chat.sendGameSignal',
+            {},
+            JSON.stringify({
+              type: 'ROUND_START',
+              sender: userInfo.userName,
+              roomId: userInfo.roomId,
+              currentRound: gameInfo.currentRound + 1,
+              songVersion: gameInfo.songVersion,
+            }),
+          );
+        }, 3000);
+
+        // Clean-up
+        return () => clearTimeout(tick);
       }
     }
   }, [gameInfo]);
@@ -196,7 +259,7 @@ const StreamArea = () => {
     );
   };
 
-  function sendEndMessage() {
+  function sendRoundEndMessage() {
     client.send(
       '/app/chat.sendGameSignal',
       {},
@@ -209,6 +272,21 @@ const StreamArea = () => {
       }),
     );
     replaceTrackToAudioDevice();
+  }
+
+  function sendVoteEndMessage() {
+    client.send(
+      '/app/chat.sendGameSignal',
+      {},
+      JSON.stringify({
+        type: 'VOTE_END',
+        sender: userInfo.userEmail,
+        roomId: userInfo.roomId,
+        winner: voteA > voteB ? 'double' : 'normal',
+        poll: voteA > voteB ? voteA : voteB,
+        currentRound: gameInfo.currentRound,
+      }),
+    );
   }
 
   const deleteSubscriber = (streamManager) => {
@@ -507,9 +585,21 @@ const StreamArea = () => {
           </Grid>
         </>
       ) : null}
-      <Grid item xs='auto'>
-        <Vote />
-      </Grid>
+      {voteView ? (
+        <div className='vote-container'>
+          <Typography>다음 라운드 곡은 {songLabel} 입니다!</Typography>
+          <Vote />
+        </div>
+      ) : null}
+      {winnerView ? (
+        <div className='vote-container'>
+          <Typography>
+            다음 라운드는 {songLabel}의 {gameInfo.songVersion}버전으로
+            진행됩니다!
+          </Typography>
+          <Vote />
+        </div>
+      ) : null}
     </div>
   );
 };
