@@ -10,18 +10,19 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class Room implements Serializable {
-    String roomId;
-    List users;
-    List songs;
-    Long round1;
-    Long round2;
-    Long winner;
-    Room prev;
-    Room next;
-    boolean isEmpty;
+    transient String roomId;
+    transient List<String> users;
+    transient List<Song> songs;
+    transient Long round1;
+    transient Long round2;
+    transient Long winner;
+    transient String prev;
+    transient String next;
+    transient boolean isEmpty;
+    transient String roomOwner;
 
     @Builder
-    public Room(String roomId, List users, List songs, Long round1, Long round2, Long winner, Room prev, Room next, boolean isEmpty) {
+    public Room(String roomId, List<String> users, List<Song> songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
         this.roomId = roomId;
         this.users = users;
         this.songs = songs;
@@ -31,5 +32,6 @@ public class Room implements Serializable {
         this.prev = prev;
         this.next = next;
         this.isEmpty = isEmpty;
+        this.roomOwner = roomOwner;
     }
 }

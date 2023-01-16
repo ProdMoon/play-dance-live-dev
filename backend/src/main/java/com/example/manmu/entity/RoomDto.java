@@ -4,24 +4,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Collections.synchronizedList;
 
 @Getter
 @NoArgsConstructor
 public class RoomDto {
 
     private String roomId;
-    private List users;
-    private List songs;
+    private List<String> users;
+    private List<Song> songs;
     private Long round1;
     private Long round2;
     private Long winner;
-    private Room prev;
-    private Room next;
+    private String prev;
+    private String next;
     private boolean isEmpty;
+    private String roomOwner;
 
     public RoomDto(Room room) {
         this.roomId = room.getRoomId();
@@ -33,10 +31,11 @@ public class RoomDto {
         this.prev = room.getPrev();
         this.next = room.getNext();
         this.isEmpty = room.isEmpty();
+        this.roomOwner = room.getRoomOwner();
     }
 
     @Builder
-    public RoomDto(String roomId, List users, List songs, Long round1, Long round2, Long winner, Room prev, Room next, boolean isEmpty) {
+    public RoomDto(String roomId, List<String> users, List<Song> songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
         this.roomId = roomId;
         this.users = users;
         this.songs = songs;
@@ -46,6 +45,7 @@ public class RoomDto {
         this.prev = prev;
         this.next = next;
         this.isEmpty = isEmpty;
+        this.roomOwner = roomOwner;
     }
 
     public Room toEntity() {
@@ -59,10 +59,7 @@ public class RoomDto {
                 .prev(prev)
                 .next(next)
                 .isEmpty(isEmpty)
+                .roomOwner(roomOwner)
                 .build();
-    }
-
-    public void update() {
-
     }
 }

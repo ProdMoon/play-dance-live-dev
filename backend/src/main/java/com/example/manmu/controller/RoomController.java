@@ -1,6 +1,6 @@
 package com.example.manmu.controller;
 
-import com.example.manmu.RoomService;
+import com.example.manmu.service.RoomService;
 import com.example.manmu.entity.RoomDto;
 import com.example.manmu.entity.Song;
 import lombok.RequiredArgsConstructor;

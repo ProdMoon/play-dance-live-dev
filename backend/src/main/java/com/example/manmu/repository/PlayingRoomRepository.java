@@ -2,9 +2,6 @@ package com.example.manmu.repository;
 
 import com.example.manmu.entity.Room;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -35,7 +32,15 @@ public class PlayingRoomRepository implements CrudRepository<Room, String> {
 
     @Override
     public Optional<Room> findById(String roomId) {
-        return Optional.ofNullable(redisTemplate.opsForList().index(KEY, Long.parseLong(roomId)));
+        List<Room> rooms = redisTemplate.opsForList().range(KEY, 0, -1);
+        if (rooms != null) {
+            for (Room room : rooms) {
+                if (room.getRoomId().equals(roomId)) {
+                    return Optional.of(room);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -104,8 +109,32 @@ public class PlayingRoomRepository implements CrudRepository<Room, String> {
     public void deleteAll() {
         redisTemplate.delete(KEY);
     }
+
+    public int findIndex(String roomId) {
+        List<Room> rooms = redisTemplate.opsForList().range(KEY, 0, -1);
+        if (rooms != null) {
+            for (int i = 0; i < rooms.size(); i++) {
+                if (rooms.get(i).getRoomId().equals(roomId)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public void updateRoom(Room room) {
+        int index = findIndex(room.getRoomId());
+        if (index != -1) {
+            redisTemplate.opsForList().set(KEY, index, room);
+        }
+    }
+
     public Room getLast() {
-        return redisTemplate.opsForList().index(KEY, -1);
+        Long size = redisTemplate.opsForList().size(KEY);
+        if(size == null) {
+            return null;
+        }
+        return redisTemplate.opsForList().index(KEY, size - 1);
     }
     public Room getFirst() {
         return redisTemplate.opsForList().index(KEY, 0);

@@ -107,8 +107,33 @@ public class WaitingRoomRepository implements CrudRepository<Room, String> {
         redisTemplate.delete(KEY);
     }
 
+    public int findIndex(String roomId) {
+        List<Room> rooms = redisTemplate.opsForList().range(KEY, 0, -1);
+        if (rooms != null) {
+            for (int i = 0; i < rooms.size(); i++) {
+                if (rooms.get(i).getRoomId().equals(roomId)) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public Room updateRoom(Room room) {
+        int index = findIndex(room.getRoomId());
+        if (index != -1) {
+            redisTemplate.opsForList().set(KEY, index, room);
+            return room;
+        }
+        return null;
+    }
+
     public Room getLast() {
-        return redisTemplate.opsForList().index(KEY, -1);
+        Long size = redisTemplate.opsForList().size(KEY);
+        if(size == null) {
+            return null;
+        }
+        return redisTemplate.opsForList().index(KEY, size - 1);
     }
 
     public Room getFirst() {
