@@ -1,19 +1,19 @@
+import { useEffect, useState, createRef } from 'react';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
-import { useEffect, useState, createRef } from 'react';
 
 import './StreamArea.css';
 import { Button, Grid, Typography } from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
-import { useLoginContext } from '../Home/Home';
+import { useLoginContext } from '../../context/LoginContext';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
 const StreamArea = () => {
   const [userInfo, setUserInfo] = useLoginContext();
   const [OV, setOV] = useState(null);
-  const [mySessionId, setMySessionId] = useState('SessionA');
+  const [mySessionId, setMySessionId] = useState('default');
   const [myUserName, setMyUserName] = useState(
     userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
   );
@@ -27,15 +27,19 @@ const StreamArea = () => {
     `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
   );
   const [songPlayFlag, setSongPlayFlag] = useState(false);
+  const [playingState, setPlayingState] = useState(false);
 
   const audioRef = createRef();
   const localAudioRef = createRef();
 
   useEffect(() => {
-    if (userInfo.roomId !== undefined && session === undefined) {
+    if (userInfo.roomId !== undefined) {
+      if (OV !== null) {
+        narrowlyLeaveSession();
+      }
+      setMySessionId(userInfo.roomId);
       joinSession();
     }
-
     window.addEventListener('beforeunload', onbeforeunload);
     return () => {
       window.removeEventListener('beforeunload', onbeforeunload);
@@ -43,10 +47,10 @@ const StreamArea = () => {
   }, [userInfo.roomId]);
 
   useEffect(() => {
-    subscribers.map((subscriber) => {
-
-    })
-  }, [subscribers])
+    if (session !== undefined && userInfo.isPublisher === true) {
+      publishStream();
+    }
+  }, [session])
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -93,15 +97,37 @@ const StreamArea = () => {
     return audioSource;
   };
 
-  const handleChangeAudioSource = async (e) => {
+  const handleToggleAudioSource = async (e) => {
     e.preventDefault();
-    // TODO: openvidu 현재 publisher의 audiosource를 source로 바꿔주어야...
-    const source = await createAudioSource();
-    const mediaStream = await OV.getUserMedia({
-      audioSource: source.getTracks()[0],
-    });
-    await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
-    console.info('changed audiosource to mp3!!');
+    if (playingState === false) {
+      try {
+        const source = await createAudioSource();
+        const mediaStream = await OV.getUserMedia({
+          audioSource: source.getTracks()[0],
+        });
+        await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
+        console.info('Changed audiosource to mp3!!');
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      try {
+        const devices = await OV.getDevices();
+        const audioDevices = devices.filter(
+          (device) => device.kind === 'audioinput',
+        );
+        if (audioDevices) {
+          const mediaStream = await OV.getUserMedia({
+            audioSource: audioDevices[0].deviceId,
+          });
+          await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
+          console.info('Changed audiosource to microphone!!');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setPlayingState((prevState) => !prevState);
   };
 
   const handlePlaySong = (e) => {
@@ -109,6 +135,11 @@ const StreamArea = () => {
     audioRef.current.play();
     localAudioRef.current.play();
   };
+
+  const handleReady = (e) => {
+    e.preventDefault();
+    
+  }
 
   const joinSession = () => {
     // 1) OpenVidu object를 받아옵니다.
@@ -215,14 +246,44 @@ const StreamArea = () => {
 
     // 모든 속성을 비워줍니다...
     setOV(null);
-    setSession(undefined);
-    setSubscribers([]);
-    setMySessionId('SessionA');
+    setMySessionId('default');
     setMyUserName(
       userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
     );
+    setSession(undefined);
     setMainStreamManager(undefined);
     setPublisher(undefined);
+    setSubscribers([]);
+    setCurrentVideoDevice(undefined);
+    setMyConnectionId(undefined);
+
+    // User 관련 속성도 비워줍니다...
+    setUserInfo((prevState) => ({
+      ...prevState,
+      roomId: undefined,
+      isPublisher: false,
+    }));
+  };
+
+  const narrowlyLeaveSession = () => {
+    // 새로운 방송을 하기 위해 현재 방을 나갈 때만 호출되는 좁은 범위의 leaveSession입니다.
+    const mySession = session;
+
+    if (mySession) {
+      mySession.disconnect();
+    }
+
+    // 모든 속성을 비워줍니다...
+    setOV(null);
+    setMySessionId('default');
+    setMyUserName(
+      userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
+    );
+    setSession(undefined);
+    setMainStreamManager(undefined);
+    setPublisher(undefined);
+    setSubscribers([]);
+    setCurrentVideoDevice(undefined);
     setMyConnectionId(undefined);
   };
 
@@ -244,7 +305,7 @@ const StreamArea = () => {
             videoSource: newVideoDevice[0].deviceId,
             publishAudio: true,
             publishVideo: true,
-            mirror: false,
+            mirror: !publisher.properties.mirror,
           });
 
           // newPublisher.once('accessAllowed', () => {
@@ -315,7 +376,7 @@ const StreamArea = () => {
         >
           <Grid id='session-header' container item xs={1}>
             <Grid item xs>
-              <Typography id='session-title' variant='h5'>
+              <Typography id='session-title' variant='h6'>
                 방 번호 : {mySessionId}
               </Typography>
             </Grid>
@@ -326,13 +387,6 @@ const StreamArea = () => {
                 variant='text'
               >
                 세션 떠나기
-              </Button>
-              <Button
-                id='buttonPublishStream'
-                onClick={publishStream}
-                variant='text'
-              >
-                스트리밍 시작
               </Button>
             </Grid>
           </Grid>
@@ -349,16 +403,9 @@ const StreamArea = () => {
               >
                 카메라 전환
               </Button>
-              <Button
-                id='buttonStreamSong'
-                onClick={(e) => handleChangeAudioSource(e)}
-                variant='text'
-              >
-                audiosource를 mp3 file로 바꾸기
-              </Button>
-              <Button onClick={(e) => handlePlaySong(e)}>mp3 재생</Button>
-              <audio ref={audioRef} src={currentSongUrl} controls />
-              <audio ref={localAudioRef} src={currentSongUrl} controls />
+              <Button onClick={handleReady} variant='contained'>READY</Button>
+              <audio ref={audioRef} src={currentSongUrl} />
+              <audio ref={localAudioRef} src={currentSongUrl} />
             </Grid>
           ) : null}
           <Grid id='video-container' container item xs='auto'>
