@@ -8,6 +8,8 @@ import { Button, Grid, Typography } from '@mui/material';
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
 import Vote from '../../modules/Vote/Vote';
+import GameStart from './GameStart';
+import { useSocketContext } from '../../context/SocketContext';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
@@ -24,11 +26,17 @@ const StreamArea = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(undefined);
   const [myConnectionId, setMyConnectionId] = useState(undefined);
-  const [currentSongUrl, setCurrentSongUrl] = useState(
-    `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
-  );
+  const [currentSongUrl, setCurrentSongUrl] = useState(null);
   const [songPlayFlag, setSongPlayFlag] = useState(false);
   const [playingState, setPlayingState] = useState(false);
+
+  // Websocket 관련 States
+  const socketContextObjects = useSocketContext();
+  const client = socketContextObjects.client;
+  const [roundStart, setRoundStart] = socketContextObjects.roundStart;
+  const [roundEnd, setRoundEnd] = socketContextObjects.roundEnd;
+  const [songVersion, setSongVersion] = socketContextObjects.songVersion;
+  const [isOwnerTurn, setIsOwnerTurn] = socketContextObjects.isOwnerTurn;
 
   const audioRef = createRef();
   const localAudioRef = createRef();
@@ -52,6 +60,31 @@ const StreamArea = () => {
       publishStream();
     }
   }, [session]);
+
+  // currentSongUrl이 바뀌면 자동으로 노래 재생을 시작합니다.
+  useEffect(() => {
+    if (roundStart > 0) {
+      handleToggleAudioSource().then(() => {
+        handlePlaySong();
+        localAudioRef.current.addEventListener('ended', () => {
+          client.send(
+            '/app/chat.sendMessage',
+            {},
+            JSON.stringify({
+              type: 'ROUND_END',
+              sender: userInfo.userName,
+              roomId: userInfo.roomId,
+              currentRound: roundStart,
+              isOwnerTurn: userInfo.isRoomOwner,
+              songVersion: songVersion,
+            }),
+          );
+          localAudioRef.current.removeEventListener('ended');
+          handleToggleAudioSource();
+        });
+      });
+    }
+  }, [currentSongUrl]);
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -131,15 +164,31 @@ const StreamArea = () => {
     setPlayingState((prevState) => !prevState);
   };
 
-  const handlePlaySong = (e) => {
-    e.preventDefault();
+  const handlePlaySong = () => {
     audioRef.current.play();
     localAudioRef.current.play();
   };
 
+  const handleSetCurrentSongUrl = (url) => {
+    setCurrentSongUrl(url);
+  };
+
   const handleReady = (e) => {
     e.preventDefault();
-    
+    // TODO: 레디를 누르면 모두에게 신호가 가야 함.
+    // TODO: [Backend] chat.sendMessage 대신 다른 URI를 사용하는 것이 좋음.
+    client.send(
+      '/app/chat.sendMessage',
+      {},
+      JSON.stringify({
+        type: 'ROUND_START',
+        sender: userInfo.userName,
+        roomId: userInfo.roomId,
+        currentRound: 1,
+        isOwnerTurn: true,
+        songVersion: 'normal',
+      }),
+    );
   };
 
   const joinSession = () => {
@@ -263,6 +312,7 @@ const StreamArea = () => {
       ...prevState,
       roomId: undefined,
       isPublisher: false,
+      isRoomOwner: false,
       songs: undefined,
     }));
   };
@@ -369,62 +419,65 @@ const StreamArea = () => {
   return (
     <div className='containerItem'>
       {session !== undefined ? (
-        <Grid
-          id='session'
-          className='containerItem'
-          container
-          spacing={2}
-          direction='column'
-        >
-          <Grid id='session-header' container item xs={1}>
-            <Grid item xs>
-              <Typography id='session-title' variant='h6'>
-                방 번호 : {mySessionId}
-              </Typography>
+        <>
+          <GameStart handleSetCurrentSongUrl={handleSetCurrentSongUrl} />
+          <Grid
+            id='session'
+            className='containerItem'
+            container
+            spacing={2}
+            direction='column'
+          >
+            <Grid id='session-header' container item xs={1}>
+              <Grid item xs>
+                <Typography id='session-title' variant='h6'>
+                  방 번호 : {mySessionId}
+                </Typography>
+              </Grid>
+              <Grid item xs>
+                <Button
+                  id='buttonLeaveSession'
+                  onClick={leaveSession}
+                  variant='text'
+                >
+                  세션 떠나기
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs>
-              <Button
-                id='buttonLeaveSession'
-                onClick={leaveSession}
-                variant='text'
-              >
-                세션 떠나기
-              </Button>
-            </Grid>
-          </Grid>
 
-          {mainStreamManager !== undefined ? (
-            <Grid id='main-video' item xs={1}>
-              {/* <UserVideoComponent
+            {mainStreamManager !== undefined ? (
+              <Grid id='main-video' item xs={1}>
+                {/* <UserVideoComponent
                   streamManager={mainStreamManager}
                 /> */}
-              <Button
-                id='buttonSwitchCamera'
-                onClick={switchCamera}
-                variant='text'
-              >
-                카메라 전환
-              </Button>
-              <Button onClick={handleReady} variant='contained'>
-                READY
-              </Button>
-              <audio ref={audioRef} src={currentSongUrl} />
-              <audio ref={localAudioRef} src={currentSongUrl} />
-            </Grid>
-          ) : null}
-          <Grid id='video-container' container item xs='auto'>
-            {publisher !== undefined ? (
-              <Grid item xs>
-                <UserVideoComponent streamManager={publisher} />
+                <Button
+                  id='buttonSwitchCamera'
+                  onClick={switchCamera}
+                  variant='text'
+                >
+                  카메라 전환
+                </Button>
+                <Button onClick={handleReady} variant='contained'>
+                  READY
+                </Button>
+                <audio ref={audioRef} src={currentSongUrl} />
+                <audio ref={localAudioRef} src={currentSongUrl} />
               </Grid>
             ) : null}
-            {subscribers.map((sub, i) => (
-              <Grid item xs key={i}>
-                <UserVideoComponent streamManager={sub} />
-              </Grid>
-            ))}
+            <Grid id='video-container' container item xs='auto'>
+              {publisher !== undefined ? (
+                <Grid item xs>
+                  <UserVideoComponent streamManager={publisher} />
+                </Grid>
+              ) : null}
+              {subscribers.map((sub, i) => (
+                <Grid item xs key={i}>
+                  <UserVideoComponent streamManager={sub} />
+                </Grid>
+              ))}
+            </Grid>
           </Grid>
-        </Grid>
+        </>
       ) : null}
       <Grid item xs='auto'>
         <Vote />
