@@ -43,12 +43,7 @@ public class ChatController {
     }
 
     @MessageMapping("/chat.addUser")
-    public void addUser(@Payload ChatMessage chatMessage,
-                               SimpMessageHeaderAccessor headerAccessor, HttpServletRequest request) {
-        HttpSession httpSession = request.getSession();
-        SessionUser user = (SessionUser) httpSession.getAttribute("user");
-        // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", user.getName());
+    public void addUser(@Payload ChatMessage chatMessage) {
         template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
     }
 
@@ -61,11 +56,11 @@ public class ChatController {
         Integer poll = chatVote.getPoll();
         Integer currentRound = chatVote.getCurrentRound();
 
-        voteService.setMatchInfo(roomId, "winner", winner);
-        voteService.setMatchInfo(roomId, "poll", poll);
-        voteService.setMatchInfo(roomId, "currentRound", currentRound);
+        // voteService.setMatchInfo(roomId, "winner", winner);
+        // voteService.setMatchInfo(roomId, "poll", poll);
+        // voteService.setMatchInfo(roomId, "currentRound", currentRound);
 
-        template.convertAndSend("/topic/" + roomId, chatVote);
+        template.convertAndSend("/topic/" + chatVote.getRoomId(), chatVote);
         }
     }
 

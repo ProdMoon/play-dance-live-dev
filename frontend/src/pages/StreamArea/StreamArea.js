@@ -114,28 +114,34 @@ const StreamArea = () => {
 
     // 종료 신호 수신 시 행동
     if (gameInfo.type === 'ROUND_END') {
-      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
-        if (userInfo.roomOwner === userInfo.userEmail) {
-          // 내가 방장이라면, 먼저 시작했을 것이므로 다른 참가자에게 시작 신호를 보내줍니다.
+      if (userInfo.isPublisher) {
+        if (
+          gameInfo.sender !== userInfo.roomOwner &&
+          userInfo.userEmail === userInfo.roomOwner
+        ) {
+          // 신호를 보낸 사람이 방장이 아니고 내가 방장이면, 시작 신호를 보냅니다.
           client.send(
             '/app/chat.sendGameSignal',
             {},
             JSON.stringify({
               type: 'ROUND_START',
-              sender: userInfo.userName,
+              sender: gameInfo.sender,
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound,
               songVersion: gameInfo.songVersion,
             }),
           );
-        } else {
-          // 내가 방장이 아니라면, 투표 신호를 보냅니다.
+        } else if (
+          gameInfo.sender === userInfo.roomOwner &&
+          userInfo.userEmail !== userInfo.roomOwner
+        ) {
+          // 신호를 보낸 사람이 방장이고 내가 방장이 아니면, 투표 신호를 보냅니다.
           client.send(
             '/app/chat.sendGameSignal',
             {},
             JSON.stringify({
               type: 'VOTE_START',
-              sender: userInfo.userName,
+              sender: userInfo.userEmail,
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound,
               songVersion: gameInfo.songVersion,
@@ -174,15 +180,15 @@ const StreamArea = () => {
       // 승리한 곡 버전을 표시합니다.
       setWinnerView(true);
 
-      // 방장이 아닌 참가자라면, 3초 후에 다음 라운드 시작 신호를 보냅니다. (그래야 방장이 신호를 받음)
-      if (userInfo.isPublisher && userInfo.roomOwner !== userInfo.userEmail) {
+      // 방장이라면, 3초 후에 다음 라운드 시작 신호를 보냅니다. (방장이 아닌 사람이 신호를 받을 예정)
+      if (userInfo.isPublisher && userInfo.roomOwner === userInfo.userEmail) {
         const tick = setTimeout(() => {
           client.send(
             '/app/chat.sendGameSignal',
             {},
             JSON.stringify({
               type: 'ROUND_START',
-              sender: userInfo.userName,
+              sender: userInfo.userEmail,
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound + 1,
               songVersion: gameInfo.songVersion,
@@ -194,7 +200,7 @@ const StreamArea = () => {
         return () => clearTimeout(tick);
       }
     }
-  }, [gameInfo]);
+  }, [gameInfo.type]);
 
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
@@ -248,10 +254,7 @@ const StreamArea = () => {
       {},
       JSON.stringify({
         type: 'ROUND_START',
-        sender:
-          userInfo.roomOwner === userInfo.userEmail
-            ? 'fakeSender'
-            : userInfo.userName,
+        sender: userInfo.roomOwner,
         roomId: userInfo.roomId,
         currentRound: 1,
         songVersion: 'normal',
@@ -276,7 +279,7 @@ const StreamArea = () => {
 
   function sendVoteEndMessage() {
     client.send(
-      '/app/chat.sendGameSignal',
+      '/app/chat.vote',
       {},
       JSON.stringify({
         type: 'VOTE_END',
@@ -422,6 +425,16 @@ const StreamArea = () => {
       isPublisher: false,
       roomOwner: false,
     }));
+
+    // Game 관련 속성도 비워줍니다...
+    setGameInfo((prevState) => ({
+      ...prevState,
+      sender: null,
+      type: null,
+      currentRound: 0,
+      songVersion: 'normal',
+      poll: null,
+    }));
   };
 
   const narrowlyLeaveSession = () => {
@@ -444,6 +457,16 @@ const StreamArea = () => {
     setSubscribers([]);
     setCurrentVideoDevice(undefined);
     setMyConnectionId(undefined);
+
+    // Game 관련 속성을 비워줍니다...
+    setGameInfo((prevState) => ({
+      ...prevState,
+      sender: null,
+      type: null,
+      currentRound: 0,
+      songVersion: 'normal',
+      poll: null,
+    }));
   };
 
   const switchCamera = async () => {
