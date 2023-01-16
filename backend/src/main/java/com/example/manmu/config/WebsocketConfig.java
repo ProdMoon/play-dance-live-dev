@@ -1,4 +1,4 @@
-package com.example.manmu;
+package com.example.manmu.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

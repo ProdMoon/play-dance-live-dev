@@ -1,36 +1,38 @@
 package com.example.manmu.entity;
 
-import com.example.manmu.RoomState;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import javax.persistence.*;
-import java.util.ArrayList;
+import lombok.*;
+import org.springframework.data.redis.core.RedisHash;
+import java.io.Serializable;
 import java.util.List;
-import static java.util.Collections.synchronizedList;
 
+@RedisHash("Room")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Room {
-    @Id
-    private String roomId;
-    @Column
-    private Integer userCount;
-    @Column
-    private RoomState state;
-    @Column
-    private List<Song> songs = synchronizedList(new ArrayList<>());
-    @Column
-    private boolean isEmpty;
+public class Room implements Serializable {
+    transient String roomId;
+    transient List<String> users;
+    transient List songs;
+    transient Long round1;
+    transient Long round2;
+    transient Long winner;
+    transient String prev;
+    transient String next;
+    transient boolean isEmpty;
+    transient String roomOwner;
+
 
     @Builder
-    public Room(String roomId, Integer userCount ,RoomState state, List<Song> songs, boolean isEmpty) {
+    public Room(String roomId, List<String> users, List songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
         this.roomId = roomId;
-        this.userCount = userCount;
-        this.state = state;
+        this.users = users;
         this.songs = songs;
+        this.round1 = round1;
+        this.round2 = round2;
+        this.winner = winner;
+        this.prev = prev;
+        this.next = next;
         this.isEmpty = isEmpty;
+        this.roomOwner = roomOwner;
     }
 }
