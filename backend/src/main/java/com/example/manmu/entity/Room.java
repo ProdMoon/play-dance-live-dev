@@ -12,7 +12,7 @@ import java.util.List;
 public class Room implements Serializable {
     transient String roomId;
     transient List<String> users;
-    transient List<Song> songs;
+    transient List songs;
     transient Long round1;
     transient Long round2;
     transient Long winner;
@@ -22,7 +22,7 @@ public class Room implements Serializable {
     transient String roomOwner;
 
     @Builder
-    public Room(String roomId, List<String> users, List<Song> songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
+    public Room(String roomId, List<String> users, List songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
         this.roomId = roomId;
         this.users = users;
         this.songs = songs;
