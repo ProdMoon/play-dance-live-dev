@@ -1,15 +1,22 @@
 import './Vote.css';
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLoginContext } from '../../context/LoginContext';
+import { useSocketContext } from '../../context/SocketContext';
+
 
 const Vote = () => {
-    const [voteA, setVoteA] = useState(1);
-    const [voteB, setVoteB] = useState(1);
-    const [progA, setProgA] = useState(50);
-    const [progB, setProgB] = useState(50);
-    let total = voteA + voteB;
+    // socket
+    const [userInfo, setUserInfo] = useLoginContext();
+    const socketContext = useSocketContext();
+    const client = socketContext.client;
+    const [voteA, setVoteA] = socketContext.voteAs;
+    const [voteB, setVoteB] = socketContext.voteBs;
+    const [progA, setProgA] = socketContext.progAs;
+    const [progB, setProgB] = socketContext.progBs;
   
-    const getProgress = (vote, total) => 
-      (1 - (vote / total) || 0) * 100;
+    // vote UI
+    const getProgress = (vote) => 
+      (1 - (vote / (voteA + voteB)) || 0) * 100;
   
     const createBubbleEffect = (target) => {
       const $bubble = document.createElement('div');
@@ -19,16 +26,32 @@ const Vote = () => {
         $bubble.remove();
       }, 500);
     }
-  
-    const updateVoteOption = (event, type) => {
-      (type === 'A') ? setVoteA(voteA + 1) : setVoteB(voteB + 1);
+
+    const sendClick = (event, value) => {
       createBubbleEffect(event.currentTarget);
-    }
+      const Click = {
+        type: 'VOTE-click',
+        value: value,
+        roomId: userInfo.roomId
+      };
+      client.send('/app/chat.sendClick', {}, JSON.stringify(Click));
+    };
+
+    // useEffect(() => {
+    //   setProgA(getProgress(voteA));
+    //   setProgB(getProgress(voteB));
+    // }, [voteA, voteB])
   
+    const d = 5;
     useEffect(() => {
-      setProgA(getProgress(voteA , total));
-      setProgB(getProgress(voteB , total));
-    }, [voteA, voteB, total])
+      setProgB((prevState) => {return prevState < 100 ? prevState + d : 100});
+      setProgA((prevState) => {return 0 < prevState ? prevState - d : 0});
+    }, [voteA]);
+    
+    useEffect(() => {
+      setProgA((prevState) => {return prevState < 100 ? prevState + d : 100});
+      setProgB((prevState) => {return 0 < prevState ? prevState - d : 0});
+    }, [voteB]);
   
     return (
       <div className="vote">
@@ -36,10 +59,10 @@ const Vote = () => {
           <div className="vote-progress vote-progress__a" style={{ transform: `translateX(-${progA}%)` }} />
           <div className="vote-progress vote-progress__b" style={{ transform: `translateX(${progB}%)` }} />
         </div>
-        <div className="vote-option vote-option__a" onClick={(event) => { updateVoteOption(event, 'A') }}>
+        <div className="vote-option vote-option__a" onClick={(event) => { sendClick(event, 'A') }}>
           <div className="vote-option-button vote-option-button__a" />
         </div>
-        <div className="vote-option vote-option__b" onClick={(event) => { updateVoteOption(event, 'B') }}>
+        <div className="vote-option vote-option__b" onClick={(event) => { sendClick(event, 'B') }}>
           <div className="vote-option-button vote-option-button__b" />
         </div>
         <div className="vote-count vote-count__a">{voteA}</div>

@@ -21,6 +21,11 @@ export default function SocketContextProvider({ children }) {
   const songVersionObject = useState('normal');
   const isOwnerTurnObject = useState(true);
 
+  const voteAObject = useState(1);
+  const voteBObject = useState(1);
+  const progAObject = useState(50);
+  const progBObject = useState(50);
+
   // 자식 요소들에 read-only로 제공되는 States
   const [client, setClient] = useState(null);
 
@@ -30,6 +35,8 @@ export default function SocketContextProvider({ children }) {
   function socketSubscription() {
     const [messages, setMessages] = messagesObject;
     const username = userInfo.userName ?? undefined;
+    const [voteA, setVoteA] = voteAObject;
+    const [voteB, setVoteB] = voteBObject;
 
     setSubscription(
       // 다음과 같은 type들을 구독합니다.
@@ -64,6 +71,12 @@ export default function SocketContextProvider({ children }) {
         // TODO: 투표 시작 신호...
         if (messageBody.type === 'VOTE_START') {
           console.log('투표 시작 신호를 받았습니다.');
+        }
+
+        // vote animation
+        if (messageBody.type === 'VOTE-click') {
+          (messageBody.value === 'A') ? setVoteA((prevState) => {return prevState + 1})
+                                      : setVoteB((prevState) => {return prevState + 1});
         }
       }),
     );
@@ -116,6 +129,10 @@ export default function SocketContextProvider({ children }) {
         roundEnd: roundEndObject,
         songVersion: songVersionObject,
         isOwnerTurn: isOwnerTurnObject,
+        voteAs : voteAObject,
+        voteBs : voteBObject,
+        progAs : progAObject,
+        progBs : progBObject,
       }}
     >
       {children}
