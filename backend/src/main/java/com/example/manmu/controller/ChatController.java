@@ -2,6 +2,8 @@ package com.example.manmu.controller;
 
 
 import com.example.manmu.ChatMessage;
+import com.example.manmu.GameSignal;
+import com.example.manmu.Click;
 import com.example.manmu.config.auth.dto.SessionUser;
 import com.example.manmu.entity.ChatVote;
 import com.example.manmu.entity.Room;
@@ -28,6 +30,16 @@ public class ChatController {
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage) {
         template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
+    }
+
+    @MessageMapping("/chat.sendClick")
+    public void sendMessage(@Payload Click click) {
+        template.convertAndSend("/topic/" + click.getRoomId(), click);
+    }
+
+    @MessageMapping("/chat.sendGameSignal")
+    public void sendMessage(@Payload GameSignal gameSignal) {
+        template.convertAndSend("/topic/" + gameSignal.getRoomId(), gameSignal);
     }
 
     @MessageMapping("/chat.addUser")

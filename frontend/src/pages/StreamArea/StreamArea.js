@@ -1,4 +1,4 @@
-import { useEffect, useState, createRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 
@@ -7,8 +7,19 @@ import { Button, Grid, Typography } from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
+import Vote from '../../modules/Vote/Vote';
+import { useSocketContext } from '../../context/SocketContext';
+import { SongListData } from '../../assets/songListData';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
+
+// SongListData에서 곡 데이터를 가져오고, 이를 Map 자료형에 저장합니다.
+const listVersionSongList = SongListData;
+const songList = new Map(); // 우리가 사용할 곡 리스트
+listVersionSongList.map((song) => {
+  const [key, value] = song;
+  songList.set(key, value);
+});
 
 const StreamArea = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -23,14 +34,15 @@ const StreamArea = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(undefined);
   const [myConnectionId, setMyConnectionId] = useState(undefined);
-  const [currentSongUrl, setCurrentSongUrl] = useState(
-    `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
-  );
-  const [songPlayFlag, setSongPlayFlag] = useState(false);
-  const [playingState, setPlayingState] = useState(false);
+  const [currentSongUrl, setCurrentSongUrl] = useState(null);
 
-  const audioRef = createRef();
-  const localAudioRef = createRef();
+  // Websocket 관련 States
+  const socketContextObjects = useSocketContext();
+  const client = socketContextObjects.client;
+  const [gameInfo, setGameInfo] = socketContextObjects.gameInfoObject;
+
+  const audioRef = useRef();
+  const localAudioRef = useRef();
 
   useEffect(() => {
     if (userInfo.roomId !== undefined) {
@@ -46,47 +58,80 @@ const StreamArea = () => {
     };
   }, [userInfo.roomId]);
 
-  useEffect(() => {
-    if (session !== undefined && userInfo.isPublisher === true) {
-      publishStream();
-    }
-  }, [session])
-
   const onbeforeunload = (event) => {
     leaveSession();
   };
 
-  const handleSetSessionId = (id) => {
-    setMySessionId(id);
-  };
-
-  const handleSetUserName = (name) => {
-    setMyUserName(name);
-  };
-
-  const handleChangeConnectionId = (connectionId) => {
-    setMyConnectionId(connectionId);
-  };
-
-  const handleMainVideoStream = (stream) => {
-    if (mainStreamManager !== stream) {
-      setMainStreamManager(stream);
+  useEffect(() => {
+    if (session !== undefined && userInfo.isPublisher === true) {
+      publishStream();
     }
-  };
+  }, [session]);
 
-  const deleteSubscriber = (streamManager) => {
-    let newSubscribers = [...subscribers];
-    let index = subscribers.indexOf(streamManager, 0);
-    if (index > -1) {
-      newSubscribers.splice(index, 1);
-      setSubscribers(newSubscribers);
+  useEffect(async () => {
+    // 시작 신호 수신 시 행동
+    if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
+      if (gameInfo.type === 'ROUND_START') {
+        const songName = userInfo.songs[gameInfo.currentRound - 1];
+        const songObject = songList.get(songName);
+
+        // 틀어야 할 노래 version에 따라 알맞은 src를 넣어줍니다.
+        switch (gameInfo.songVersion) {
+          case 'normal':
+            setCurrentSongUrl(songObject.normalSrc);
+            break;
+          case 'double':
+            setCurrentSongUrl(songObject.doubleSrc);
+            break;
+          default:
+            console.error('잘못된 song Version 요청입니다.');
+        }
+
+        // 스트림의 track을 audioSource로 설정해주고 노래를 재생합니다.
+        await replaceTrackToAudioSource();
+        handlePlaySong();
+        localAudioRef.current.addEventListener('ended', sendEndMessage);
+
+        // Clean-up
+        return () => {
+          localAudioRef.current.removeEventListener('ended', sendEndMessage);
+        };
+      }
     }
-  };
 
-  const handleChangeSongPlayFlag = (e, boolean) => {
-    e.preventDefault();
-    setSongPlayFlag(boolean);
-  };
+    // 종료 신호 수신 시 행동
+    if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
+      if (gameInfo.type === 'ROUND_END') {
+        if (userInfo.roomOwner === userInfo.userEmail) {
+          // 내가 방장이라면, 먼저 시작했을 것이므로 다른 참가자에게 시작 신호를 보내줍니다.
+          client.send(
+            '/app/chat.sendGameSignal',
+            {},
+            JSON.stringify({
+              type: 'ROUND_START',
+              sender: userInfo.userName,
+              roomId: userInfo.roomId,
+              currentRound: gameInfo.currentRound,
+              songVersion: gameInfo.songVersion,
+            }),
+          );
+        } else {
+          // 내가 방장이 아니라면, 투표 신호를 보냅니다.
+          client.send(
+            '/app/chat.sendGameSignal',
+            {},
+            JSON.stringify({
+              type: 'VOTE_START',
+              sender: userInfo.userName,
+              roomId: userInfo.roomId,
+              currentRound: gameInfo.currentRound,
+              songVersion: gameInfo.songVersion,
+            }),
+          );
+        }
+      }
+    }
+  }, [gameInfo]);
 
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
@@ -97,49 +142,83 @@ const StreamArea = () => {
     return audioSource;
   };
 
-  const handleToggleAudioSource = async (e) => {
-    e.preventDefault();
-    if (playingState === false) {
-      try {
-        const source = await createAudioSource();
+  async function replaceTrackToAudioSource() {
+    try {
+      const source = await createAudioSource();
+      const mediaStream = await OV.getUserMedia({
+        audioSource: source.getTracks()[0],
+      });
+      await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
+      console.info('Changed audiosource to mp3!!');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function replaceTrackToAudioDevice() {
+    try {
+      const devices = await OV.getDevices();
+      const audioDevices = devices.filter(
+        (device) => device.kind === 'audioinput',
+      );
+      if (audioDevices) {
         const mediaStream = await OV.getUserMedia({
-          audioSource: source.getTracks()[0],
+          audioSource: audioDevices[0].deviceId,
         });
         await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
-        console.info('Changed audiosource to mp3!!');
-      } catch (e) {
-        console.error(e);
+        console.info('Changed audiosource to microphone!!');
       }
-    } else {
-      try {
-        const devices = await OV.getDevices();
-        const audioDevices = devices.filter(
-          (device) => device.kind === 'audioinput',
-        );
-        if (audioDevices) {
-          const mediaStream = await OV.getUserMedia({
-            audioSource: audioDevices[0].deviceId,
-          });
-          await publisher.replaceTrack(mediaStream.getAudioTracks()[0]);
-          console.info('Changed audiosource to microphone!!');
-        }
-      } catch (e) {
-        console.error(e);
-      }
+    } catch (e) {
+      console.error(e);
     }
-    setPlayingState((prevState) => !prevState);
-  };
+  }
 
-  const handlePlaySong = (e) => {
-    e.preventDefault();
+  const handlePlaySong = () => {
     audioRef.current.play();
     localAudioRef.current.play();
   };
 
   const handleReady = (e) => {
     e.preventDefault();
-    
+    client.send(
+      '/app/chat.sendGameSignal',
+      {},
+      JSON.stringify({
+        type: 'ROUND_START',
+        sender:
+          userInfo.roomOwner === userInfo.userEmail
+            ? 'fakeSender'
+            : userInfo.userName,
+        roomId: userInfo.roomId,
+        currentRound: 1,
+        songVersion: 'normal',
+      }),
+    );
+  };
+
+  function sendEndMessage() {
+    client.send(
+      '/app/chat.sendGameSignal',
+      {},
+      JSON.stringify({
+        type: 'ROUND_END',
+        sender: userInfo.userEmail,
+        roomId: userInfo.roomId,
+        currentRound: gameInfo.currentRound,
+        songVersion: gameInfo.songVersion,
+      }),
+    );
+    replaceTrackToAudioDevice();
   }
+
+  const deleteSubscriber = (streamManager) => {
+    let newSubscribers = [...subscribers];
+    let index = subscribers.indexOf(streamManager, 0);
+    if (index > -1) {
+      newSubscribers.splice(index, 1);
+      setSubscribers(newSubscribers);
+    }
+  };
 
   const joinSession = () => {
     // 1) OpenVidu object를 받아옵니다.
@@ -261,7 +340,9 @@ const StreamArea = () => {
     setUserInfo((prevState) => ({
       ...prevState,
       roomId: undefined,
+      songs: undefined,
       isPublisher: false,
+      roomOwner: false,
     }));
   };
 
@@ -367,61 +448,68 @@ const StreamArea = () => {
   return (
     <div className='containerItem'>
       {session !== undefined ? (
-        <Grid
-          id='session'
-          className='containerItem'
-          container
-          spacing={2}
-          direction='column'
-        >
-          <Grid id='session-header' container item xs={1}>
-            <Grid item xs>
-              <Typography id='session-title' variant='h6'>
-                방 번호 : {mySessionId}
-              </Typography>
+        <>
+          <Grid
+            id='session'
+            className='containerItem'
+            container
+            spacing={2}
+            direction='column'
+          >
+            <Grid id='session-header' container item xs={1}>
+              <Grid item xs>
+                <Typography id='session-title' variant='h6'>
+                  방 번호 : {mySessionId}
+                </Typography>
+              </Grid>
+              <Grid item xs>
+                <Button
+                  id='buttonLeaveSession'
+                  onClick={leaveSession}
+                  variant='text'
+                >
+                  세션 떠나기
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs>
-              <Button
-                id='buttonLeaveSession'
-                onClick={leaveSession}
-                variant='text'
-              >
-                세션 떠나기
-              </Button>
-            </Grid>
-          </Grid>
 
-          {mainStreamManager !== undefined ? (
-            <Grid id='main-video' item xs={1}>
-              {/* <UserVideoComponent
+            {mainStreamManager !== undefined ? (
+              <Grid id='main-video' item xs={1}>
+                {/* <UserVideoComponent
                   streamManager={mainStreamManager}
                 /> */}
-              <Button
-                id='buttonSwitchCamera'
-                onClick={switchCamera}
-                variant='text'
-              >
-                카메라 전환
-              </Button>
-              <Button onClick={handleReady} variant='contained'>READY</Button>
-              <audio ref={audioRef} src={currentSongUrl} />
-              <audio ref={localAudioRef} src={currentSongUrl} />
-            </Grid>
-          ) : null}
-          <Grid id='video-container' container item xs='auto'>
-            {publisher !== undefined ? (
-              <Grid item xs>
-                <UserVideoComponent streamManager={publisher} />
+                <Button
+                  id='buttonSwitchCamera'
+                  onClick={switchCamera}
+                  variant='text'
+                >
+                  카메라 전환
+                </Button>
+                <Button onClick={handleReady} variant='contained'>
+                  READY
+                </Button>
+                <audio ref={audioRef} src={currentSongUrl} />
+                <audio ref={localAudioRef} src={currentSongUrl} />
               </Grid>
             ) : null}
-            {subscribers.map((sub, i) => (
-              <Grid item xs key={i}>
-                <UserVideoComponent streamManager={sub} />
-              </Grid>
-            ))}
+            <Grid id='video-container' container item xs='auto'>
+              {publisher !== undefined ? (
+                <Grid item xs>
+                  <UserVideoComponent streamManager={publisher} />
+                </Grid>
+              ) : null}
+              {subscribers.map((sub, i) => (
+                <Grid item xs key={i}>
+                  <UserVideoComponent streamManager={sub} />
+                </Grid>
+              ))}
+            </Grid>
           </Grid>
-        </Grid>
+        </>
       ) : null}
+      <Grid item xs='auto'>
+        <Vote />
+      </Grid>
     </div>
   );
 };

@@ -7,6 +7,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
+import { SongListData } from '../../assets/songListData';
 
 const CreateRoom = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -16,32 +17,7 @@ const CreateRoom = () => {
     const [checkedList, setCheckedList] = useState(new Map());
     const [anchorEl, setAnchorEl] = useState(null); // for Popover
 
-    const songList = [
-      [
-        'attention',
-        {
-          label: 'Newjeans - Attention',
-          normalSrc: `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
-          doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/attention_double.mp3`,
-        },
-      ],
-      [
-        'candy',
-        {
-          label: 'NCT DREAM - Candy',
-          normalSrc: `${process.env.PUBLIC_URL}/resources/musics/candy_normal.mp3`,
-          doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/candy_double.mp3`,
-        },
-      ],
-      [
-        'amunorae',
-        {
-          label: 'ZICO - 아무노래',
-          normalSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_normal.mp3`,
-          doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_double.mp3`,
-        },
-      ],
-    ];
+    const songList = SongListData;
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -56,7 +32,7 @@ const CreateRoom = () => {
         });
         try {
           axios
-            .post('/api/room/create', {
+            .post('/api/room/match', {
               userId: userInfo.userEmail,
               songs: confirmedList,
             })
@@ -66,7 +42,9 @@ const CreateRoom = () => {
               setUserInfo((prevState) => ({
                 ...prevState,
                 roomId: data.roomId,
+                songs: data.songs,
                 isPublisher: true,
+                roomOwner: data.roomOwner,
               }));
             });
         } catch (error) {
