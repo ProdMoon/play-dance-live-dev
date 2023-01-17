@@ -108,7 +108,11 @@ const StreamArea = () => {
 
       // TODO: 수신한 connectionId가 아닌 사람이 방송할 차례이므로
       // TODO: 그 사람에게 테두리를 설정해줍니다.
-      console.log("수신한 커넥션아이디" + gameInfo.connectionId);
+      console.log("수신한 커넥션아이디 : " + gameInfo.connectionId);
+      let frames = document.querySelectorAll(`.video-comp:not([id="${gameInfo.connectionId}"])`);
+      frames.forEach(frame => {
+        frame.classList.add('gradient-border');
+      });
 
       if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
         const songName = userInfo.songs[gameInfo.currentRound - 1];
@@ -129,9 +133,12 @@ const StreamArea = () => {
     }
 
     // 종료 신호 수신 시 행동
+    // TODO: 띄워줬던 차례 강조 표시를 모두 지워줍니다.
     if (gameInfo.type === 'ROUND_END') {
-
-      // TODO: 띄워줬던 차례 강조 표시를 모두 지워줍니다.
+      let frames = document.querySelectorAll(`.video-comp`);
+      frames.forEach(frame => {
+        frame.classList.remove('gradient-border');
+      });
 
       if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
         if (userInfo.userEmail === userInfo.roomOwner) {
@@ -145,7 +152,7 @@ const StreamArea = () => {
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound,
               songVersion: gameInfo.songVersion,
-              connectionId: gameInfo.connectionId,
+              connectionId: myConnectionId,
             }),
           );
         } else {
@@ -228,7 +235,7 @@ const StreamArea = () => {
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound + 1,
               songVersion: gameInfo.songVersion,
-              connectionId: myConnectionId,
+              connectionId: subscribers[0].stream.connection.connectionId,
             }),
           );
         }, 3000);
@@ -336,7 +343,7 @@ const StreamArea = () => {
         roomId: userInfo.roomId,
         currentRound: 1,
         songVersion: 'normal',
-        connectionId: myConnectionId,
+        connectionId: userInfo.roomOwner === userInfo.userEmail ? subscribers[0].stream.connection.connectionId : myConnectionId,
       }),
     );
   };
@@ -734,12 +741,12 @@ const StreamArea = () => {
             ) : null}
             <Grid id='video-container' container item xs='auto'>
               {publisher !== undefined ? (
-                <Grid item xs>
+                <Grid item xs id={myConnectionId} className='video-comp'>
                   <UserVideoComponent streamManager={publisher} />
                 </Grid>
               ) : null}
               {subscribers.map((sub, i) => (
-                <Grid item xs id={sub.stream.connection.connectionId} key={i}>
+                <Grid item xs id={sub.stream.connection.connectionId} key={i} className='video-comp'>
                   <UserVideoComponent streamManager={sub} />
                 </Grid>
               ))}

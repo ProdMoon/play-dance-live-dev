@@ -1,3 +1,28 @@
 .stream-container {
 	padding: 0;
 }
+
+.gradient-border {
+	position: relative;
+}
+
+.gradient-border::after {
+	position: absolute;
+	content: "";
+	top: -5px;
+	left: -5px;
+	z-index: 5;
+	width: calc(100% + 10px);
+	height: calc(100% + 10px);
+	background: linear-gradient(60deg, hsl(224, 85%, 66%), hsl(269, 85%, 66%), hsl(314, 85%, 66%), hsl(359, 85%, 66%), hsl(44, 85%, 66%), hsl(89, 85%, 66%), hsl(134, 85%, 66%), hsl(179, 85%, 66%));
+	background-size: 300% 300%;
+	background-position: 0 50%;
+	border-radius: calc(2 * 3px);
+	animation: moveGradient 4s alternate infinite;
+}
+
+@keyframes moveGradient {
+	50% {
+		background-position: 100% 50%;
+	}
+}
