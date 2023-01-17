@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
-public class RoomService {
+public class GameRoomService {
     private final PlayingRoomRepository playingRoomRepository;
     private final WaitingRoomRepository waitingRoomRepository;
-    private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
+    private static final Logger logger = LoggerFactory.getLogger(GameRoomService.class);
 
-    public RoomDto createRoom(String userId, List<Song> songs) {
+    public RoomDto createRoom(String userId, List<String> songs) {
         Room lastRoom = waitingRoomRepository.getLast();
         RoomDto roomDto = RoomDto.builder()
                 .roomId(UUID.randomUUID().toString())
@@ -38,10 +38,10 @@ public class RoomService {
         return roomDto;
     }
 
-    public RoomDto matchRoom(List<Song> songs, String userId) {
+    public RoomDto matchRoom(List<String> songs, String userId) {
         List<Room> rooms = (List<Room>) waitingRoomRepository.findAll();
         for (Room matchRoom : rooms) {
-            List<Song> roomSongsCopy = (List<Song>) matchRoom.getSongs();
+            List<String> roomSongsCopy = (List<String>) matchRoom.getSongs();
             roomSongsCopy.retainAll(songs);
             if (roomSongsCopy.size() == songs.size()) {
                 matchRoom.getUsers().add(userId);
@@ -146,9 +146,9 @@ public class RoomService {
 
             Room prevRoom = waitingRoomRepository.findById(currentRoom.getPrev()).orElse(null);
             Room nextRoom = waitingRoomRepository.findById(currentRoom.getNext()).orElse(null);
-            nextRoom.setPrev(currentRoom.getPrev());
-            waitingRoomRepository.updateRoom(prevRoom);
             prevRoom.setNext(currentRoom.getNext());
+            waitingRoomRepository.updateRoom(prevRoom);
+            nextRoom.setPrev(currentRoom.getPrev());
             waitingRoomRepository.updateRoom(nextRoom);
             playingRoomRepository.save(currentRoom);
 
@@ -162,7 +162,7 @@ public class RoomService {
         return null;
     }
 
-    public void exitPlaying(String roomId) {
+    public void endPlaying(String roomId) {
         Room exitRoom = playingRoomRepository.findById(roomId).orElse(null);
         if (exitRoom != null){
             Room prevRoom = playingRoomRepository.findById(exitRoom.getPrev()).orElse(null);
@@ -180,11 +180,11 @@ public class RoomService {
         if (leaveRoom != null) {
             leaveRoom.getUsers().remove(userId);
             if (leaveRoom.getUsers().size() == 0) {
-                exitPlaying(roomId);
+                endPlaying(roomId);
                 return;
             }
             if(leaveRoom.getRoomOwner().equals(userId)) {
-                exitPlaying(roomId);
+                endPlaying(roomId);
             }
         }
     }
