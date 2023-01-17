@@ -1,0 +1,95 @@
+.searchlight1 {
+  position: absolute;
+  top: -150%;
+  left: -10%;
+  width: 220px;
+  height: 500%;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  border-radius: 25%;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  animation: shine1 5s ease-in-out infinite;
+}
+
+@keyframes shine1 {
+  0% {
+    transform: rotate(200deg);
+  }
+  50% {
+    transform: rotate(260deg);
+  }
+  100% {
+    transform: rotate(200deg);
+  }
+}
+
+.searchlight2 {
+  position: absolute;
+  top: -150%;
+  left: 100%;
+  width: 220px;
+  height: 500%;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  border-radius: 25%;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  animation: shine2 6s ease-in-out infinite;
+}
+
+@keyframes shine2 {
+  0% {
+    transform: rotate(160deg);
+  }
+  50% {
+    transform: rotate(100deg);
+  }
+  100% {
+    transform: rotate(160deg);
+  }
+}
+
+.spotlight {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  box-shadow: 0 0 200px white;
+  animation: shine 1s infinite;
+  background-color: rgba(182, 175, 238, 0.515);
+}
+
+@keyframes shine {
+  0% {
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 200px rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.logoimage {
+  width: 500px;
+  z-index: 5;
+  animation: sizechange 1s infinite;
+}
+
+@keyframes sizechange {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

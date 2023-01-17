@@ -8,6 +8,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PopoverComponent from '../../modules/PopoverComponent/PopoverComponent';
 import { useLoginContext } from '../../context/LoginContext';
 import { SongListData } from '../../assets/songListData';
+import { Box } from '@mui/system';
 
 const CreateRoom = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -50,6 +51,7 @@ const CreateRoom = () => {
         } catch (error) {
           console.error(error);
         }
+        toggleOpen(e);
       }
     };
 
@@ -103,18 +105,14 @@ const CreateRoom = () => {
     setFormOpened((prevState) => !prevState);
   };
 
-  return (
-    <>
-      {userInfo.userName !== undefined ? (
-        <div>
-          <Button onClick={(e) => toggleOpen(e)} variant='contained'>
-            {formOpened ? '닫기' : '참가하기'}
-          </Button>
-          {formOpened ? <CreateRoomForm /> : null}
-        </div>
-      ) : null}
-    </>
-  );
+  return userInfo.userName !== undefined ? (
+    <Box display='flex' flexDirection='column' justifyContent='center'>
+      <Button onClick={(e) => toggleOpen(e)} variant='contained'>
+        {formOpened ? '닫기' : '참가하기'}
+      </Button>
+      {formOpened ? <CreateRoomForm /> : null}
+    </Box>
+  ) : null;
 };
 
 export default CreateRoom;

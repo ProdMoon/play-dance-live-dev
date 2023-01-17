@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import { useLoginContext } from '../../context/LoginContext';
 import StreamArea from '../StreamArea/StreamArea';
+import { Box, Typography } from '@mui/material';
 
 const Room = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -36,10 +37,14 @@ const Room = () => {
   }, [userInfo.roomId]);
 
   return (
-    <div className='containerItem'>
-      {userInfo.roomId === undefined ? <div>열려있는 방이 없습니다</div> : null}
-      {userInfo.roomId !== undefined ? <StreamArea /> : null}
-    </div>
+    <Box display='flex' justifyContent='center' alignItems='center' className='containerItem'>
+      {userInfo.roomId !== undefined ? (
+        <Box display='flex'>
+          <Typography>열려있는 방이 없습니다</Typography>
+        </Box>
+      ) : null}
+      {userInfo.roomId === undefined ? <StreamArea /> : null}
+    </Box>
   );
 };
 

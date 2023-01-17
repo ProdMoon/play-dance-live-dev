@@ -78,6 +78,9 @@ const Chat = () => {
             setMessage(event.target.value);
           }}
           onKeyPress={handleKeyPress}
+          InputProps={{
+            style: { color: 'white' },
+          }}
         />
         <PopoverComponent
           useStateForAnchor={[anchorEl, setAnchorEl]}
@@ -89,22 +92,22 @@ const Chat = () => {
   };
 
   return (
-    <Grid container direction='column' p={1.5} spacing={1}>
-      <Grid item xs='auto'>
+    <Grid container direction='column' p={1.5} spacing={1} wrap='nowrap'>
+      <Grid item xs>
         <Typography variant='h5'>{label}</Typography>
       </Grid>
       <Grid
         item
-        xs={9}
+        xs={11}
         sx={{
           overflowY: 'scroll',
         }}
       >
-        <Box sx={{ height: 500 }}>
+        <Box sx={{ width: '100%', height: '100%' }}>
           <div ref={chattingViewRef}>{chattingView()}</div>
         </Box>
       </Grid>
-      <Grid item xs='auto'>
+      <Grid item xs>
         {inputBox()}
       </Grid>
     </Grid>

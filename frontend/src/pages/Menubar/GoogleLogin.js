@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 
-import { Avatar, Box, Button, Typography } from '@mui/material';
+import { Avatar, Box, Button, Grid, Typography } from '@mui/material';
 
 import { useLoginContext } from '../../context/LoginContext';
-
 
 const GoogleLogin = () => {
   const [userInfo, setUserInfo] = useLoginContext();
@@ -50,27 +49,49 @@ const GoogleLogin = () => {
   };
 
   return (
-    <Box>
+    <>
       {userInfo.userName === undefined ? (
-        <Box>
-          <Button href='/oauth2/authorization/google'>GOOGLE LOGIN</Button>
-        </Box>
+        <Grid item xs>
+          <Button href='/oauth2/authorization/google' variant='outlined'>
+            GOOGLE LOGIN
+          </Button>
+        </Grid>
       ) : null}
       {userInfo.userName !== undefined ? (
-        <Box>
-          <Avatar alt='profile image' src={userInfo.userPicture} />
-          <Typography>{userInfo.userName}</Typography>
-          <p />
-          <Button
-            onClick={(e) => {
-              handleLogout(e);
-            }}
+        <>
+          <Grid
+            container
+            direction='column'
+            spacing={2}
+            item
+            justifyContent='center'
+            alignItems='center'
+            xs
           >
-            LOGOUT
-          </Button>
-        </Box>
+            <Grid item xs>
+              <Avatar
+                alt='profile image'
+                src={userInfo.userPicture}
+                sx={{ width: 70, height: 70 }}
+              />
+            </Grid>
+            <Grid item xs>
+              <Typography variant='h5'>{userInfo.userName}문준호</Typography>
+            </Grid>
+            <Grid item xs>
+              <Button
+                onClick={(e) => {
+                  handleLogout(e);
+                }}
+                variant='outlined'
+              >
+                LOGOUT
+              </Button>
+            </Grid>
+          </Grid>
+        </>
       ) : null}
-    </Box>
+    </>
   );
 };
 
