@@ -1,5 +1,7 @@
 package com.example.manmu.entity;
 
+import com.example.manmu.domain.user.Role;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,5 +17,20 @@ public class Song {
     private String songName;
     @Column
     private String singer;
+
+
+    @Builder
+    public Song(Integer songId, String songName, String singer) {
+        this.songId = songId;
+        this.songName = songName;
+        this.singer = singer;
+    }
+
+    public Song update(Integer songId, String songName, String singer) {
+        this.songId = songId;
+        this.songName = songName;
+        this.singer = singer;
+        return this;
+    }
 
 }
