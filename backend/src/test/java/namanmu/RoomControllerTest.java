@@ -1,6 +1,7 @@
 package namanmu;
 
 import com.example.manmu.controller.RoomController;
+import com.example.manmu.entity.Room;
 import com.example.manmu.entity.RoomDto;
 import com.example.manmu.repository.PlayingRoomRepository;
 import com.example.manmu.repository.WaitingRoomRepository;
@@ -14,11 +15,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,24 +33,34 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@WebAppConfiguration
+@AutoConfigureMockMvc
+@SpringBootTest(classes = RoomController.class)
 class RoomControllerTest {
 
-    @LocalServerPort
-    private int port;
+    @InjectMocks
+    private GameRoomService gameRoomService;
 
-//    @Autowired
-//    private WaitingRoomRepository waitingRoomRepository;
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @Mock
+    private PlayingRoomRepository playingRoomRepository;
+    @Mock
+    private WaitingRoomRepository waitingRoomRepository;
 
-    @AfterEach
-    void tearDown() {
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.initMocks(this);
     }
 
     @Test
     void createRoom() {
+        RoomDto expectedRoomDto = RoomDto.builder().build();
+        when(waitingRoomRepository.getLast()).thenReturn(null);
+        when(waitingRoomRepository.save(any(Room.class))).thenReturn(expectedRoomDto.toEntity());
 
+        RoomDto actualRoomDto = gameRoomService.createRoom("userId", null);
+
+        assertEquals(expectedRoomDto, actualRoomDto);
+        verify(waitingRoomRepository, times(1)).save(any(Room.class));
     }
 
 }

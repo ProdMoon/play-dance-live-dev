@@ -26,7 +26,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'io.openvidu:openvidu-parent:2.0.0'
 	implementation 'io.openvidu:openvidu-java-client:2.25.0'
@@ -45,9 +44,9 @@ dependencies {
 	implementation('org.springframework.session:spring-session-jdbc') // 권한 관련
 
 	// 220102 추가
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+//	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-	testCompileOnly 'junit:junit:4.13'
+	testImplementation 'junit:junit:4.13'
 	testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 
 	//daeell
@@ -57,22 +56,27 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-configuration-processor:2.7.7'
 	implementation group: 'org.springframework.data', name: 'spring-data-redis', version: '2.7.0'
 	implementation group: 'redis.clients', name: 'jedis', version: '3.9.0'
+	testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+
 
 	//sh
 	implementation 'mysql:mysql-connector-java'
-
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 
 }
 
-test { // (2)
+//test { // (2)
+//	useJUnitPlatform()
+//}
+
+tasks.named('test') {
 	useJUnitPlatform()
 }
 
 //testImplementation 'junit:junit:4.13.1'
 
-compileJava.options.encoding = 'UTF-8'
-tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
-}
+//compileJava.options.encoding = 'UTF-8'
+//tasks.withType(JavaCompile) {
+//	options.encoding = 'UTF-8'
+//}

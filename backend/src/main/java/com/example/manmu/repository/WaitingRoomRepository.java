@@ -2,6 +2,7 @@ package com.example.manmu.repository;
 
 import com.example.manmu.entity.Room;
 import com.example.manmu.entity.RoomDto;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.repository.CrudRepository;
