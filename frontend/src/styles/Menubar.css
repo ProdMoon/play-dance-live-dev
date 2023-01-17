@@ -1,0 +1,32 @@
+.menubar-container {
+  display: flex;
+  align-items: center;
+}
+
+.menubar-logo {
+  width: 50%;
+  margin: 0% 25%;
+  z-index: 5;
+  transition: transform .2s ease-in-out;
+}
+
+.menubar-logo:hover {
+  animation: sizechange 1s infinite;
+}
+
+@keyframes sizechange {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.menubar-avatar {
+  width: 100;
+  height: 100;
+}

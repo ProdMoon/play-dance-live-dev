@@ -108,6 +108,7 @@ const StreamArea = () => {
 
       // TODO: 수신한 connectionId가 아닌 사람이 방송할 차례이므로
       // TODO: 그 사람에게 테두리를 설정해줍니다.
+
       console.log("수신한 커넥션아이디 : " + gameInfo.connectionId);
       let frames = document.querySelectorAll(`.video-comp:not([id="${gameInfo.connectionId}"])`);
       frames.forEach(frame => {
@@ -691,7 +692,7 @@ const StreamArea = () => {
 
   return (
     <div className='containerItem'>
-      {session !== undefined ? (
+      {session === undefined ? (
         <>
           <Grid
             id='session'
@@ -702,9 +703,9 @@ const StreamArea = () => {
           >
             <Grid id='session-header' container item xs={1}>
               <Grid item xs>
-                <Typography id='session-title' variant='h6'>
+                {/* <Typography id='session-title' variant='h6'>
                   방 번호 : {mySessionId}
-                </Typography>
+                </Typography> */}
               </Grid>
               <Grid item xs>
                 <Button
