@@ -22,6 +22,7 @@ export default function SocketContextProvider({ children }) {
     type: null,
     currentRound: 0,
     songVersion: 'normal',
+    connectionId: null,
     poll: null,
   });
 
@@ -61,6 +62,7 @@ export default function SocketContextProvider({ children }) {
             type: messageBody.type, // 'ROUND_START'
             currentRound: messageBody.currentRound,
             songVersion: messageBody.songVersion,
+            connectionId: messageBody.connectionId,
           }));
         }
 
@@ -95,6 +97,39 @@ export default function SocketContextProvider({ children }) {
             currentRound: messageBody.currentRound,
             songVersion: messageBody.winner,
             poll: messageBody.poll,
+          }));
+        }
+
+        // !! Temporary !! : 방장을 위한 투표 종료 신호...
+        if (messageBody.type === 'VOTE_END_SIGNAL') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'VOTE_END_SIGNAL'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          }));
+        }
+
+        // 최종 투표 시작 신호...
+        if (messageBody.type === 'FINAL_VOTE_START') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'FINAL_VOTE_START'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          }));
+        }
+
+        // 최종 투표 종료 신호...
+        if (messageBody.type === 'FINAL_VOTE_END') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'FINAL_VOTE_END'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
           }));
         }
 
