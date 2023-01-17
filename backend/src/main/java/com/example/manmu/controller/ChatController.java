@@ -60,9 +60,9 @@ public class ChatController {
         // voteService.setMatchInfo(roomId, "poll", poll);
         // voteService.setMatchInfo(roomId, "currentRound", currentRound);
 
-        template.convertAndSend("/topic/" + chatVote.getRoomId(), chatVote);
-        }
+        template.convertAndSend("/topic/" + roomId, chatVote);
     }
+}
 
 
 

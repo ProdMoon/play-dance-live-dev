@@ -143,18 +143,20 @@ public class RoomService {
         Room currentRoom = waitingRoomRepository.findById(roomId).orElse(null);
         if (currentRoom != null) {
             waitingRoomRepository.delete(currentRoom);
+
             Room prevRoom = waitingRoomRepository.findById(currentRoom.getPrev()).orElse(null);
             Room nextRoom = waitingRoomRepository.findById(currentRoom.getNext()).orElse(null);
-            if (prevRoom != null) {
-                prevRoom.setNext(currentRoom.getNext());
-                waitingRoomRepository.updateRoom(prevRoom);
-            }
-            if (nextRoom != null) {
-                nextRoom.setPrev(currentRoom.getPrev());
-                waitingRoomRepository.updateRoom(nextRoom);
-            }
+            nextRoom.setPrev(currentRoom.getPrev());
+            waitingRoomRepository.updateRoom(prevRoom);
+            prevRoom.setNext(currentRoom.getNext());
+            waitingRoomRepository.updateRoom(nextRoom);
             playingRoomRepository.save(currentRoom);
-            currentRoom.setPrev(playingRoomRepository.getLast().getRoomId());
+
+            Room lastPlayingRoom = playingRoomRepository.getLast();
+            currentRoom.setPrev(lastPlayingRoom.getRoomId());
+            lastPlayingRoom.setNext(currentRoom.getRoomId());
+            playingRoomRepository.updateRoom(lastPlayingRoom);
+
             return new RoomDto(currentRoom);
         }
         return null;
@@ -165,16 +167,25 @@ public class RoomService {
         if (exitRoom != null){
             Room prevRoom = playingRoomRepository.findById(exitRoom.getPrev()).orElse(null);
             Room nextRoom = playingRoomRepository.findById(exitRoom.getNext()).orElse(null);
-            if (prevRoom != null) {
-                prevRoom.setNext(exitRoom.getNext());
-                playingRoomRepository.updateRoom(prevRoom);
+            prevRoom.setNext(exitRoom.getNext());
+            playingRoomRepository.updateRoom(prevRoom);
+            nextRoom.setPrev(exitRoom.getPrev());
+            playingRoomRepository.updateRoom(nextRoom);
+            playingRoomRepository.delete(exitRoom);
+        }
+    }
+
+    public void leaveRoom(String roomId, String userId) {
+        Room leaveRoom = playingRoomRepository.findById(roomId).orElse(null);
+        if (leaveRoom != null) {
+            leaveRoom.getUsers().remove(userId);
+            if (leaveRoom.getUsers().size() == 0) {
+                exitPlaying(roomId);
+                return;
             }
-            if (nextRoom != null) {
-                nextRoom.setPrev(exitRoom.getPrev());
-                playingRoomRepository.updateRoom(nextRoom);
+            if(leaveRoom.getRoomOwner().equals(userId)) {
+                exitPlaying(roomId);
             }
-            waitingRoomRepository.save(exitRoom);
-            exitRoom.setPrev(waitingRoomRepository.getLast().getRoomId());
         }
     }
 }
