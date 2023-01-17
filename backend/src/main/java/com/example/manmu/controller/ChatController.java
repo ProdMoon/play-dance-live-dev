@@ -64,8 +64,8 @@ public class ChatController {
         voteService.setMatchInfo(roomId, "round", round);
 
         template.convertAndSend("/topic/" + roomId, chatVote);
-        }
     }
+}
 
 
 

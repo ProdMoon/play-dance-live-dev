@@ -51,6 +51,14 @@ public class RoomController {
         return new ResponseEntity<>(roomDto, HttpStatus.OK);
     }
 
+    @PostMapping("/api/room/leave")
+    public ResponseEntity<HttpStatus> leaveRoom(@RequestBody Map<String, Object> params) {
+        String userId = (String) params.get("userId");
+        String roomId = (String) params.get("roomId");
+        roomService.leaveRoom(roomId, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @PostMapping("/api/room/startPlaying")
     public ResponseEntity<RoomDto> startBroadcast(@RequestBody Map<String, String> params){
         RoomDto roomDto =  roomService.startPlaying(params.get("roomId"));
