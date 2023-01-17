@@ -21,6 +21,19 @@ listVersionSongList.map((song) => {
   songList.set(key, value);
 });
 
+const AudioTag = (props) => {
+  const audioRef = props.audioRef;
+  const localAudioRef = props.localAudioRef;
+  const currentSongUrl = props.currentSongUrl;
+
+  return (
+    <div>
+      <audio ref={audioRef} src={currentSongUrl} volume={0.5} />
+      <audio ref={localAudioRef} src={currentSongUrl} volume={0.5} />
+    </div>
+  );
+};
+
 const StreamArea = () => {
   const [userInfo, setUserInfo] = useLoginContext();
   const [OV, setOV] = useState(null);
@@ -34,7 +47,6 @@ const StreamArea = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(undefined);
   const [myConnectionId, setMyConnectionId] = useState(undefined);
-  const [currentSongUrl, setCurrentSongUrl] = useState(null);
 
   // Websocket 관련 States
   const socketContextObjects = useSocketContext();
@@ -44,10 +56,17 @@ const StreamArea = () => {
   // Vote 관련 States
   const [voteA, setVoteA] = socketContextObjects.voteAs;
   const [voteB, setVoteB] = socketContextObjects.voteBs;
+  const [progA, setProgA] = socketContextObjects.progAs;
+  const [progB, setProgB] = socketContextObjects.progBs;
+  const [songLabel, setSongLabel] = useState(null);
   const [voteView, setVoteView] = useState(false);
   const [winnerView, setWinnerView] = useState(false);
-  const [songLabel, setSongLabel] = useState(null);
+  const [finalVoteView, setFinalVoteView] = useState(false);
+  const [finalWinnerView, setFinalWinnerView] = useState(false);
 
+  // Audio 관련
+  const [currentSongUrl, setCurrentSongUrl] = useState(null);
+  const [currentAudioSource, setCurrentAudioSource] = useState(null);
   const audioRef = useRef();
   const localAudioRef = useRef();
 
@@ -81,6 +100,16 @@ const StreamArea = () => {
       // 먼저 열려있는 알림창을 닫습니다.
       setWinnerView(false);
 
+      // VOTE를 초기화합니다.
+      setVoteA(0);
+      setVoteB(0);
+      setProgA(50);
+      setProgB(50);
+
+      // TODO: 수신한 connectionId가 아닌 사람이 방송할 차례이므로
+      // TODO: 그 사람에게 테두리를 설정해줍니다.
+      console.log("수신한 커넥션아이디" + gameInfo.connectionId);
+
       if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
         const songName = userInfo.songs[gameInfo.currentRound - 1];
         const songObject = songList.get(songName);
@@ -96,30 +125,17 @@ const StreamArea = () => {
           default:
             console.error('잘못된 song Version 요청입니다.');
         }
-
-        // 스트림의 track을 audioSource로 설정해주고 노래를 재생합니다.
-        await replaceTrackToAudioSource();
-        handlePlaySong();
-        localAudioRef.current.addEventListener('ended', sendRoundEndMessage);
-
-        // Clean-up
-        return () => {
-          localAudioRef.current.removeEventListener(
-            'ended',
-            sendRoundEndMessage,
-          );
-        };
       }
     }
 
     // 종료 신호 수신 시 행동
     if (gameInfo.type === 'ROUND_END') {
-      if (userInfo.isPublisher) {
-        if (
-          gameInfo.sender !== userInfo.roomOwner &&
-          userInfo.userEmail === userInfo.roomOwner
-        ) {
-          // 신호를 보낸 사람이 방장이 아니고 내가 방장이면, 시작 신호를 보냅니다.
+
+      // TODO: 띄워줬던 차례 강조 표시를 모두 지워줍니다.
+
+      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
+        if (userInfo.userEmail === userInfo.roomOwner) {
+          // 내가 방장이면 후공이므로, 내가 시작하기 위한 시작 신호를 보냅니다.
           client.send(
             '/app/chat.sendGameSignal',
             {},
@@ -129,24 +145,37 @@ const StreamArea = () => {
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound,
               songVersion: gameInfo.songVersion,
+              connectionId: gameInfo.connectionId,
             }),
           );
-        } else if (
-          gameInfo.sender === userInfo.roomOwner &&
-          userInfo.userEmail !== userInfo.roomOwner
-        ) {
-          // 신호를 보낸 사람이 방장이고 내가 방장이 아니면, 투표 신호를 보냅니다.
-          client.send(
-            '/app/chat.sendGameSignal',
-            {},
-            JSON.stringify({
-              type: 'VOTE_START',
-              sender: userInfo.userEmail,
-              roomId: userInfo.roomId,
-              currentRound: gameInfo.currentRound,
-              songVersion: gameInfo.songVersion,
-            }),
-          );
+        } else {
+          // 내가 방장이 아니면 선공이었으므로, 라운드가 종료된 것입니다. 투표 신호를 보냅니다.
+          if (gameInfo.currentRound < 3) {
+            client.send(
+              '/app/chat.sendGameSignal',
+              {},
+              JSON.stringify({
+                type: 'VOTE_START',
+                sender: userInfo.userEmail,
+                roomId: userInfo.roomId,
+                currentRound: gameInfo.currentRound,
+                songVersion: gameInfo.songVersion,
+              }),
+            );
+          } else {
+            // 종료된 라운드가 3라운드라면, 최종 투표 신호를 보냅니다.
+            client.send(
+              '/app/chat.sendGameSignal',
+              {},
+              JSON.stringify({
+                type: 'FINAL_VOTE_START',
+                sender: userInfo.userEmail,
+                roomId: userInfo.roomId,
+                currentRound: gameInfo.currentRound,
+                songVersion: gameInfo.songVersion,
+              }),
+            );
+          }
         }
       }
     }
@@ -161,14 +190,21 @@ const StreamArea = () => {
       // 투표창을 띄웁니다.
       setVoteView(true);
 
-      // 방장이라면, 8초를 센 후에 투표를 종료시킵니다.
+      // 방장이라면, 8초를 센 후에 투표 종료 시그널을 보냅니다.
       if (userInfo.roomOwner === userInfo.userEmail) {
         const tick = setTimeout(() => {
-          sendVoteEndMessage();
+          sendVoteEndSignal();
         }, 8000);
 
         // Clean-up
         return () => clearTimeout(tick);
+      }
+    }
+
+    // !! Temporary !! : 방장을 위한 투표 종료 신호 수신 시 행동
+    if (gameInfo.type === 'VOTE_END_SIGNAL') {
+      if (userInfo.isPublisher && userInfo.roomOwner === userInfo.userEmail) {
+        sendVoteEndMessage();
       }
     }
 
@@ -192,6 +228,7 @@ const StreamArea = () => {
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound + 1,
               songVersion: gameInfo.songVersion,
+              connectionId: myConnectionId,
             }),
           );
         }, 3000);
@@ -200,7 +237,42 @@ const StreamArea = () => {
         return () => clearTimeout(tick);
       }
     }
+
+    // 최종 투표 시작 신호 수신 시 행동
+    if (gameInfo.type === 'FINAL_VOTE_START') {
+      // 투표창을 띄웁니다.
+      setFinalVoteView(true);
+
+      // 방장이라면, 8초를 센 후에 투표를 종료시킵니다.
+      if (userInfo.roomOwner === userInfo.userEmail) {
+        const tick = setTimeout(() => {
+          sendFinalVoteEndMessage();
+        }, 8000);
+
+        // Clean-up
+        return () => clearTimeout(tick);
+      }
+    }
+
+    // 최종 투표 종료 신호 수신 시 행동
+    if (gameInfo.type === 'FINAL_VOTE_END') {
+      // 투표창을 닫습니다.
+      setFinalVoteView(false);
+
+      // 최종 승리자를 표시합니다.
+      setFinalWinnerView(true);
+    }
   }, [gameInfo.type]);
+
+  useEffect(async () => {
+    if (currentSongUrl !== null) {
+      if (currentAudioSource === null) {
+        await replaceTrackToAudioSource();
+      }
+      handlePlaySong();
+      localAudioRef.current.addEventListener('ended', sendRoundEndMessage);
+    }
+  }, [currentSongUrl]);
 
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
@@ -208,12 +280,13 @@ const StreamArea = () => {
     const source = audioCtx.createMediaElementSource(audioRef.current);
     source.connect(dest);
     const audioSource = dest.stream; // audioSource 변수가 openvidu 연결에 사용할 audiosource 입니다.
+    setCurrentAudioSource(audioSource);
     return audioSource;
   };
 
   async function replaceTrackToAudioSource() {
     try {
-      const source = await createAudioSource();
+      const source = currentAudioSource ?? (await createAudioSource());
       const mediaStream = await OV.getUserMedia({
         audioSource: source.getTracks()[0],
       });
@@ -224,6 +297,11 @@ const StreamArea = () => {
     }
   }
 
+  /** 이 함수는 원래 sendRoundEndMessage에서 실행됨으로써,
+   * 다시 디바이스의 마이크를 활성화 시키고자 하는 목적으로 만들었습니다.
+   * 그러나 그렇게 하면 다시 replaceTrackToAudioSource를 실행했을 때,
+   * 이미 mediaElement가 생성된 오디오 소스에 대해서는 재생성이 제한되는 이슈가 있어서
+   * 부득이하게 이 함수를 사용하지 않기로 결정했습니다. */
   async function replaceTrackToAudioDevice() {
     try {
       const devices = await OV.getDevices();
@@ -258,6 +336,7 @@ const StreamArea = () => {
         roomId: userInfo.roomId,
         currentRound: 1,
         songVersion: 'normal',
+        connectionId: myConnectionId,
       }),
     );
   };
@@ -274,7 +353,22 @@ const StreamArea = () => {
         songVersion: gameInfo.songVersion,
       }),
     );
-    replaceTrackToAudioDevice();
+    // replaceTrackToAudioDevice();
+    localAudioRef.current.removeEventListener('ended', sendRoundEndMessage);
+  }
+
+  function sendVoteEndSignal() {
+    client.send(
+      '/app/chat.sendGameSignal',
+      {},
+      JSON.stringify({
+        type: 'VOTE_END_SIGNAL',
+        sender: userInfo.userEmail,
+        roomId: userInfo.roomId,
+        currentRound: gameInfo.currentRound,
+        songVersion: gameInfo.songVersion,
+      }),
+    );
   }
 
   function sendVoteEndMessage() {
@@ -283,6 +377,21 @@ const StreamArea = () => {
       {},
       JSON.stringify({
         type: 'VOTE_END',
+        sender: userInfo.userEmail,
+        roomId: userInfo.roomId,
+        winner: voteA > voteB ? 'double' : 'normal',
+        poll: voteA > voteB ? voteA : voteB,
+        currentRound: gameInfo.currentRound,
+      }),
+    );
+  }
+
+  function sendFinalVoteEndMessage() {
+    client.send(
+      '/app/chat.vote',
+      {},
+      JSON.stringify({
+        type: 'FINAL_VOTE_END',
         sender: userInfo.userEmail,
         roomId: userInfo.roomId,
         winner: voteA > voteB ? 'double' : 'normal',
@@ -367,7 +476,7 @@ const StreamArea = () => {
       videoSource: undefined, // 비디오 소스입니다. undefined이면 기본 웹캠이 설정됩니다.
       publishAudio: true, // false이면 오디오가 음소거인 상태로 시작됩니다.
       publishVideo: true, // false이면 비디오가 꺼진 상태로 시작됩니다.
-      resolution: '320x470', // 비디오의 해상도를 조정합니다.
+      resolution: '480x800', // 비디오의 해상도를 조정합니다.
       frameRate: 30, // 비디오의 프레임레이트를 조정합니다.
       insertMode: 'APPEND', // 비디오가 target element인 'video-container'에 삽입되는 방식을 설정합니다.
       mirror: true, // 로컬 비디오를 미러링 할 것인지 여부를 설정합니다.
@@ -376,6 +485,7 @@ const StreamArea = () => {
     // 6) stream을 publish합니다.
 
     mySession.publish(publisher);
+    setMyConnectionId(publisher.stream.connection.connectionId);
 
     // 현재 사용중인 비디오 디바이스를 획득합니다.
     const devices = await OV.getDevices();
@@ -434,6 +544,7 @@ const StreamArea = () => {
       currentRound: 0,
       songVersion: 'normal',
       poll: null,
+      connectionId: null,
     }));
   };
 
@@ -466,6 +577,7 @@ const StreamArea = () => {
       currentRound: 0,
       songVersion: 'normal',
       poll: null,
+      connectionId: null,
     }));
   };
 
@@ -481,27 +593,51 @@ const StreamArea = () => {
         );
 
         if (newVideoDevice.length > 0) {
-          // 비디오소스를 특정하여 새로운 publisher를 생성합니다.
-          // 모바일 환경에서의 기본값은 전면 카메라입니다.
-          const newPublisher = OV.initPublisher(undefined, {
+          const mediaStream = await OV.getUserMedia({
             videoSource: newVideoDevice[0].deviceId,
-            publishAudio: true,
-            publishVideo: true,
-            mirror: !publisher.properties.mirror,
           });
-
-          // newPublisher.once('accessAllowed', () => {
-          await session.unpublish(mainStreamManager);
-          await session.publish(newPublisher);
+          await publisher.replaceTrack(mediaStream.getVideoTracks()[0]);
           setCurrentVideoDevice(newVideoDevice[0]);
-          setMainStreamManager(newPublisher);
-          setPublisher(newPublisher);
         }
       }
     } catch (e) {
       console.error(e);
     }
   };
+
+  // const switchCamera = async () => {
+  //   try {
+  //     const devices = await OV.getDevices();
+  //     const videoDevices = devices.filter(
+  //       (device) => device.kind === 'videoinput',
+  //     );
+  //     if (videoDevices && videoDevices.length > 1) {
+  //       const newVideoDevice = videoDevices.filter(
+  //         (device) => device.deviceId !== currentVideoDevice.deviceId,
+  //       );
+
+  //       if (newVideoDevice.length > 0) {
+  //         // 비디오소스를 특정하여 새로운 publisher를 생성합니다.
+  //         // 모바일 환경에서의 기본값은 전면 카메라입니다.
+  //         const newPublisher = OV.initPublisher(undefined, {
+  //           videoSource: newVideoDevice[0].deviceId,
+  //           publishAudio: true,
+  //           publishVideo: true,
+  //           mirror: !publisher.properties.mirror,
+  //         });
+
+  //         // newPublisher.once('accessAllowed', () => {
+  //         await session.unpublish(mainStreamManager);
+  //         await session.publish(newPublisher);
+  //         setCurrentVideoDevice(newVideoDevice[0]);
+  //         setMainStreamManager(newPublisher);
+  //         setPublisher(newPublisher);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
 
   /**
    * ----------------------------------------
@@ -589,8 +725,11 @@ const StreamArea = () => {
                 <Button onClick={handleReady} variant='contained'>
                   READY
                 </Button>
-                <audio ref={audioRef} src={currentSongUrl} />
-                <audio ref={localAudioRef} src={currentSongUrl} />
+                <AudioTag
+                  audioRef={audioRef}
+                  localAudioRef={localAudioRef}
+                  currentSongUrl={currentSongUrl}
+                />
               </Grid>
             ) : null}
             <Grid id='video-container' container item xs='auto'>
@@ -600,7 +739,7 @@ const StreamArea = () => {
                 </Grid>
               ) : null}
               {subscribers.map((sub, i) => (
-                <Grid item xs key={i}>
+                <Grid item xs id={sub.stream.connection.connectionId} key={i}>
                   <UserVideoComponent streamManager={sub} />
                 </Grid>
               ))}
@@ -610,17 +749,31 @@ const StreamArea = () => {
       ) : null}
       {voteView ? (
         <div className='vote-container'>
-          <Typography>다음 라운드 곡은 {songLabel} 입니다!</Typography>
+          <Typography className='vote-text'>
+            다음 라운드 곡은 {songLabel} 입니다!
+          </Typography>
           <Vote />
         </div>
       ) : null}
       {winnerView ? (
         <div className='vote-container'>
-          <Typography>
+          <Typography className='vote-text'>
             다음 라운드는 {songLabel}의 {gameInfo.songVersion}버전으로
             진행됩니다!
           </Typography>
+        </div>
+      ) : null}
+      {finalVoteView ? (
+        <div className='vote-container'>
+          <Typography className='vote-text'>최종 승자를 정해주세요!</Typography>
           <Vote />
+        </div>
+      ) : null}
+      {finalWinnerView ? (
+        <div className='vote-container'>
+          <Typography className='vote-text'>
+            축하합니다! 최종 승자는 OOO 입니다!
+          </Typography>
         </div>
       ) : null}
     </div>

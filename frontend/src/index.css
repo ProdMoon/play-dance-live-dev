@@ -21,3 +21,8 @@ body {
   transform: translate(-50%, 0%);
   z-index: 3;
 }
+
+.vote-text {
+  color: azure;
+  -webkit-text-stroke: 2px black;
+}
