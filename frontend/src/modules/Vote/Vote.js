@@ -60,10 +60,10 @@ const Vote = () => {
           <div className="vote-progress vote-progress__b" style={{ transform: `translateX(${progB}%)` }} />
         </div>
         <div className="vote-option vote-option__a" onClick={(event) => { sendClick(event, 'A') }}>
-          <div className="vote-option-button vote-option-button__a" />
+          <div className="vote-option-button vote-option-button__a">2x</div>
         </div>
         <div className="vote-option vote-option__b" onClick={(event) => { sendClick(event, 'B') }}>
-          <div className="vote-option-button vote-option-button__b" />
+          <div className="vote-option-button vote-option-button__b">일반</div>
         </div>
         <div className="vote-count vote-count__a">{voteA}</div>
         <div className="vote-count vote-count__b">{voteB}</div>
