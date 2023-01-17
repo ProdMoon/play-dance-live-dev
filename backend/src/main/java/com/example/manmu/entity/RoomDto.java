@@ -12,7 +12,7 @@ public class RoomDto {
 
     private String roomId;
     private List<String> users;
-    private List songs;
+    private List<String> songs;
     private Long round1;
     private Long round2;
     private Long winner;
@@ -35,7 +35,7 @@ public class RoomDto {
     }
 
     @Builder
-    public RoomDto(String roomId, List<String> users, List songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
+    public RoomDto(String roomId, List<String> users, List<String> songs, Long round1, Long round2, Long winner, String prev, String next, boolean isEmpty, String roomOwner) {
         this.roomId = roomId;
         this.users = users;
         this.songs = songs;
