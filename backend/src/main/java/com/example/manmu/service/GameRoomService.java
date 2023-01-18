@@ -142,7 +142,6 @@ public class GameRoomService {
     public RoomDto startPlaying(String roomId) {
         Room currentRoom = waitingRoomRepository.findById(roomId).orElse(null);
         if (currentRoom != null) {
-
             Room prevRoom = waitingRoomRepository.findById(currentRoom.getPrev()).orElse(null);
             Room nextRoom = waitingRoomRepository.findById(currentRoom.getNext()).orElse(null);
             if (prevRoom != null) {
@@ -153,13 +152,17 @@ public class GameRoomService {
                 nextRoom.setPrev(currentRoom.getPrev());
                 waitingRoomRepository.updateRoom(nextRoom);
             }
+            waitingRoomRepository.delete(currentRoom);
+
             Room lastPlayingRoom = playingRoomRepository.getLast();
-            lastPlayingRoom.setNext(currentRoom.getRoomId());
-            playingRoomRepository.updateRoom(lastPlayingRoom);
-            currentRoom.setPrev(lastPlayingRoom.getRoomId());
+            if(lastPlayingRoom != null) {
+                lastPlayingRoom.setNext(currentRoom.getRoomId());
+                currentRoom.setPrev(lastPlayingRoom.getRoomId());
+                playingRoomRepository.updateRoom(lastPlayingRoom);
+            }
             currentRoom.setNext(null);
             playingRoomRepository.save(currentRoom);
-            waitingRoomRepository.delete(currentRoom);
+
             return new RoomDto(currentRoom);
         }
         return null;
