@@ -76,7 +76,7 @@ const GoogleLogin = () => {
               />
             </Grid>
             <Grid item xs>
-              <Typography variant='h5'>{userInfo.userName}문준호</Typography>
+              <Typography variant='h5'>{userInfo.userName}</Typography>
             </Grid>
             <Grid item xs>
               <Button

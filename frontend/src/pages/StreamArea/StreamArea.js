@@ -692,7 +692,7 @@ const StreamArea = () => {
 
   return (
     <div className='containerItem'>
-      {session === undefined ? (
+      {session !== undefined ? (
         <>
           <Grid
             id='session'

@@ -38,12 +38,12 @@ const Room = () => {
 
   return (
     <Box display='flex' justifyContent='center' alignItems='center' className='containerItem'>
-      {userInfo.roomId !== undefined ? (
+      {userInfo.roomId === undefined ? (
         <Box display='flex'>
           <Typography>열려있는 방이 없습니다</Typography>
         </Box>
       ) : null}
-      {userInfo.roomId === undefined ? <StreamArea /> : null}
+      {userInfo.roomId !== undefined ? <StreamArea /> : null}
     </Box>
   );
 };
