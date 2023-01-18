@@ -4,9 +4,12 @@ import axios from 'axios';
 import { Avatar, Box, Button, Grid, Typography } from '@mui/material';
 
 import { useLoginContext } from '../../context/LoginContext';
+import { useSocketContext } from '../../context/SocketContext';
 
 const GoogleLogin = () => {
   const [userInfo, setUserInfo] = useLoginContext();
+  const socketContext = useSocketContext();
+  const [gameInfo, setGameInfo] = socketContext.gameInfo;
 
   useEffect(async () => {
     if (userInfo.userName === undefined) {
@@ -31,6 +34,29 @@ const GoogleLogin = () => {
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
+      if (userInfo.roomId !== undefined) {
+        // api room leave 요청을 보냅니다.
+        await axios.post(
+          '/api/room/leave',
+          { userId: userInfo.userEmail, roomId: userInfo.roomId },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+
+        // Game 관련 속성을 비워줍니다...
+        setGameInfo((prevState) => ({
+          ...prevState,
+          sender: null,
+          type: null,
+          currentRound: 0,
+          songVersion: 'normal',
+          poll: null,
+          connectionId: null,
+        }));
+      }
+
+      // User 속성을 비워줍니다...
       const response = await axios.post('/logout');
       if (response) {
         setUserInfo({

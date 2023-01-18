@@ -106,12 +106,11 @@ const StreamArea = () => {
       setProgA(50);
       setProgB(50);
 
-      // TODO: 수신한 connectionId가 아닌 사람이 방송할 차례이므로
-      // TODO: 그 사람에게 테두리를 설정해줍니다.
-
-      console.log("수신한 커넥션아이디 : " + gameInfo.connectionId);
-      let frames = document.querySelectorAll(`.video-comp:not(#${gameInfo.connectionId})`);
-      frames.forEach(frame => {
+      // 수신한 connectionId가 아닌 사람이 방송할 차례이므로, 그 사람에게 테두리를 설정해줍니다.
+      let frames = document.querySelectorAll(
+        `.video-comp:not(#${gameInfo.connectionId})`,
+      );
+      frames.forEach((frame) => {
         frame.classList.add('gradient-border');
       });
 
@@ -137,7 +136,7 @@ const StreamArea = () => {
     // TODO: 띄워줬던 차례 강조 표시를 모두 지워줍니다.
     if (gameInfo.type === 'ROUND_END') {
       let frames = document.querySelectorAll(`.video-comp`);
-      frames.forEach(frame => {
+      frames.forEach((frame) => {
         frame.classList.remove('gradient-border');
       });
 
@@ -269,6 +268,15 @@ const StreamArea = () => {
 
       // 최종 승리자를 표시합니다.
       setFinalWinnerView(true);
+
+      // 방장은 서버에서 room을 제거해줍니다.
+      if (userInfo.roomOwner === userInfo.userEmail) {
+        axios.delete('/api/room', {
+          data: {
+            roomId: userInfo.roomId,
+          },
+        });
+      }
     }
   }, [gameInfo.type]);
 
@@ -335,6 +343,16 @@ const StreamArea = () => {
 
   const handleReady = (e) => {
     e.preventDefault();
+
+    // Ready를 누르면, 방을 playing 상태로 만들어서 시청자가 입장할 수 있도록 합니다.
+    axios.post(
+      '/api/room/startPlaying',
+      { roomId: userInfo.roomId },
+      {
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+
     client.send(
       '/app/chat.sendGameSignal',
       {},
@@ -344,7 +362,10 @@ const StreamArea = () => {
         roomId: userInfo.roomId,
         currentRound: 1,
         songVersion: 'normal',
-        connectionId: userInfo.roomOwner === userInfo.userEmail ? myConnectionId : subscribers[0].stream.connection.connectionId,
+        connectionId:
+          userInfo.roomOwner === userInfo.userEmail
+            ? myConnectionId
+            : subscribers[0].stream.connection.connectionId,
       }),
     );
   };
@@ -431,10 +452,8 @@ const StreamArea = () => {
       // Stream을 구독합니다. 두번째 인자가 undefined이므로
       // OpenVidu는 HTML video를 스스로 만들어내지 않습니다.
       const subscriber = mySession.subscribe(event.stream, undefined);
-      let newSubscribers = [...subscribers];
-      newSubscribers.push(subscriber);
       // 새로 만들어진 subscribers를 state에 반영합니다.
-      setSubscribers(newSubscribers);
+      setSubscribers((prevSubscribers) => [...prevSubscribers, subscriber]);
     });
 
     // Stream이 종료되는 경우...
@@ -535,13 +554,22 @@ const StreamArea = () => {
     setCurrentVideoDevice(undefined);
     setMyConnectionId(undefined);
 
+    // api room leave 요청을 보냅니다.
+    axios.post(
+      '/api/room/leave',
+      { userId: userInfo.userEmail, roomId: userInfo.roomId },
+      {
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+
     // User 관련 속성도 비워줍니다...
     setUserInfo((prevState) => ({
       ...prevState,
       roomId: undefined,
       songs: undefined,
       isPublisher: false,
-      roomOwner: false,
+      roomOwner: null,
     }));
 
     // Game 관련 속성도 비워줍니다...
@@ -743,15 +771,28 @@ const StreamArea = () => {
             ) : null}
             <Grid id='video-container' container item xs='auto'>
               {publisher !== undefined ? (
-                <Grid item xs id={publisher.stream.connection.connectionId} className='video-comp'>
+                <Grid
+                  item
+                  xs
+                  id={publisher.stream.connection.connectionId}
+                  className='video-comp'
+                >
                   <UserVideoComponent streamManager={publisher} />
                 </Grid>
               ) : null}
-              {subscribers.map((sub, i) => (
-                <Grid item xs id={sub.stream.connection.connectionId} key={i} className='video-comp'>
-                  <UserVideoComponent streamManager={sub} />
-                </Grid>
-              ))}
+              {subscribers.map((sub, i) => {
+                return (
+                  <Grid
+                    item
+                    xs
+                    id={sub.stream.connection.connectionId}
+                    key={i}
+                    className='video-comp'
+                  >
+                    <UserVideoComponent streamManager={sub} />
+                  </Grid>
+                );
+              })}
             </Grid>
           </Grid>
         </>
