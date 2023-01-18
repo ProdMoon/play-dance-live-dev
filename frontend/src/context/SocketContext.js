@@ -129,7 +129,8 @@ export default function SocketContextProvider({ children }) {
             sender: messageBody.sender,
             type: messageBody.type, // 'FINAL_VOTE_END'
             currentRound: messageBody.currentRound,
-            songVersion: messageBody.songVersion,
+            songVersion: messageBody.winner,
+            poll: messageBody.poll,
           }));
         }
 

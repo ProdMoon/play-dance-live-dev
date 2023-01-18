@@ -41,16 +41,26 @@ body {
 }
 
 .vote-container {
-  position: absolute;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
   top: 60%;
   left: 50%;
   transform: translate(-50%, 0%);
   z-index: 100;
 }
 
-.vote-text {
-  color: azure;
-  -webkit-text-stroke: 2px black;
+.vote-background {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 15rem;
+  width: 100%;
+  background-color: rgba(0,0,0,.5);
 }
 
 .backgroundPaper {

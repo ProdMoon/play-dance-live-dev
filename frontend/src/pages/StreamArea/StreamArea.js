@@ -799,31 +799,70 @@ const StreamArea = () => {
       ) : null}
       {voteView ? (
         <div className='vote-container'>
-          <Typography className='vote-text'>
-            다음 라운드 곡은 {songLabel} 입니다!
-          </Typography>
-          <Vote />
+          <Vote
+            upperText={[
+              `다음 라운드 곡 : ${songLabel}`,
+              `챌린지 버전을 골라주세요!`,
+            ]}
+            leftText='2x'
+            rightText='일반'
+          />
         </div>
       ) : null}
       {winnerView ? (
         <div className='vote-container'>
-          <Typography className='vote-text'>
-            다음 라운드는 {songLabel}의 {gameInfo.songVersion}버전으로
-            진행됩니다!
-          </Typography>
+          <div className='vote-background'>
+            <Typography variant='h5'>다음 라운드는</Typography>
+            <Typography variant='h5'>{songLabel}의</Typography>
+            <Typography variant='h5'>
+              {gameInfo.songVersion === 'normal' ? '일반' : '2배속'} 버전으로
+              진행됩니다!
+            </Typography>
+          </div>
         </div>
       ) : null}
       {finalVoteView ? (
         <div className='vote-container'>
-          <Typography className='vote-text'>최종 승자를 정해주세요!</Typography>
-          <Vote />
+          <Vote
+            upperText={[`최종 승자를 정해주세요!`]}
+            leftText={
+              userInfo.isPublisher
+                ? userInfo.userEmail === userInfo.roomOwner
+                  ? userInfo.userName
+                  : JSON.parse(subscribers[0].stream.connection.data).clientData
+                : JSON.parse(subscribers[0].stream.connection.data).clientData
+            }
+            rightText={
+              userInfo.isPublisher
+                ? userInfo.userEmail === userInfo.roomOwner
+                  ? JSON.parse(subscribers[0].stream.connection.data).clientData
+                  : userInfo.userName
+                : JSON.parse(subscribers[1].stream.connection.data).clientData
+            }
+          />
         </div>
       ) : null}
       {finalWinnerView ? (
         <div className='vote-container'>
-          <Typography className='vote-text'>
-            축하합니다! 최종 승자는 OOO 입니다!
-          </Typography>
+          <div className='vote-background'>
+            <Typography variant='h5'>
+              축하합니다! 최종 승자는{' '}
+              {gameInfo.songVersion === 'double'
+                ? userInfo.isPublisher
+                  ? userInfo.userEmail === userInfo.roomOwner
+                    ? userInfo.userName
+                    : JSON.parse(subscribers[0].stream.connection.data)
+                        .clientData
+                  : JSON.parse(subscribers[0].stream.connection.data).clientData
+                : userInfo.isPublisher
+                ? userInfo.userEmail === userInfo.roomOwner
+                  ? JSON.parse(subscribers[0].stream.connection.data).clientData
+                  : userInfo.userName
+                : JSON.parse(subscribers[1].stream.connection.data)
+                    .clientData}{' '}
+              입니다!
+            </Typography>
+          </div>
         </div>
       ) : null}
     </div>
