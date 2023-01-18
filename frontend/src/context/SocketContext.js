@@ -19,9 +19,11 @@ export default function SocketContextProvider({ children }) {
 
   const gameInfoObject = useState({
     sender: null,
-    signalType: null,
+    type: null,
     currentRound: 0,
     songVersion: 'normal',
+    connectionId: null,
+    poll: null,
   });
 
   const voteAObject = useState(1);
@@ -40,6 +42,7 @@ export default function SocketContextProvider({ children }) {
     const username = userInfo.userName ?? undefined;
     const [voteA, setVoteA] = voteAObject;
     const [voteB, setVoteB] = voteBObject;
+    const [gameInfo, setGameInfo] = gameInfoObject;
 
     setSubscription(
       // 다음과 같은 type들을 구독합니다.
@@ -53,29 +56,82 @@ export default function SocketContextProvider({ children }) {
 
         // 라운드 시작 신호...
         if (messageBody.type === 'ROUND_START') {
-          const [gameInfo, setGameInfo] = gameInfoObject;
-          setGameInfo({
+          setGameInfo((prevState) => ({
+            ...prevState,
             sender: messageBody.sender,
             type: messageBody.type, // 'ROUND_START'
             currentRound: messageBody.currentRound,
             songVersion: messageBody.songVersion,
-          })
+            connectionId: messageBody.connectionId,
+          }));
         }
 
         // 라운드 종료 신호...
         if (messageBody.type === 'ROUND_END') {
-          const [gameInfo, setGameInfo] = gameInfoObject;
-          setGameInfo({
+          setGameInfo((prevState) => ({
+            ...prevState,
             sender: messageBody.sender,
             type: messageBody.type, // 'ROUND_END'
             currentRound: messageBody.currentRound,
             songVersion: messageBody.songVersion,
-          })
+          }));
         }
 
-        // TODO: 투표 시작 신호...
+        // 투표 시작 신호...
         if (messageBody.type === 'VOTE_START') {
-          console.log('투표 시작 신호를 받았습니다.');
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'VOTE_START'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          }));
+        }
+
+        // 투표 종료 신호...
+        if (messageBody.type === 'VOTE_END') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'VOTE_END'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.winner,
+            poll: messageBody.poll,
+          }));
+        }
+
+        // !! Temporary !! : 방장을 위한 투표 종료 신호...
+        if (messageBody.type === 'VOTE_END_SIGNAL') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'VOTE_END_SIGNAL'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          }));
+        }
+
+        // 최종 투표 시작 신호...
+        if (messageBody.type === 'FINAL_VOTE_START') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'FINAL_VOTE_START'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.songVersion,
+          }));
+        }
+
+        // 최종 투표 종료 신호...
+        if (messageBody.type === 'FINAL_VOTE_END') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            sender: messageBody.sender,
+            type: messageBody.type, // 'FINAL_VOTE_END'
+            currentRound: messageBody.currentRound,
+            songVersion: messageBody.winner,
+            poll: messageBody.poll,
+          }));
         }
 
         // vote animation

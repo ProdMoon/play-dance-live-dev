@@ -4,10 +4,19 @@
 }
 
 .vote {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     position: relative;
-    height: 5rem;
+    height: 15rem;
     width: 100%;
     background-color: rgba(0,0,0,.5);
+}
+.vote-upper-text {
+    padding-top: 0.5rem;
+}
+.vote-main {
+    display: flex;
 }
 .vote-option {
     position: absolute;
@@ -23,6 +32,9 @@
     right: 2px;
 }
 .vote-option-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     position: relative;
     width: 100%;
     height: 100%;

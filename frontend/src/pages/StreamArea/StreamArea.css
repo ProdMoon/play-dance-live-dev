@@ -1,3 +1,72 @@
-.stream-container {
+/* .stream-container {
 	padding: 0;
+}
+
+.gradient-border {
+	position: relative;
+}
+
+.gradient-border::after {
+	position: absolute;
+	content: "";
+	top: -5px;
+	left: -5px;
+	z-index: 5;
+	width: calc(100% + 10px);
+	height: calc(100% + 10px);
+	background: linear-gradient(60deg, hsl(224, 85%, 66%), hsl(269, 85%, 66%), hsl(314, 85%, 66%), hsl(359, 85%, 66%), hsl(44, 85%, 66%), hsl(89, 85%, 66%), hsl(134, 85%, 66%), hsl(179, 85%, 66%));
+	background-size: 300% 300%;
+	background-position: 0 50%;
+	border-radius: calc(2 * 3px);
+	animation: moveGradient 4s alternate infinite;
+}
+
+@keyframes moveGradient {
+	50% {
+		background-position: 100% 50%;
+	}
+} */
+
+#video-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.video-comp {
+  position: absolute;
+  top: 10%;
+  width: 42%;
+  height: 80%;
+  border-radius: 10px;
+  transition: all 0.5s ease;
+}
+
+.video-comp:first-child {
+  left: 4%;
+}
+
+.video-comp:last-child {
+  left: 54%;
+}
+
+.dancing {
+  position: absolute;
+  left: 26% !important;
+  top: 4%;
+  width: 48%;
+  height: 92%;
+  border-radius: 10px;
+  z-index: 99;
+}
+
+.resting {
+  position: absolute;
+  left: 60% !important;
+  top: 72% !important;
+  width: 14%;
+  height: 24%;
+  border-radius: 10px;
+  z-index: 100;
 }

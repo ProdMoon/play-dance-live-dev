@@ -43,29 +43,26 @@ public class ChatController {
     }
 
     @MessageMapping("/chat.addUser")
-    public void addUser(@Payload ChatMessage chatMessage,
-                               SimpMessageHeaderAccessor headerAccessor, HttpServletRequest request) {
-        HttpSession httpSession = request.getSession();
-        SessionUser user = (SessionUser) httpSession.getAttribute("user");
-        // Add username in web socket session
-        headerAccessor.getSessionAttributes().put("username", user.getName());
+    public void addUser(@Payload ChatMessage chatMessage) {
         template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
     }
 
     @MessageMapping("/chat.vote")
     public void Message(@Payload ChatVote chatVote) {
+        String type = chatVote.getType();
+        String sender = chatVote.getSender();
         String roomId = chatVote.getRoomId();
         String winner = chatVote.getWinner();
         Integer poll = chatVote.getPoll();
-        Integer round = chatVote.getRound();
+        Integer currentRound = chatVote.getCurrentRound();
 
-        voteService.setMatchInfo(roomId, "winner", winner);
-        voteService.setMatchInfo(roomId, "poll", poll);
-        voteService.setMatchInfo(roomId, "round", round);
+        // voteService.setMatchInfo(roomId, "winner", winner);
+        // voteService.setMatchInfo(roomId, "poll", poll);
+        // voteService.setMatchInfo(roomId, "currentRound", currentRound);
 
         template.convertAndSend("/topic/" + roomId, chatVote);
-        }
     }
+}
 
 
 

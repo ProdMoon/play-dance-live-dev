@@ -11,4 +11,5 @@ public class GameSignal {
     private String roomId;
     private Integer currentRound;
     private String songVersion;
+    private String connectionId;
 }
