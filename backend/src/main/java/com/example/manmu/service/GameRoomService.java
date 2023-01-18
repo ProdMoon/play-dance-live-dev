@@ -173,10 +173,14 @@ public class GameRoomService {
         if (exitRoom != null){
             Room prevRoom = playingRoomRepository.findById(exitRoom.getPrev()).orElse(null);
             Room nextRoom = playingRoomRepository.findById(exitRoom.getNext()).orElse(null);
-            prevRoom.setNext(exitRoom.getNext());
-            playingRoomRepository.updateRoom(prevRoom);
-            nextRoom.setPrev(exitRoom.getPrev());
-            playingRoomRepository.updateRoom(nextRoom);
+            if(prevRoom != null) {
+                prevRoom.setNext(exitRoom.getNext());
+                playingRoomRepository.updateRoom(prevRoom);
+            }
+            if(nextRoom != null) {
+                nextRoom.setPrev(exitRoom.getPrev());
+                playingRoomRepository.updateRoom(nextRoom);
+            }
             playingRoomRepository.delete(exitRoom);
         }
     }
