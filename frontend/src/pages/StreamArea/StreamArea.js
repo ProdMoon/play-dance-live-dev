@@ -107,12 +107,17 @@ const StreamArea = () => {
       setProgB(50);
 
       // 수신한 connectionId가 아닌 사람이 방송할 차례이므로, 그 사람에게 테두리를 설정해줍니다.
-      let frames = document.querySelectorAll(
+      let dancer = document.querySelector(
         `.video-comp:not(#${gameInfo.connectionId})`,
       );
-      frames.forEach((frame) => {
-        frame.classList.add('gradient-border');
-      });
+      let notDancer = document.querySelector(
+        `.video-comp#${gameInfo.connectionId}`,
+      );
+      dancer.classList.remove('resting');
+      dancer.classList.add('dancing');
+
+      notDancer.classList.remove('dancing');
+      notDancer.classList.add('resting');
 
       if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
         const songName = userInfo.songs[gameInfo.currentRound - 1];
@@ -133,11 +138,11 @@ const StreamArea = () => {
     }
 
     // 종료 신호 수신 시 행동
-    // TODO: 띄워줬던 차례 강조 표시를 모두 지워줍니다.
     if (gameInfo.type === 'ROUND_END') {
-      let frames = document.querySelectorAll(`.video-comp`);
-      frames.forEach((frame) => {
-        frame.classList.remove('gradient-border');
+      // 강조 표시를 모두 지워줍니다.
+      const videos = document.querySelectorAll('.video-comp');
+      videos.forEach((video) => {
+        video.classList.remove('dancing', 'resting');
       });
 
       if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
@@ -730,69 +735,69 @@ const StreamArea = () => {
             direction='column'
             wrap='nowrap'
           >
-            <Grid id='session-header' container item xs={1}>
-              <Grid item xs>
-                {/* <Typography id='session-title' variant='h6'>
-                  방 번호 : {mySessionId}
-                </Typography> */}
-              </Grid>
-              <Grid item xs>
-                <Button
-                  id='buttonLeaveSession'
-                  onClick={leaveSession}
-                  variant='text'
-                >
-                  세션 떠나기
-                </Button>
-              </Grid>
+            <Grid id='session-header' item>
+              <Button
+                id='buttonLeaveSession'
+                onClick={leaveSession}
+                variant='outlined'
+                sx={{ margin: '5px' }}
+              >
+                세션 떠나기
+              </Button>
+
+              {mainStreamManager !== undefined ? (
+                <>
+                  <Button
+                    id='buttonSwitchCamera'
+                    onClick={switchCamera}
+                    variant='outlined'
+                    sx={{ margin: '5px' }}
+                  >
+                    카메라 전환
+                  </Button>
+
+                  <Button
+                    onClick={handleReady}
+                    variant='contained'
+                    sx={{ margin: '5px' }}
+                  >
+                    READY
+                  </Button>
+                  <AudioTag
+                    audioRef={audioRef}
+                    localAudioRef={localAudioRef}
+                    currentSongUrl={currentSongUrl}
+                  />
+                </>
+              ) : null}
             </Grid>
 
-            {mainStreamManager !== undefined ? (
-              <Grid id='main-video' item xs={1}>
-                {/* <UserVideoComponent
-                  streamManager={mainStreamManager}
-                /> */}
-                <Button
-                  id='buttonSwitchCamera'
-                  onClick={switchCamera}
-                  variant='text'
-                >
-                  카메라 전환
-                </Button>
-                <Button onClick={handleReady} variant='contained'>
-                  READY
-                </Button>
-                <AudioTag
-                  audioRef={audioRef}
-                  localAudioRef={localAudioRef}
-                  currentSongUrl={currentSongUrl}
-                />
-              </Grid>
-            ) : null}
-            <Grid id='video-container' container item xs='auto'>
-              {publisher !== undefined ? (
-                <Grid
-                  item
-                  xs
-                  id={publisher.stream.connection.connectionId}
-                  className='video-comp'
-                >
-                  <UserVideoComponent streamManager={publisher} />
-                </Grid>
-              ) : null}
-              {subscribers.map((sub, i) => {
-                return (
-                  <Grid
-                    item
-                    xs
-                    id={sub.stream.connection.connectionId}
-                    key={i}
+            <Grid item xs='auto'>
+              <div id='video-container'>
+                {publisher !== undefined ? (
+                  <div
+                    id={publisher.stream.connection.connectionId}
                     className='video-comp'
                   >
-                    <UserVideoComponent streamManager={sub} />
-                  </Grid>
-                );
-              })}
+                    <UserVideoComponent streamManager={publisher} />
+                  </div>
+                ) : null}
+                {subscribers.length > 0 ? (
+                  subscribers.map((sub, i) => {
+                    return (
+                      <div
+                        id={sub.stream.connection.connectionId}
+                        key={i}
+                        className='video-comp'
+                      >
+                        <UserVideoComponent streamManager={sub} />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className='video-comp' />
+                )}
+              </div>
             </Grid>
           </Grid>
         </>

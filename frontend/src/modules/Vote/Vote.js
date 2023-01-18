@@ -91,7 +91,7 @@ const Vote = (props) => {
           }}
         >
           <div className='vote-option-button vote-option-button__a'>
-            <Typography variant='h5'>{leftText}</Typography>
+            <Typography variant='h6'>{leftText}</Typography>
           </div>
         </div>
         <div
@@ -101,7 +101,7 @@ const Vote = (props) => {
           }}
         >
           <div className='vote-option-button vote-option-button__b'>
-            <Typography variant='h5'>{rightText}</Typography>
+            <Typography variant='h6'>{rightText}</Typography>
           </div>
         </div>
         <div className='vote-count vote-count__a'>{voteA}</div>
