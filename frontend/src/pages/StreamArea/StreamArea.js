@@ -357,7 +357,10 @@ const StreamArea = () => {
         headers: { 'Content-Type': 'application/json' },
       },
     );
+  };
 
+  const handleStart = (e) => {
+    e.preventDefault();
     client.send(
       '/app/chat.sendGameSignal',
       {},
@@ -744,7 +747,6 @@ const StreamArea = () => {
               >
                 세션 떠나기
               </Button>
-
               {mainStreamManager !== undefined ? (
                 <>
                   <Button
@@ -755,13 +757,20 @@ const StreamArea = () => {
                   >
                     카메라 전환
                   </Button>
-
                   <Button
                     onClick={handleReady}
                     variant='contained'
                     sx={{ margin: '5px' }}
                   >
                     READY
+                  </Button>
+                  <Button
+                    onClick={handleStart}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    START
                   </Button>
                   <AudioTag
                     audioRef={audioRef}

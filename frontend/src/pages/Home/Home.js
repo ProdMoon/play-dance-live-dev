@@ -15,6 +15,9 @@ const theme = createTheme({
     primary: {
       main: '#c083d7',
     },
+    secondary: {
+      main: '#204ba1',
+    }
   },
   typography: {
     fontFamily: ['SBAggroB'].join(','),
