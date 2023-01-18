@@ -41,11 +41,11 @@ body {
 }
 
 .vote-container {
-  position: relative;
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
+  width: 47%;
   top: 60%;
   left: 50%;
   transform: translate(-50%, 0%);
