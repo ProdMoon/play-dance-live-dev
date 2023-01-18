@@ -110,7 +110,7 @@ const StreamArea = () => {
       // TODO: 그 사람에게 테두리를 설정해줍니다.
 
       console.log("수신한 커넥션아이디 : " + gameInfo.connectionId);
-      let frames = document.querySelectorAll(`.video-comp:not([id="${gameInfo.connectionId}"])`);
+      let frames = document.querySelectorAll(`.video-comp:not(#${gameInfo.connectionId})`);
       frames.forEach(frame => {
         frame.classList.add('gradient-border');
       });
@@ -153,7 +153,7 @@ const StreamArea = () => {
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound,
               songVersion: gameInfo.songVersion,
-              connectionId: myConnectionId,
+              connectionId: subscribers[0].stream.connection.connectionId,
             }),
           );
         } else {
@@ -236,7 +236,7 @@ const StreamArea = () => {
               roomId: userInfo.roomId,
               currentRound: gameInfo.currentRound + 1,
               songVersion: gameInfo.songVersion,
-              connectionId: subscribers[0].stream.connection.connectionId,
+              connectionId: myConnectionId,
             }),
           );
         }, 3000);
@@ -344,7 +344,7 @@ const StreamArea = () => {
         roomId: userInfo.roomId,
         currentRound: 1,
         songVersion: 'normal',
-        connectionId: userInfo.roomOwner === userInfo.userEmail ? subscribers[0].stream.connection.connectionId : myConnectionId,
+        connectionId: userInfo.roomOwner === userInfo.userEmail ? myConnectionId : subscribers[0].stream.connection.connectionId,
       }),
     );
   };
@@ -700,6 +700,7 @@ const StreamArea = () => {
             container
             spacing={2}
             direction='column'
+            wrap='nowrap'
           >
             <Grid id='session-header' container item xs={1}>
               <Grid item xs>
@@ -742,7 +743,7 @@ const StreamArea = () => {
             ) : null}
             <Grid id='video-container' container item xs='auto'>
               {publisher !== undefined ? (
-                <Grid item xs id={myConnectionId} className='video-comp'>
+                <Grid item xs id={publisher.stream.connection.connectionId} className='video-comp'>
                   <UserVideoComponent streamManager={publisher} />
                 </Grid>
               ) : null}
