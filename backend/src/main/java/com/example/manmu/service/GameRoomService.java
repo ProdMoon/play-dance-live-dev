@@ -53,14 +53,14 @@ public class GameRoomService {
     }
 
     public RoomDto enterRoom(String roomId, String userId, String direction) {
-        if ((userId == null) && (roomId.equals("default"))) {
-            Room enterRoom =  playingRoomRepository.getFirst();
+        if ((userId == null) && (roomId.equals("default") && direction.equals("current"))) {
+            Room enterRoom = playingRoomRepository.getFirst();
             if (enterRoom != null) {
                 return new RoomDto(enterRoom);
             }
         }
-        if((userId != null) && (roomId.equals("default"))) {
-            Room room =  playingRoomRepository.getFirst();
+        if ((userId != null) && (roomId.equals("default") && direction.equals("current"))) {
+            Room room = playingRoomRepository.getFirst();
             if (room != null) {
                 room.getUsers().add(userId);
                 playingRoomRepository.updateRoom(room);
@@ -142,20 +142,26 @@ public class GameRoomService {
     public RoomDto startPlaying(String roomId) {
         Room currentRoom = waitingRoomRepository.findById(roomId).orElse(null);
         if (currentRoom != null) {
-            waitingRoomRepository.delete(currentRoom);
-
             Room prevRoom = waitingRoomRepository.findById(currentRoom.getPrev()).orElse(null);
             Room nextRoom = waitingRoomRepository.findById(currentRoom.getNext()).orElse(null);
-            prevRoom.setNext(currentRoom.getNext());
-            waitingRoomRepository.updateRoom(prevRoom);
-            nextRoom.setPrev(currentRoom.getPrev());
-            waitingRoomRepository.updateRoom(nextRoom);
-            playingRoomRepository.save(currentRoom);
+            if (prevRoom != null) {
+                prevRoom.setNext(currentRoom.getNext());
+                waitingRoomRepository.updateRoom(prevRoom);
+            }
+            if (nextRoom != null) {
+                nextRoom.setPrev(currentRoom.getPrev());
+                waitingRoomRepository.updateRoom(nextRoom);
+            }
+            waitingRoomRepository.delete(currentRoom);
 
             Room lastPlayingRoom = playingRoomRepository.getLast();
-            currentRoom.setPrev(lastPlayingRoom.getRoomId());
-            lastPlayingRoom.setNext(currentRoom.getRoomId());
-            playingRoomRepository.updateRoom(lastPlayingRoom);
+            if(lastPlayingRoom != null) {
+                lastPlayingRoom.setNext(currentRoom.getRoomId());
+                currentRoom.setPrev(lastPlayingRoom.getRoomId());
+                playingRoomRepository.updateRoom(lastPlayingRoom);
+            }
+            currentRoom.setNext(null);
+            playingRoomRepository.save(currentRoom);
 
             return new RoomDto(currentRoom);
         }
@@ -167,10 +173,14 @@ public class GameRoomService {
         if (exitRoom != null){
             Room prevRoom = playingRoomRepository.findById(exitRoom.getPrev()).orElse(null);
             Room nextRoom = playingRoomRepository.findById(exitRoom.getNext()).orElse(null);
-            prevRoom.setNext(exitRoom.getNext());
-            playingRoomRepository.updateRoom(prevRoom);
-            nextRoom.setPrev(exitRoom.getPrev());
-            playingRoomRepository.updateRoom(nextRoom);
+            if(prevRoom != null) {
+                prevRoom.setNext(exitRoom.getNext());
+                playingRoomRepository.updateRoom(prevRoom);
+            }
+            if(nextRoom != null) {
+                nextRoom.setPrev(exitRoom.getPrev());
+                playingRoomRepository.updateRoom(nextRoom);
+            }
             playingRoomRepository.delete(exitRoom);
         }
     }
