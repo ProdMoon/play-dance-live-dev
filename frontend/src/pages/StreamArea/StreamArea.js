@@ -94,6 +94,17 @@ const StreamArea = () => {
     }
   }, [session]);
 
+  // 카운트다운 이펙트
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (count > 0) {
+      const timer = setTimeout(() => {
+        setCount(count - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [count]);
+
   useEffect(async () => {
     // 시작 신호 수신 시 행동
     if (gameInfo.type === 'ROUND_START') {
@@ -105,6 +116,9 @@ const StreamArea = () => {
       setVoteB(0);
       setProgA(50);
       setProgB(50);
+
+      // 카운트다운을 합니다.
+      setCount(3);
 
       // 수신한 connectionId가 아닌 사람이 방송할 차례이므로, 그 사람에게 테두리를 설정해줍니다.
       let dancer = document.querySelector(
@@ -357,7 +371,10 @@ const StreamArea = () => {
         headers: { 'Content-Type': 'application/json' },
       },
     );
+  };
 
+  const handleStart = (e) => {
+    e.preventDefault();
     client.send(
       '/app/chat.sendGameSignal',
       {},
@@ -508,7 +525,7 @@ const StreamArea = () => {
       videoSource: undefined, // 비디오 소스입니다. undefined이면 기본 웹캠이 설정됩니다.
       publishAudio: true, // false이면 오디오가 음소거인 상태로 시작됩니다.
       publishVideo: true, // false이면 비디오가 꺼진 상태로 시작됩니다.
-      resolution: '480x800', // 비디오의 해상도를 조정합니다.
+      resolution: '360x640', // 비디오의 해상도를 조정합니다.
       frameRate: 30, // 비디오의 프레임레이트를 조정합니다.
       insertMode: 'APPEND', // 비디오가 target element인 'video-container'에 삽입되는 방식을 설정합니다.
       mirror: true, // 로컬 비디오를 미러링 할 것인지 여부를 설정합니다.
@@ -744,7 +761,6 @@ const StreamArea = () => {
               >
                 세션 떠나기
               </Button>
-
               {mainStreamManager !== undefined ? (
                 <>
                   <Button
@@ -755,13 +771,20 @@ const StreamArea = () => {
                   >
                     카메라 전환
                   </Button>
-
                   <Button
                     onClick={handleReady}
                     variant='contained'
                     sx={{ margin: '5px' }}
                   >
                     READY
+                  </Button>
+                  <Button
+                    onClick={handleStart}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    START
                   </Button>
                   <AudioTag
                     audioRef={audioRef}
@@ -869,6 +892,25 @@ const StreamArea = () => {
             </Typography>
           </div>
         </div>
+      ) : null}
+
+      {count === 3 ? (
+        <img
+          src={`${process.env.PUBLIC_URL}/resources/images/count3.png`}
+          className={'countdown'}
+        />
+      ) : null}
+      {count === 2 ? (
+        <img
+          src={`${process.env.PUBLIC_URL}/resources/images/count2.png`}
+          className={'countdown'}
+        />
+      ) : null}
+      {count === 1 ? (
+        <img
+          src={`${process.env.PUBLIC_URL}/resources/images/count1.png`}
+          className={'countdown'}
+        />
       ) : null}
     </div>
   );

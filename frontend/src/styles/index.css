@@ -24,6 +24,7 @@ body {
   font-weight: 300;
   font-size: 25px;
   color: azure;
+  overflow: hidden;
 }
 
 .container {

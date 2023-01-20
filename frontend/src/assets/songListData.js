@@ -23,4 +23,20 @@ export const SongListData = [
       doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_double.mp3`,
     },
   ],
+  [
+    'antifragile',
+    {
+      label: 'LE SSERAFIM - ANTIFRAGILE',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/antifragile_normal.mp3`,
+      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/antifragile_double.mp3`,
+    },
+  ],
+  [
+    'nextlevel',
+    {
+      label: 'aespa - Next Level',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/nextlevel_normal.mp3`,
+      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/nextlevel_double.mp3`,
+    },
+  ],
 ];
