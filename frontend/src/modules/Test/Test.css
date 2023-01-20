@@ -1,0 +1,49 @@
+#root {
+    width: 100vw;
+}
+
+#video-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.video-comp {
+    position: absolute;
+    top: 10%;
+    width: 42%;
+    height: 80%;
+    border-radius: 10px;
+    transition: all 0.5s ease;
+}
+
+.video-comp:first-child {
+    background-color: palevioletred;
+    left: 4%;
+}
+
+.video-comp:last-child {
+    background-color: cornflowerblue;
+    left: 54%;
+}
+
+.dancing {
+    position: absolute;
+    left: 26% !important;
+    top: 4%;
+    width: 48%;
+    height: 92%;
+    border-radius: 10px;
+    z-index: 99;
+}
+
+.resting {
+    position: absolute;
+    left: 60% !important;
+    top: 72% !important;
+    width: 14%;
+    height: 24%;
+    border-radius: 10px;
+    z-index: 100;
+}
