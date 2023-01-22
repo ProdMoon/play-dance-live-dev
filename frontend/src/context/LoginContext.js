@@ -12,10 +12,11 @@ export default function LoginContextProvider({ children }) {
     userName: undefined,
     userEmail: undefined,
     userPicture: undefined,
-    roomId: undefined,
-    songs: undefined,
+
+    // For publisher
     isPublisher: false,
-    roomOwner: undefined,
+    song: null,
+    roomOwner: null,
   });
   return (
     <LoginContext.Provider value={userInfoObject}>

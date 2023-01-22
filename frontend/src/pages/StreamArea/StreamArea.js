@@ -71,18 +71,13 @@ const StreamArea = () => {
   const localAudioRef = useRef();
 
   useEffect(() => {
-    if (userInfo.roomId !== undefined) {
-      if (OV !== null) {
-        narrowlyLeaveSession();
-      }
-      setMySessionId(userInfo.roomId);
-      joinSession();
-    }
+    joinSession();
+
     window.addEventListener('beforeunload', onbeforeunload);
     return () => {
       window.removeEventListener('beforeunload', onbeforeunload);
     };
-  }, [userInfo.roomId]);
+  }, []);
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -90,9 +85,24 @@ const StreamArea = () => {
 
   useEffect(() => {
     if (session !== undefined && userInfo.isPublisher === true) {
-      publishStream();
+      client.send(
+        '/app/waiter',
+        {},
+        JSON.stringify({
+          target: userInfo.userEmail,
+          action: songList.get('candy'),
+        }),
+      );
     }
   }, [session]);
+
+  useEffect(() => {
+    if (userInfo.isPublisher === true) {
+      publishStream();
+    } else {
+      unpublishStream();
+    }
+  }, [userInfo.isPublisher])
 
   // 카운트다운 이펙트
   const [count, setCount] = useState(0);
@@ -117,15 +127,12 @@ const StreamArea = () => {
       setProgA(50);
       setProgB(50);
 
-      // 카운트다운을 합니다.
-      setCount(3);
-
-      // 수신한 connectionId가 아닌 사람이 방송할 차례이므로, 그 사람에게 테두리를 설정해줍니다.
+      // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
       let dancer = document.querySelector(
-        `.video-comp:not(#${gameInfo.connectionId})`,
+        `.video-comp#${gameInfo.connectionId}`,
       );
       let notDancer = document.querySelector(
-        `.video-comp#${gameInfo.connectionId}`,
+        `.video-comp:not(#${gameInfo.connectionId})`,
       );
       dancer.classList.remove('resting');
       dancer.classList.add('dancing');
@@ -133,22 +140,17 @@ const StreamArea = () => {
       notDancer.classList.remove('dancing');
       notDancer.classList.add('resting');
 
-      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
+      if (userInfo.isPublisher && gameInfo.sender === userInfo.userEmail) {
+        // TODO: songName을 서버가 뿌려줘야함.
         const songName = userInfo.songs[gameInfo.currentRound - 1];
         const songObject = songList.get(songName);
 
-        // 틀어야 할 노래 version에 따라 알맞은 src를 넣어줍니다.
-        switch (gameInfo.songVersion) {
-          case 'normal':
-            setCurrentSongUrl(songObject.normalSrc);
-            break;
-          case 'double':
-            setCurrentSongUrl(songObject.doubleSrc);
-            break;
-          default:
-            console.error('잘못된 song Version 요청입니다.');
-        }
+        // 틀어야 할 노래에 따라 알맞은 src를 넣어줍니다.
+        setCurrentSongUrl(songObject.src);
       }
+
+      // 카운트다운을 합니다.
+      setCount(3);
     }
 
     // 종료 신호 수신 시 행동
@@ -158,80 +160,12 @@ const StreamArea = () => {
       videos.forEach((video) => {
         video.classList.remove('dancing', 'resting');
       });
-
-      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
-        if (userInfo.userEmail === userInfo.roomOwner) {
-          // 내가 방장이면 후공이므로, 내가 시작하기 위한 시작 신호를 보냅니다.
-          client.send(
-            '/app/chat.sendGameSignal',
-            {},
-            JSON.stringify({
-              type: 'ROUND_START',
-              sender: gameInfo.sender,
-              roomId: userInfo.roomId,
-              currentRound: gameInfo.currentRound,
-              songVersion: gameInfo.songVersion,
-              connectionId: subscribers[0].stream.connection.connectionId,
-            }),
-          );
-        } else {
-          // 내가 방장이 아니면 선공이었으므로, 라운드가 종료된 것입니다. 투표 신호를 보냅니다.
-          if (gameInfo.currentRound < 3) {
-            client.send(
-              '/app/chat.sendGameSignal',
-              {},
-              JSON.stringify({
-                type: 'VOTE_START',
-                sender: userInfo.userEmail,
-                roomId: userInfo.roomId,
-                currentRound: gameInfo.currentRound,
-                songVersion: gameInfo.songVersion,
-              }),
-            );
-          } else {
-            // 종료된 라운드가 3라운드라면, 최종 투표 신호를 보냅니다.
-            client.send(
-              '/app/chat.sendGameSignal',
-              {},
-              JSON.stringify({
-                type: 'FINAL_VOTE_START',
-                sender: userInfo.userEmail,
-                roomId: userInfo.roomId,
-                currentRound: gameInfo.currentRound,
-                songVersion: gameInfo.songVersion,
-              }),
-            );
-          }
-        }
-      }
     }
 
     // 투표 시작 신호 수신 시 행동
     if (gameInfo.type === 'VOTE_START') {
-      const songName = userInfo.songs[gameInfo.currentRound]; // songs는 index 0부터 시작하므로, currentRound를 사용하면 다음 라운드 곡을 지칭함.
-      const songObject = songList.get(songName);
-
-      setSongLabel(songObject.label);
-
       // 투표창을 띄웁니다.
       setVoteView(true);
-
-      // 방장이라면, 8초를 센 후에 투표 종료 시그널을 보냅니다.
-      if (userInfo.roomOwner === userInfo.userEmail) {
-        const tick = setTimeout(() => {
-          sendVoteEndSignal();
-        }, 8000);
-
-        // Clean-up
-        return () => clearTimeout(tick);
-      }
-    }
-
-    // !! Temporary !! : 방장을 위한 투표 종료 신호 수신 시 행동
-    if (gameInfo.type === 'VOTE_END_SIGNAL') {
-      if (userInfo.isPublisher && userInfo.roomOwner === userInfo.userEmail) {
-        sendVoteEndMessage();
-      }
     }
 
     // 투표 종료 신호 수신 시 행동
@@ -239,63 +173,7 @@ const StreamArea = () => {
       // 투표창을 닫습니다.
       setVoteView(false);
 
-      // 승리한 곡 버전을 표시합니다.
-      setWinnerView(true);
-
-      // 방장이라면, 3초 후에 다음 라운드 시작 신호를 보냅니다. (방장이 아닌 사람이 신호를 받을 예정)
-      if (userInfo.isPublisher && userInfo.roomOwner === userInfo.userEmail) {
-        const tick = setTimeout(() => {
-          client.send(
-            '/app/chat.sendGameSignal',
-            {},
-            JSON.stringify({
-              type: 'ROUND_START',
-              sender: userInfo.userEmail,
-              roomId: userInfo.roomId,
-              currentRound: gameInfo.currentRound + 1,
-              songVersion: gameInfo.songVersion,
-              connectionId: myConnectionId,
-            }),
-          );
-        }, 3000);
-
-        // Clean-up
-        return () => clearTimeout(tick);
-      }
-    }
-
-    // 최종 투표 시작 신호 수신 시 행동
-    if (gameInfo.type === 'FINAL_VOTE_START') {
-      // 투표창을 띄웁니다.
-      setFinalVoteView(true);
-
-      // 방장이라면, 8초를 센 후에 투표를 종료시킵니다.
-      if (userInfo.roomOwner === userInfo.userEmail) {
-        const tick = setTimeout(() => {
-          sendFinalVoteEndMessage();
-        }, 8000);
-
-        // Clean-up
-        return () => clearTimeout(tick);
-      }
-    }
-
-    // 최종 투표 종료 신호 수신 시 행동
-    if (gameInfo.type === 'FINAL_VOTE_END') {
-      // 투표창을 닫습니다.
-      setFinalVoteView(false);
-
-      // 최종 승리자를 표시합니다.
-      setFinalWinnerView(true);
-
-      // 방장은 서버에서 room을 제거해줍니다.
-      if (userInfo.roomOwner === userInfo.userEmail) {
-        axios.delete('/api/room', {
-          data: {
-            roomId: userInfo.roomId,
-          },
-        });
-      }
+      // TODO: 승리 처리
     }
   }, [gameInfo.type]);
 
@@ -360,19 +238,6 @@ const StreamArea = () => {
     localAudioRef.current.play();
   };
 
-  const handleReady = (e) => {
-    e.preventDefault();
-
-    // Ready를 누르면, 방을 playing 상태로 만들어서 시청자가 입장할 수 있도록 합니다.
-    axios.post(
-      '/api/room/startPlaying',
-      { roomId: userInfo.roomId },
-      {
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
-  };
-
   const handleStart = (e) => {
     e.preventDefault();
     client.send(
@@ -406,50 +271,6 @@ const StreamArea = () => {
     );
     // replaceTrackToAudioDevice();
     localAudioRef.current.removeEventListener('ended', sendRoundEndMessage);
-  }
-
-  function sendVoteEndSignal() {
-    client.send(
-      '/app/chat.sendGameSignal',
-      {},
-      JSON.stringify({
-        type: 'VOTE_END_SIGNAL',
-        sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        currentRound: gameInfo.currentRound,
-        songVersion: gameInfo.songVersion,
-      }),
-    );
-  }
-
-  function sendVoteEndMessage() {
-    client.send(
-      '/app/chat.vote',
-      {},
-      JSON.stringify({
-        type: 'VOTE_END',
-        sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        winner: voteA > voteB ? 'double' : 'normal',
-        poll: voteA > voteB ? voteA : voteB,
-        currentRound: gameInfo.currentRound,
-      }),
-    );
-  }
-
-  function sendFinalVoteEndMessage() {
-    client.send(
-      '/app/chat.vote',
-      {},
-      JSON.stringify({
-        type: 'FINAL_VOTE_END',
-        sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        winner: voteA > voteB ? 'double' : 'normal',
-        poll: voteA > voteB ? voteA : voteB,
-        currentRound: gameInfo.currentRound,
-      }),
-    );
   }
 
   const deleteSubscriber = (streamManager) => {
@@ -555,6 +376,14 @@ const StreamArea = () => {
     setCurrentVideoDevice(newCurrentVideoDevice);
   };
 
+  const unpublishStream = () => {
+    const mySession = session;
+    mySession.unpublish(publisher);
+    setPublisher(undefined);
+    setCurrentVideoDevice(undefined);
+    setMainStreamManager(undefined);
+  }
+
   const leaveSession = () => {
     // 7) Session object를 통해 'disconnect' 메서드를 호출함으로써 session을 종료합니다.
     const mySession = session;
@@ -588,46 +417,12 @@ const StreamArea = () => {
     // User 관련 속성도 비워줍니다...
     setUserInfo((prevState) => ({
       ...prevState,
-      roomId: undefined,
-      songs: undefined,
       isPublisher: false,
+      song: null,
       roomOwner: null,
     }));
 
     // Game 관련 속성도 비워줍니다...
-    setGameInfo((prevState) => ({
-      ...prevState,
-      sender: null,
-      type: null,
-      currentRound: 0,
-      songVersion: 'normal',
-      poll: null,
-      connectionId: null,
-    }));
-  };
-
-  const narrowlyLeaveSession = () => {
-    // 새로운 방송을 하기 위해 현재 방을 나갈 때만 호출되는 좁은 범위의 leaveSession입니다.
-    const mySession = session;
-
-    if (mySession) {
-      mySession.disconnect();
-    }
-
-    // 모든 속성을 비워줍니다...
-    setOV(null);
-    setMySessionId('default');
-    setMyUserName(
-      userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
-    );
-    setSession(undefined);
-    setMainStreamManager(undefined);
-    setPublisher(undefined);
-    setSubscribers([]);
-    setCurrentVideoDevice(undefined);
-    setMyConnectionId(undefined);
-
-    // Game 관련 속성을 비워줍니다...
     setGameInfo((prevState) => ({
       ...prevState,
       sender: null,
@@ -770,13 +565,6 @@ const StreamArea = () => {
                     sx={{ margin: '5px' }}
                   >
                     카메라 전환
-                  </Button>
-                  <Button
-                    onClick={handleReady}
-                    variant='contained'
-                    sx={{ margin: '5px' }}
-                  >
-                    READY
                   </Button>
                   <Button
                     onClick={handleStart}

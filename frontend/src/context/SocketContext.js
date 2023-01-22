@@ -33,6 +33,8 @@ export default function SocketContextProvider({ children }) {
 
   // 자식 요소들에 read-only로 제공되는 States
   const [client, setClient] = useState(null);
+  const [participantList, setParticipantList] = useState([]);
+  const [rankingList, setRankingList] = useState([]);
 
   // 여기서만 사용하는 States
   const [subscription, setSubscription] = useState(null);
@@ -46,13 +48,47 @@ export default function SocketContextProvider({ children }) {
 
     setSubscription(
       // 다음과 같은 type들을 구독합니다.
-      client.subscribe(`/topic/${userInfo.roomId}`, (message) => {
+      client.subscribe('/topic/public', (message) => {
         const messageBody = JSON.parse(message.body);
 
         // 채팅 요청...
         if (messageBody.type === 'CHAT') {
           setMessages((prevMessages) => [...prevMessages, message]);
         }
+
+        // 참가자 리스트 변동...
+        if (messageBody.type === 'REFRESH_WAITER_LIST') {
+          setParticipantList(messageBody.waiter);
+        }
+
+        // 랭킹 리스트 변동...
+        if (messageBody.type === 'REFRESH_RANKING_LIST') {
+          setRankingList(messageBody.ranking);
+        }
+
+        // challenger의 게임 시작 신호...
+        if (messageBody.type === 'GAME_CHALLENGE') {
+          if (messageBody.challenger === userInfo.userEmail) {
+            setUserInfo((prevState) => ({
+              ...prevState,
+              isPublisher: true,
+            }));
+          }
+        }
+
+        // 게임 종료 신호...
+        if (messageBody.type === 'GAME_END') {
+          if (messageBody.winner !== userInfo.userEmail) {
+            setUserInfo((prevState) => ({
+              ...prevState,
+              isPublisher: false,
+            }))
+          }
+        }
+
+        /*************************
+         * DEPRECATED SIGNALS... *
+         *************************/
 
         // 라운드 시작 신호...
         if (messageBody.type === 'ROUND_START') {
@@ -174,17 +210,11 @@ export default function SocketContextProvider({ children }) {
   }, [client]);
 
   useEffect(() => {
-    if (userInfo.roomId !== undefined) {
-      if (client === null) {
-        // 소켓에 처음 연결하는 경우
-        initSocket();
-      } else {
-        // 소켓에 연결한 적이 있는 경우 (room 전환)
-        client.unsubscribe(subscription.id);
-        socketSubscription();
-      }
+    if (client === null) {
+      // 소켓에 처음 연결하는 경우
+      initSocket();
     }
-  }, [userInfo.roomId]);
+  }, []);
 
   return (
     <SocketContext.Provider
@@ -192,6 +222,8 @@ export default function SocketContextProvider({ children }) {
         messages: messagesObject,
         client: client,
         gameInfo: gameInfoObject,
+        rankingList: rankingList,
+        participantList: participantList,
         voteAs: voteAObject,
         voteBs: voteBObject,
         progAs: progAObject,
