@@ -5,18 +5,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ChatVote {
+public class VoteData {
 
     private String type;
 
     private String sender;
 
-    private String roomId;
-
     private String winner;
 
-    private Integer poll;
+    private Integer pollLeft;
 
-    private Integer currentRound;
+    private Integer pollRight;
 
 }

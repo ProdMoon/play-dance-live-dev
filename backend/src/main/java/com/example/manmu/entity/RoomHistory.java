@@ -16,13 +16,14 @@ public class RoomHistory {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id", nullable = false)
     private Long id;
-
     @Column(name = "roomId", nullable = false)
     private String roomId;
     @Column(name = "winner", nullable = false)
     private String winner;
     @ElementCollection
+    @Column(name = "songs", nullable = false)
     private List<String> songs;
+    @Column(name = "highestUserNum", nullable = false)
     private int highestUserNum;
 
     @Builder

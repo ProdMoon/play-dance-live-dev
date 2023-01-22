@@ -60,7 +60,7 @@ dependencies {
 
 
 	//sh
-	implementation 'mysql:mysql-connector-java'
+	implementation 'mysql:mysql-connector-java:8.0.22'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 
