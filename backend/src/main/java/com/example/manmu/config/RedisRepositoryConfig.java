@@ -36,6 +36,7 @@ public class RedisRepositoryConfig {
 
         return redisTemplate;
     }
+
     @Bean
     public RedisTemplate<String, Room> listRedisTemplate() {
         RedisTemplate<String, Room> template = new RedisTemplate<>();

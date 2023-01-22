@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
 
 @Getter
 @NoArgsConstructor
@@ -30,12 +31,30 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Column
+    private Integer currentWinNums;
+
+    @Column
+    private Integer bestWinNums;
+
     @Builder
-    public User(String name, String email, String picture, Role role) {
+    public User(Long id, String name, String email, String picture, Role role, Integer currentWinNums, Integer bestWinNums) {
+        this.id = id;
         this.name = name;
         this.email = email;
         this.picture = picture;
         this.role = role;
+        this.currentWinNums = currentWinNums;
+        this.bestWinNums = bestWinNums;
+    }
+
+    public User(String name, String email, String picture, Role role, Integer currentWinNums, Integer bestWinNums) {
+        this.name = name;
+        this.email = email;
+        this.picture = picture;
+        this.role = role;
+        this.currentWinNums = currentWinNums;
+        this.bestWinNums = bestWinNums;
     }
 
     public User update(String name, String picture) {
@@ -43,6 +62,16 @@ public class User extends BaseTimeEntity {
         this.picture = picture;
 
         return this;
+    }
+
+    public Integer updateCurrentWinNums(Integer currentWinNums) {
+        this.currentWinNums = currentWinNums;
+        return this.currentWinNums;
+    }
+
+    public Integer updateBestWinNums(Integer bestWinNums) {
+        this.bestWinNums = bestWinNums;
+        return this.bestWinNums;
     }
 
     public String getRoleKey() {

@@ -1,11 +1,15 @@
 package com.example.manmu.controller;
 
+import com.example.manmu.GameSignal;
+import com.example.manmu.entity.VoteData;
 import com.example.manmu.service.GameRoomService;
 import com.example.manmu.entity.RoomDto;
-import com.example.manmu.service.RoomHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -16,13 +20,13 @@ import java.util.*;
 public class RoomController {
 
     private final GameRoomService gameRoomService;
-    private final RoomHistoryService roomHistoryService;
+    private final SimpMessagingTemplate template;
 
     @PostMapping("/api/room/create")
     public ResponseEntity<RoomDto> createRoom(@RequestBody(required = false) Map<String, Object> params) {
-        String userId = (String) params.get("userId");
-        List<String> songs = (List<String>) params.get("songs");
-        RoomDto roomDto = gameRoomService.createRoom(userId, songs);
+        String userMail = (String) params.get("userMail");
+        String roomSongs = (String) params.get("roomSong");
+        RoomDto roomDto = gameRoomService.createRoom();
         if (roomDto != null) {
             return new ResponseEntity<>(roomDto, HttpStatus.OK);
         } else {
@@ -30,57 +34,83 @@ public class RoomController {
         }
     }
 
-    @PostMapping("/api/room/match")
-    public ResponseEntity<RoomDto> TestMatchRoom(@RequestBody Map<String, Object> params){
-        String userId = (String) params.get("userId");
-        List<String> songs = (List<String>) params.get("songs");
-        RoomDto roomDto = gameRoomService.matchRoom(songs, userId);
-        if (roomDto != null) {
-            return new ResponseEntity<>(roomDto, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @MessageMapping("/participant")
+    public void joinGame(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        RoomDto joinRoomDto = gameRoomService.joinGame(userMail);
+        if (joinRoomDto != null){
+            gameSignal.setType("REFRESH_WAITER_LIST");
+            gameSignal.setWaiters(joinRoomDto.getWaiters());
+        }
+        template.convertAndSend("/topic/public", gameSignal);
+    }
+
+//    @PostMapping("/api/room/match")
+//    public ResponseEntity<RoomDto> TestMatchRoom(@RequestBody Map<String, Object> params) {
+//        String userMail = (String) params.get("userId");
+//        List<String> songs = (List<String>) params.get("songs");
+//        RoomDto roomDto = gameRoomService.matchRoom(songs, userMail);
+//        if (roomDto != null) {
+//            return new ResponseEntity<>(roomDto, HttpStatus.OK);
+//        } else {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//    }
+
+    @PostMapping("/api/room")
+    public ResponseEntity<RoomDto> EnterRoom(@RequestBody Map<String, Object> params) {
+        String userMail = (String) params.get("userId");
+        RoomDto roomDto = gameRoomService.enterRoom(userMail);
+        return new ResponseEntity<>(roomDto, HttpStatus.OK);
+    }
+
+//    @PostMapping("/api/room/leave")
+//    public ResponseEntity<HttpStatus> leaveRoom(@RequestBody Map<String, Object> params) {
+//        String userMail = (String) params.get("userId");
+//        String roomId = (String) params.get("roomId");
+//        gameRoomService.leaveRoom(roomId, userId);
+//        return new ResponseEntity<>(HttpStatus.OK);
+//    }
+
+//    @PostMapping("/api/room/startPlaying")
+//    public ResponseEntity<RoomDto> startGame(@RequestBody Map<String, String> params) {
+//        RoomDto roomDto = gameRoomService.startPlaying(params.get("roomId"));
+//        return new ResponseEntity<>(roomDto, HttpStatus.OK);
+//    }
+
+
+    @MessageMapping("/game-end")
+    public void endGame(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        RoomDto gameRoomResult = gameRoomService.endGame(userMail);
+        if (gameRoomResult == null){
+            gameSignal.setType("NEXT_ROUND");
+            template.convertAndSend("/topic/public", gameSignal);
+        }
+        if (gameRoomResult != null) {
+            gameSignal.setType("GAME_END");
+            gameSignal.setWinner(gameRoomResult.getCurrentChampion());
+            gameSignal.setRankingList(gameRoomResult.getRankingList());
+            template.convertAndSend("/topic/public", gameSignal);
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            gameSignal.setType("GAME_CHALLENGE");
+            gameSignal.setChallenger(gameRoomResult.getCurrentChallenger());
+            template.convertAndSend("/topic/public", gameSignal);
         }
     }
 
-    @PostMapping("/api/room/enter")
-    public ResponseEntity<RoomDto> EnterRoom(@RequestBody Map<String, Object> params){
-        String userId = (String) params.get("userId");
-        String roomId = (String) params.get("roomId");
-        String direction = (String) params.get("direction");
-        RoomDto roomDto = gameRoomService.enterRoom(roomId, userId, direction);
-        return new ResponseEntity<>(roomDto, HttpStatus.OK);
-    }
-
-    @PostMapping("/api/room/leave")
-    public ResponseEntity<HttpStatus> leaveRoom(@RequestBody Map<String, Object> params) {
-        String userId = (String) params.get("userId");
-        String roomId = (String) params.get("roomId");
-        gameRoomService.leaveRoom(roomId, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @PostMapping("/api/room/startPlaying")
-    public ResponseEntity<RoomDto> startGame(@RequestBody Map<String, String> params){
-        RoomDto roomDto =  gameRoomService.startPlaying(params.get("roomId"));
-        return new ResponseEntity<>(roomDto, HttpStatus.OK);
-    }
-
-
-    @DeleteMapping("/api/room")
-    public void endGame(@RequestBody Map<String, String> params){
-        roomHistoryService.saveRoomHistory(params.get("roomId"));
-        gameRoomService.endPlaying(params.get("roomId"));
-    }
-
-    @GetMapping("/api/room/getPlaying")
-    public ResponseEntity<List<RoomDto>> getPlayingRoom(){
-        List<RoomDto> roomDtos = gameRoomService.getPlayingRooms();
-        return new ResponseEntity<>(roomDtos, HttpStatus.OK);
-    }
-
-    @GetMapping("/api/room/getWaiting")
-    public ResponseEntity<List<RoomDto>> getWaitingRoom(){
-        List<RoomDto> roomDtos = gameRoomService.getWaitingRooms();
-        return new ResponseEntity<>(roomDtos, HttpStatus.OK);
+    @MessageMapping("/vote")
+    public void vote(@Payload VoteData VoteData) {
+        String type = VoteData.getType();
+        String sender = VoteData.getSender();
+        String winner = VoteData.getWinner();
+        Integer pollLeft = VoteData.getPollLeft();
+        Integer pollRight = VoteData.getPollRight();
+        gameRoomService.vote(VoteData);
+        template.convertAndSend("/topic/public", VoteData);
     }
 }
