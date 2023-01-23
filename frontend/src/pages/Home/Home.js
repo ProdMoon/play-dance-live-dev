@@ -55,16 +55,7 @@ const Home = () => {
             </Grid>
           </SocketContextProvider>
         ) : (
-          <div
-            className='container'
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-            }}
-          >
-            <LogoPage handler={handleEnter} />
-          </div>
+          <LogoPage handler={handleEnter} />
         )}
       </LoginContextProvider>
     </ThemeProvider>

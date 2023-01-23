@@ -13,8 +13,8 @@ export default function LoginContextProvider({ children }) {
     userEmail: undefined,
     userPicture: undefined,
 
-    // For publisher
-    isPublisher: false,
+    // For participants
+    isParticipant: false,
     song: null,
     roomOwner: null,
   });
