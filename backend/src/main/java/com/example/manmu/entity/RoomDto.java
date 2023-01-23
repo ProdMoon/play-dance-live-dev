@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 public class RoomDto {
     private List<String> viewers;
-    private List<String> players;
+    private List<UserDto> players;
     private List<UserDto> waiters;
     private List<String> playSongs;
     private List<Ranking> rankingList;
@@ -18,7 +18,7 @@ public class RoomDto {
     private String currentChallenger;
 
     @Builder
-    public RoomDto(List<String> viewers, List<String> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
+    public RoomDto(List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
