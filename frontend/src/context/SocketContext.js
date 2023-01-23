@@ -18,12 +18,11 @@ export default function SocketContextProvider({ children }) {
   const messagesObject = useState([]);
 
   const gameInfoObject = useState({
-    sender: null,
     type: null,
-    currentRound: 0,
-    songVersion: 'normal',
-    connectionId: null,
-    poll: null,
+    sender: null,
+    song: null,
+    champion: null,
+    challenger: null,
   });
 
   const voteAObject = useState(1);
@@ -41,7 +40,6 @@ export default function SocketContextProvider({ children }) {
 
   function socketSubscription() {
     const [messages, setMessages] = messagesObject;
-    const username = userInfo.userName ?? undefined;
     const [voteA, setVoteA] = voteAObject;
     const [voteB, setVoteB] = voteBObject;
     const [gameInfo, setGameInfo] = gameInfoObject;
@@ -58,7 +56,7 @@ export default function SocketContextProvider({ children }) {
 
         // 참가자 리스트 변동...
         if (messageBody.type === 'REFRESH_WAITER_LIST') {
-          setParticipantList(messageBody.waiter);
+          setParticipantList(messageBody.waiters);
         }
 
         // 랭킹 리스트 변동...
@@ -66,24 +64,37 @@ export default function SocketContextProvider({ children }) {
           setRankingList(messageBody.ranking);
         }
 
-        // challenger의 게임 시작 신호...
-        if (messageBody.type === 'GAME_CHALLENGE') {
-          if (messageBody.challenger === userInfo.userEmail) {
-            setUserInfo((prevState) => ({
-              ...prevState,
-              isPublisher: true,
-            }));
-          }
+        // 노래 재생 신호...
+        if (messageBody.type === 'SONG_START') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            type: messageBody.type, // SONG_START
+            sender: messageBody.sender,
+            connectionId: messageBody.connectionId,
+            song: messageBody.song,
+          }));
         }
 
         // 게임 종료 신호...
         if (messageBody.type === 'GAME_END') {
           if (messageBody.winner !== userInfo.userEmail) {
-            setUserInfo((prevState) => ({
+            setGameInfo((prevState) => ({
               ...prevState,
-              isPublisher: false,
-            }))
+              type: messageBody.type, // GAME_END
+            }));
           }
+        }
+
+        // 예외 케이스 : 처음에 start 상황
+        if (messageBody.type === 'GAME_START') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            type: messageBody.type, // GAME_START
+            sender: messageBody.sender,
+            champion: messageBody.champion.connectionId,
+            challenger: messageBody.challenger.connectionId,
+            song: messageBody.song,
+          }))
         }
 
         /*************************
@@ -180,16 +191,6 @@ export default function SocketContextProvider({ children }) {
                 return prevState + 1;
               });
         }
-      }),
-    );
-
-    client.send(
-      '/app/chat.addUser',
-      {},
-      JSON.stringify({
-        roomId: userInfo.roomId,
-        sender: username,
-        type: 'JOIN',
       }),
     );
   }

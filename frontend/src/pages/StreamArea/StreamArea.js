@@ -10,6 +10,7 @@ import { useLoginContext } from '../../context/LoginContext';
 import Vote from '../../modules/Vote/Vote';
 import { useSocketContext } from '../../context/SocketContext';
 import { SongListData } from '../../assets/songListData';
+import VideoContainer from './VideoContainer';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
@@ -70,39 +71,42 @@ const StreamArea = () => {
   const audioRef = useRef();
   const localAudioRef = useRef();
 
-  useEffect(() => {
-    joinSession();
-
-    window.addEventListener('beforeunload', onbeforeunload);
-    return () => {
-      window.removeEventListener('beforeunload', onbeforeunload);
-    };
-  }, []);
-
   const onbeforeunload = (event) => {
     leaveSession();
   };
 
   useEffect(() => {
-    if (session !== undefined && userInfo.isPublisher === true) {
-      client.send(
-        '/app/waiter',
-        {},
-        JSON.stringify({
-          target: userInfo.userEmail,
-          action: songList.get('candy'),
-        }),
-      );
+    if (session === undefined) {
+      joinSession();
+
+      window.addEventListener('beforeunload', onbeforeunload);
+      return () => {
+        window.removeEventListener('beforeunload', onbeforeunload);
+      };
+    }
+  }, []);
+
+  // joinSession()이 완료되고, 본인이 참가하기를 통해 들어온 참가자이면 publish합니다. 영상은 바로 송출되지 않습니다.
+  useEffect(() => {
+    if (session !== undefined && userInfo.isParticipant === true) {
+      publishStream();
     }
   }, [session]);
 
+  // waiters에 들어가기 위해 join 메시지를 보냅니다.
   useEffect(() => {
-    if (userInfo.isPublisher === true) {
-      publishStream();
-    } else {
-      unpublishStream();
+    if (session !== undefined && userInfo.isParticipant === true) {
+      client.send(
+        '/app/join',
+        {},
+        JSON.stringify({
+          sender: userInfo.userEmail,
+          song: 'candy',
+          connectionId: myConnectionId,
+        }),
+      );
     }
-  }, [userInfo.isPublisher])
+  }, [myConnectionId]);
 
   // 카운트다운 이펙트
   const [count, setCount] = useState(0);
@@ -116,6 +120,58 @@ const StreamArea = () => {
   }, [count]);
 
   useEffect(async () => {
+    // 강조 표시를 모두 지워줍니다.
+    const videos = document.querySelectorAll('.video-comp');
+    videos.forEach((video) => {
+      video.classList.remove('dancing', 'resting');
+    });
+
+    setWinnerView(false);
+
+    // 노래 시작 신호...
+    if (gameInfo.type === 'SONG_START') {
+      // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
+      let dancer = document.querySelector(
+        `.video-comp#${gameInfo.connectionId}`,
+      );
+      let notDancer = document.querySelector(
+        `.video-comp:not(#${gameInfo.connectionId})`,
+      );
+      dancer.classList.remove('resting');
+      dancer.classList.add('dancing');
+
+      notDancer.classList.remove('dancing');
+      notDancer.classList.add('resting');
+
+      // champion의 차례이면 투표창을 띄워줍니다.
+      if (gameInfo.connectionId === gameInfo.champion) {
+        setVoteView(true);
+      }
+
+      // 자기 차례면 시작
+      if (gameInfo.connectionId === myConnectionId) {
+        const songName = gameInfo.song;
+        const songObject = songList.get(songName);
+        setCurrentSongUrl(songObject.normalSrc);
+      }
+
+      // 카운트다운을 합니다.
+      setCount(3);
+    }
+
+    // 게임 종료 신호...
+    if (gameInfo.type === 'GAME_END') {
+      // 투표창을 닫습니다.
+      setVoteView(false);
+
+      // 결과창을 보여줍니다.
+      setWinnerView(true);
+    }
+
+    /*************************
+     * DEPRECATED SIGNALS... *
+     *************************/
+
     // 시작 신호 수신 시 행동
     if (gameInfo.type === 'ROUND_START') {
       // 먼저 열려있는 알림창을 닫습니다.
@@ -142,7 +198,7 @@ const StreamArea = () => {
 
       if (userInfo.isPublisher && gameInfo.sender === userInfo.userEmail) {
         // TODO: songName을 서버가 뿌려줘야함.
-        const songName = userInfo.songs[gameInfo.currentRound - 1];
+        const songName = userInfo.song;
         const songObject = songList.get(songName);
 
         // 틀어야 할 노래에 따라 알맞은 src를 넣어줍니다.
@@ -186,6 +242,10 @@ const StreamArea = () => {
       localAudioRef.current.addEventListener('ended', sendRoundEndMessage);
     }
   }, [currentSongUrl]);
+
+  useEffect(() => {
+    console.log('champion changed : ' + gameInfo.champion);
+  }, [gameInfo.champion]);
 
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
@@ -241,32 +301,45 @@ const StreamArea = () => {
   const handleStart = (e) => {
     e.preventDefault();
     client.send(
-      '/app/chat.sendGameSignal',
+      '/app/start',
       {},
       JSON.stringify({
-        type: 'ROUND_START',
-        sender: userInfo.roomOwner,
-        roomId: userInfo.roomId,
-        currentRound: 1,
-        songVersion: 'normal',
-        connectionId:
-          userInfo.roomOwner === userInfo.userEmail
-            ? myConnectionId
-            : subscribers[0].stream.connection.connectionId,
+        type: 'GAME_START',
+        sender: userInfo.userEmail,
+      }),
+    );
+  };
+
+  const handleCreate = (e) => {
+    e.preventDefault();
+    axios.post(
+      '/api/room/create',
+      {},
+      {
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  };
+
+  const handleSongStart = (e) => {
+    e.preventDefault();
+    client.send(
+      '/app/song/start',
+      {},
+      JSON.stringify({
+        type: 'SONG_START',
+        sender: userInfo.userEmail,
       }),
     );
   };
 
   function sendRoundEndMessage() {
     client.send(
-      '/app/chat.sendGameSignal',
+      '/app/song/end',
       {},
       JSON.stringify({
-        type: 'ROUND_END',
+        type: 'SONG_END',
         sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        currentRound: gameInfo.currentRound,
-        songVersion: gameInfo.songVersion,
       }),
     );
     // replaceTrackToAudioDevice();
@@ -309,6 +382,9 @@ const StreamArea = () => {
     mySession.on('exception', (exception) => {
       console.warn(exception);
     });
+
+    // Reconnection의 타임아웃을 없앱니다.
+    newOV.setAdvancedConfiguration({noStreamPlayingEventExceptionTimeout: 5000000})
 
     // 4) 유효한 user token을 가지고 session에 연결합니다.
 
@@ -382,7 +458,7 @@ const StreamArea = () => {
     setPublisher(undefined);
     setCurrentVideoDevice(undefined);
     setMainStreamManager(undefined);
-  }
+  };
 
   const leaveSession = () => {
     // 7) Session object를 통해 'disconnect' 메서드를 호출함으로써 session을 종료합니다.
@@ -418,6 +494,7 @@ const StreamArea = () => {
     setUserInfo((prevState) => ({
       ...prevState,
       isPublisher: false,
+      isParticipant: false,
       song: null,
       roomOwner: null,
     }));
@@ -556,6 +633,34 @@ const StreamArea = () => {
               >
                 세션 떠나기
               </Button>
+              {userInfo.isParticipant === true ? (
+                <>
+                  <Button
+                    onClick={handleCreate}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    CREATE
+                  </Button>
+                  <Button
+                    onClick={handleStart}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    START
+                  </Button>
+                  <Button
+                    onClick={handleSongStart}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    SONG START
+                  </Button>
+                </>
+              ) : null}
               {mainStreamManager !== undefined ? (
                 <>
                   <Button
@@ -565,14 +670,6 @@ const StreamArea = () => {
                     sx={{ margin: '5px' }}
                   >
                     카메라 전환
-                  </Button>
-                  <Button
-                    onClick={handleStart}
-                    variant='contained'
-                    color='secondary'
-                    sx={{ margin: '5px' }}
-                  >
-                    START
                   </Button>
                   <AudioTag
                     audioRef={audioRef}
@@ -584,31 +681,13 @@ const StreamArea = () => {
             </Grid>
 
             <Grid item xs='auto'>
-              <div id='video-container'>
-                {publisher !== undefined ? (
-                  <div
-                    id={publisher.stream.connection.connectionId}
-                    className='video-comp'
-                  >
-                    <UserVideoComponent streamManager={publisher} />
-                  </div>
-                ) : null}
-                {subscribers.length > 0 ? (
-                  subscribers.map((sub, i) => {
-                    return (
-                      <div
-                        id={sub.stream.connection.connectionId}
-                        key={i}
-                        className='video-comp'
-                      >
-                        <UserVideoComponent streamManager={sub} />
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className='video-comp' />
-                )}
-              </div>
+              <VideoContainer
+                myConnectionId={myConnectionId}
+                publisher={publisher}
+                subscribers={subscribers}
+                champion={gameInfo.champion}
+                challenger={gameInfo.challenger}
+              />
             </Grid>
           </Grid>
         </>
