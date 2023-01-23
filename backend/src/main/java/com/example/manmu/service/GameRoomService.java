@@ -144,7 +144,7 @@ public class GameRoomService {
     }
 
     public RoomDto startGame() {
-        Room gameRoom = (Room) redisTemplate.opsForHash().get("ROOM", "ROOM");
+        Room gameRoom = (Room) redisTemplate.opsForValue().get("ROOM");
         if(gameRoom != null) {
             gameRoom.setCurrentChampion(gameRoom.getWaiters().get(0).getEmail());
             gameRoom.setCurrentChallenger(gameRoom.getWaiters().get(1).getEmail());
