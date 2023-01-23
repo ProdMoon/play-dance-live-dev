@@ -38,7 +38,7 @@ public class RedisRepositoryConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Room> listRedisTemplate() {
+    public RedisTemplate<String, Room> roomRedisTemplate() {
         RedisTemplate<String, Room> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
