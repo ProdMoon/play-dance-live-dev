@@ -10,6 +10,7 @@ import { useLoginContext } from '../../context/LoginContext';
 import Vote from '../../modules/Vote/Vote';
 import { useSocketContext } from '../../context/SocketContext';
 import { SongListData } from '../../assets/songListData';
+import VideoContainer from './VideoContainer';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
@@ -242,6 +243,10 @@ const StreamArea = () => {
     }
   }, [currentSongUrl]);
 
+  useEffect(() => {
+    console.log('champion changed : ' + gameInfo.champion);
+  }, [gameInfo.champion]);
+
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
     const dest = audioCtx.createMediaStreamDestination();
@@ -377,6 +382,9 @@ const StreamArea = () => {
     mySession.on('exception', (exception) => {
       console.warn(exception);
     });
+
+    // Reconnection의 타임아웃을 없앱니다.
+    newOV.setAdvancedConfiguration({noStreamPlayingEventExceptionTimeout: 5000000})
 
     // 4) 유효한 user token을 가지고 session에 연결합니다.
 
@@ -673,92 +681,13 @@ const StreamArea = () => {
             </Grid>
 
             <Grid item xs='auto'>
-              {publisher !== undefined && gameInfo.champion !== null
-                ? () => {
-                    if (myConnectionId === gameInfo.champion) {
-                      return (
-                        <div id='video-container'>
-                          <div
-                            id={publisher.stream.connection.connectionId}
-                            className='video-comp'
-                          >
-                            <UserVideoComponent streamManager={publisher} />
-                          </div>
-                          <div
-                            id={subscribers[0].stream.connection.connectionId}
-                            className='video-comp'
-                          >
-                            <UserVideoComponent
-                              streamManager={subscribers[0]}
-                            />
-                          </div>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div id='video-container'>
-                          <div
-                            id={subscribers[0].stream.connection.connectionId}
-                            className='video-comp'
-                          >
-                            <UserVideoComponent
-                              streamManager={subscribers[0]}
-                            />
-                          </div>
-                          <div
-                            id={publisher.stream.connection.connectionId}
-                            className='video-comp'
-                          >
-                            <UserVideoComponent streamManager={publisher} />
-                          </div>
-                        </div>
-                      );
-                    }
-                  }
-                : null}
-              {publisher === undefined && gameInfo.champion !== null ? (
-                <div id='video-container'>
-                  {subscribers.length > 0 ? (
-                    subscribers.map((sub, i) => {
-                      if (
-                        sub.stream.connection.connectionId === gameInfo.champion
-                      ) {
-                        return (
-                          <div
-                            id={sub.stream.connection.connectionId}
-                            key={i}
-                            className='video-comp'
-                          >
-                            <UserVideoComponent streamManager={sub} />
-                          </div>
-                        );
-                      }
-                    })
-                  ) : (
-                    <div className='video-comp' />
-                  )}
-                  {subscribers.length > 0 ? (
-                    subscribers.map((sub, i) => {
-                      if (
-                        sub.stream.connection.connectionId ===
-                        gameInfo.challenger
-                      ) {
-                        return (
-                          <div
-                            id={sub.stream.connection.connectionId}
-                            key={i}
-                            className='video-comp'
-                          >
-                            <UserVideoComponent streamManager={sub} />
-                          </div>
-                        );
-                      }
-                    })
-                  ) : (
-                    <div className='video-comp' />
-                  )}
-                </div>
-              ) : null}
+              <VideoContainer
+                myConnectionId={myConnectionId}
+                publisher={publisher}
+                subscribers={subscribers}
+                champion={gameInfo.champion}
+                challenger={gameInfo.challenger}
+              />
             </Grid>
           </Grid>
         </>

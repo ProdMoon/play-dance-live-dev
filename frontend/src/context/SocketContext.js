@@ -40,7 +40,6 @@ export default function SocketContextProvider({ children }) {
 
   function socketSubscription() {
     const [messages, setMessages] = messagesObject;
-    const username = userInfo.userName ?? undefined;
     const [voteA, setVoteA] = voteAObject;
     const [voteB, setVoteB] = voteBObject;
     const [gameInfo, setGameInfo] = gameInfoObject;
@@ -92,8 +91,8 @@ export default function SocketContextProvider({ children }) {
             ...prevState,
             type: messageBody.type, // GAME_START
             sender: messageBody.sender,
-            champion: messageBody.champion,
-            challenger: messageBody.challenger,
+            champion: messageBody.champion.connectionId,
+            challenger: messageBody.challenger.connectionId,
             song: messageBody.song,
           }))
         }
