@@ -15,14 +15,19 @@ public class UserDto {
     private String picture;
     private Integer currentWinNums;
     private Integer bestWinNums;
+    private String song;
+    private String connectionId;
 
     @Builder
-    public UserDto(String name, String email, String picture, Integer currentWinNums, Integer bestWinNums) {
+    public UserDto(String name, String email, String picture, Integer currentWinNums, Integer bestWinNums, String song , String connectionId) {
         this.name = name;
         this.email = email;
         this.picture = picture;
         this.currentWinNums = currentWinNums;
         this.bestWinNums = bestWinNums;
+        this.song = song;
+        this.connectionId = connectionId;
+
     }
 
     public User toEntity() {

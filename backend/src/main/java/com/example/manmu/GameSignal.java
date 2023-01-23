@@ -16,6 +16,7 @@ public class GameSignal {
     private String Champion;
     private String challenger;
     private String userName;
+    private String song;
     private List<Ranking> rankingList;
     private String connectionId;
 }
