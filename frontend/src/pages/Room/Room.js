@@ -44,6 +44,8 @@ const Room = () => {
         </Box>
       ) : null}
       {userInfo.roomId !== undefined ? <StreamArea /> : null}
+      {/* for test */}
+      <StreamArea />
     </Box>
   );
 };

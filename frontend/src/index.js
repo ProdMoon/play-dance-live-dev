@@ -12,7 +12,6 @@ import '@fontsource/roboto/700.css';
 import Home from './pages/Home/Home';
 import StreamArea from './pages/StreamArea/StreamArea';
 import Test from './modules/Test/Test';
-import Slot from './modules/Test/Slot';
 
 const router = createBrowserRouter([
   {
@@ -27,10 +26,6 @@ const router = createBrowserRouter([
   {
     path: '/test',
     element: <Test />,
-  },
-  {
-    path: '/Slot',
-    element: <Slot />,
   },
 
 ]);

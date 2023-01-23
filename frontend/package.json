@@ -10,6 +10,7 @@
     "@mui/material": "^5.11.3",
     "axios": "^0.21.4",
     "express": "^4.18.2",
+    "jquery-slotmachine": "^6.0.0",
     "net": "^1.0.2",
     "openvidu-browser": "2.25.0",
     "react": "17.0.1",
