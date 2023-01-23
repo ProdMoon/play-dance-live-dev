@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -45,10 +46,16 @@ public class GameRoomService {
         return null;
     }
 
+    @Transactional
     public RoomDto joinGame(String userMail) {
         Room joinRoom = (Room) redisTemplate.opsForHash().get("ROOM", 1);
-        if (joinRoom != null) {
-            joinRoom.addWaiter(userMail);
+        User joinUser = userRepository.findByEmail(userMail).orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
+        if (joinRoom != null && joinUser != null) {
+            UserDto joinUserDto = new UserDto().builder()
+                    .name(joinUser.getName())
+                    .email(joinUser.getEmail())
+                    .build();
+            joinRoom.addWaiter(joinUserDto);
             redisTemplate.opsForHash().put("ROOM", 1, joinRoom);
             return new RoomDto(joinRoom);
         }
@@ -89,7 +96,7 @@ public class GameRoomService {
                 rankingRepository.save(currentChampionRanking);
                 rankingRepository.save(currentChallengerRanking);
                 gameRoom.removePlayer(currentChallenger);
-                gameRoom.addPlayer(gameRoom.getWaiters().get(0));
+                gameRoom.addPlayer(gameRoom.getWaiters().get(0).getEmail());
                 gameRoom.setRankingList(rankingRepository.findAllByOrderByBestWinNumsDesc());
                 currentChallengerUser.updateCurrentWinNums(currentChallengerUser.getCurrentWinNums());
                 redisTemplate.opsForHash().put("ROOM", 1, gameRoom);
@@ -108,7 +115,7 @@ public class GameRoomService {
                 currentChampionRanking.setCurrentWinNums(0);
                 rankingRepository.save(currentChallengerRanking);
                 gameRoom.removePlayer(currentChampion);
-                gameRoom.addPlayer(gameRoom.getWaiters().get(0));
+                gameRoom.addPlayer(gameRoom.getWaiters().get(0).getEmail());
                 gameRoom.setCurrentChampion(currentChallenger);
                 gameRoom.setRankingList(rankingRepository.findAllByOrderByBestWinNumsDesc());
                 redisTemplate.opsForHash().put("ROOM", 1, gameRoom);
@@ -125,5 +132,24 @@ public class GameRoomService {
         redisTemplate.opsForHash().put("WINNER", "WINNER", winner);
         redisTemplate.opsForHash().put("POLL_LEFT", "POLL_LEFT", pollLeft);
         redisTemplate.opsForHash().put("POLL_RIGHT", "POLL_RIGHT", pollRight);
+    }
+
+    public String findUserName(String userMail) {
+        User user = userRepository.findByEmail(userMail)
+                .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
+        return user.getName();
+    }
+
+    public RoomDto startGame() {
+        Room gameRoom = (Room) redisTemplate.opsForHash().get("ROOM", 1);
+        if(gameRoom != null) {
+            gameRoom.setCurrentChampion(gameRoom.getWaiters().get(0).getEmail());
+            gameRoom.setCurrentChallenger(gameRoom.getWaiters().get(1).getEmail());
+            gameRoom.removeWaiter(gameRoom.getWaiters().get(0));
+            gameRoom.removeWaiter(gameRoom.getWaiters().get(1));
+            redisTemplate.opsForHash().put("ROOM", 1, gameRoom);
+            return new RoomDto(gameRoom);
+        }
+        return null;
     }
 }

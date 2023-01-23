@@ -34,16 +34,36 @@ public class RoomController {
         }
     }
 
-    @MessageMapping("/participant")
+    @MessageMapping("/join")
     public void joinGame(@Payload GameSignal gameSignal) {
         String userMail = gameSignal.getSender();
         RoomDto joinRoomDto = gameRoomService.joinGame(userMail);
         if (joinRoomDto != null){
             gameSignal.setType("REFRESH_WAITER_LIST");
             gameSignal.setWaiters(joinRoomDto.getWaiters());
+            template.convertAndSend("/topic/public", gameSignal);
         }
-        template.convertAndSend("/topic/public", gameSignal);
     }
+
+    @MessageMapping("/start")
+    public void startGame(@Payload GameSignal gameSignal) {
+        RoomDto startRoomDto = gameRoomService.startGame();
+        if (startRoomDto != null){
+            gameSignal.setType("GAME_START");
+            gameSignal.setWaiters(startRoomDto.getWaiters());
+            gameSignal.setChampion(startRoomDto.getCurrentChampion());
+            gameSignal.setChallenger(startRoomDto.getCurrentChallenger());
+            template.convertAndSend("/topic/public", gameSignal);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            gameSignal.setType("REFRESH_WAITER_LIST");
+            template.convertAndSend("/topic/public", gameSignal);
+        }
+    }
+
 
 //    @PostMapping("/api/room/match")
 //    public ResponseEntity<RoomDto> TestMatchRoom(@RequestBody Map<String, Object> params) {
@@ -89,7 +109,7 @@ public class RoomController {
         }
         if (gameRoomResult != null) {
             gameSignal.setType("GAME_END");
-            gameSignal.setWinner(gameRoomResult.getCurrentChampion());
+            gameSignal.setChampion(gameRoomResult.getCurrentChampion());
             gameSignal.setRankingList(gameRoomResult.getRankingList());
             template.convertAndSend("/topic/public", gameSignal);
             try {

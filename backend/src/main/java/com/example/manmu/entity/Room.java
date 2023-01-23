@@ -17,7 +17,7 @@ public class Room implements Serializable {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private List<String> viewers;
     private List<String> players;
-    private List<String> waiters;
+    private List<UserDto> waiters;
     private List<String> playSongs;
     private List<Ranking> rankingList;
     private String currentChampion;
@@ -25,7 +25,7 @@ public class Room implements Serializable {
 
 
     @Builder
-    public Room(String roomId, List<String> viewers, List<String> players, List<String> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
+    public Room(String roomId, List<String> viewers, List<String> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
@@ -42,7 +42,7 @@ public class Room implements Serializable {
             lock.writeLock().unlock();
         }
     }
-    public void addWaiter(String waiter) {
+    public void addWaiter(UserDto waiter) {
         lock.writeLock().lock();
         try {
             waiters.add(waiter);
@@ -50,6 +50,15 @@ public class Room implements Serializable {
             lock.writeLock().unlock();
         }
     }
+    public void removeWaiter(UserDto waiter) {
+        lock.writeLock().lock();
+        try {
+            waiters.remove(waiter);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
     public void addViewer(String viewer) {
         lock.writeLock().lock();
         try {

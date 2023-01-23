@@ -11,14 +11,14 @@ import java.util.List;
 public class RoomDto {
     private List<String> viewers;
     private List<String> players;
-    private List<String> waiters;
+    private List<UserDto> waiters;
     private List<String> playSongs;
     private List<Ranking> rankingList;
     private String currentChampion;
     private String currentChallenger;
 
     @Builder
-    public RoomDto(List<String> viewers, List<String> players, List<String> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
+    public RoomDto(List<String> viewers, List<String> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
