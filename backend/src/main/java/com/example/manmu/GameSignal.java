@@ -13,8 +13,8 @@ public class GameSignal {
     private String type;
     private String sender;
     private List<UserDto> waiters;
-    private String Champion;
-    private String challenger;
+    private UserDto champion;
+    private UserDto challenger;
     private String userName;
     private String song;
     private List<Ranking> rankingList;

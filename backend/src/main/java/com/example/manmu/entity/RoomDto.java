@@ -14,11 +14,11 @@ public class RoomDto {
     private List<UserDto> waiters;
     private List<String> playSongs;
     private List<Ranking> rankingList;
-    private String currentChampion;
-    private String currentChallenger;
+    private UserDto currentChampion;
+    private UserDto currentChallenger;
 
     @Builder
-    public RoomDto(List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
+    public RoomDto(List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, UserDto currentChampion, UserDto currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;

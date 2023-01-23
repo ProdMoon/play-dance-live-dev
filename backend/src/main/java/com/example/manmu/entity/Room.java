@@ -20,12 +20,12 @@ public class Room implements Serializable {
     private List<UserDto> waiters;
     private List<String> playSongs;
     private List<Ranking> rankingList;
-    private String currentChampion;
-    private String currentChallenger;
+    private UserDto currentChampion;
+    private UserDto currentChallenger;
 
 
     @Builder
-    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
+    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, UserDto currentChampion, UserDto currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
@@ -71,7 +71,7 @@ public class Room implements Serializable {
 //        }
         viewers.add(viewer);
     }
-    public void removePlayer(String player) {
+    public void removePlayer(UserDto player) {
 //        lock.writeLock().lock();
 //        try {
 //            players.remove(player);
