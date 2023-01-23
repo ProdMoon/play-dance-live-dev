@@ -1,5 +1,6 @@
 package com.example.manmu;
 import com.example.manmu.entity.Ranking;
+import com.example.manmu.entity.UserDto;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -11,10 +12,11 @@ import java.util.List;
 public class GameSignal {
     private String type;
     private String sender;
-    private List<String> waiters;
-    private String winner;
+    private List<UserDto> waiters;
+    private String Champion;
     private String challenger;
+    private String userName;
+    private String song;
     private List<Ranking> rankingList;
-    private Integer currentRound;
     private String connectionId;
 }

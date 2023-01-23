@@ -3,7 +3,7 @@ package com.example.manmu.config;
 
 import com.example.manmu.entity.Room;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+//import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -18,7 +18,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @EnableRedisRepositories
 public class RedisRepositoryConfig {
 
-    private final RedisProperties redisProperties;
+//    private final RedisProperties redisProperties;
 
     // lettuce
     @Bean
@@ -38,13 +38,14 @@ public class RedisRepositoryConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Room> listRedisTemplate() {
+    public RedisTemplate<String, Room> roomRedisTemplate() {
         RedisTemplate<String, Room> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setDefaultSerializer(new StringRedisSerializer());
         template.afterPropertiesSet();
+
         return template;
     }
 }

@@ -14,10 +14,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Setter
 @NoArgsConstructor
 public class Room implements Serializable {
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+//    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private List<String> viewers;
-    private List<String> players;
-    private List<String> waiters;
+    private List<UserDto> players;
+    private List<UserDto> waiters;
     private List<String> playSongs;
     private List<Ranking> rankingList;
     private String currentChampion;
@@ -25,7 +25,7 @@ public class Room implements Serializable {
 
 
     @Builder
-    public Room(String roomId, List<String> viewers, List<String> players, List<String> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
+    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, String currentChampion, String currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
@@ -34,36 +34,50 @@ public class Room implements Serializable {
         this.currentChampion = currentChampion;
         this.currentChallenger = currentChallenger;
     }
-    public void addPlayer(String player) {
-        lock.writeLock().lock();
-        try {
-            players.add(player);
-        } finally {
-            lock.writeLock().unlock();
-        }
+    public void addPlayer(UserDto player) {
+//        lock.writeLock().lock();
+//        try {
+//            players.add(player);
+//        } finally {
+//            lock.writeLock().unlock();
+//        }
+        players.add(player);
     }
-    public void addWaiter(String waiter) {
-        lock.writeLock().lock();
-        try {
-            waiters.add(waiter);
-        } finally {
-            lock.writeLock().unlock();
-        }
+    public void addWaiter(UserDto waiter) {
+//        lock.writeLock().lock();
+//        try {
+//            waiters.add(waiter);
+//        } finally {
+//            lock.writeLock().unlock();
+//        }
+        waiters.add(waiter);
     }
+    public void removeWaiter(UserDto waiter) {
+//        lock.writeLock().lock();
+//        try {
+//            waiters.remove(waiter);
+//        } finally {
+//            lock.writeLock().unlock();
+//        }
+        waiters.remove(waiter);
+    }
+
     public void addViewer(String viewer) {
-        lock.writeLock().lock();
-        try {
-            viewers.add(viewer);
-        } finally {
-            lock.writeLock().unlock();
-        }
+//        lock.writeLock().lock();
+//        try {
+//            viewers.add(viewer);
+//        } finally {
+//            lock.writeLock().unlock();
+//        }
+        viewers.add(viewer);
     }
     public void removePlayer(String player) {
-        lock.writeLock().lock();
-        try {
-            players.remove(player);
-        } finally {
-            lock.writeLock().unlock();
-        }
+//        lock.writeLock().lock();
+//        try {
+//            players.remove(player);
+//        } finally {
+//            lock.writeLock().unlock();
+//        }
+        players.remove(player);
     }
 }
