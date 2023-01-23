@@ -1,5 +1,6 @@
 package com.example.manmu.entity;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,9 +16,17 @@ public class UserDto {
     private Integer currentWinNums;
     private Integer bestWinNums;
 
+    @Builder
+    public UserDto(String name, String email, String picture, Integer currentWinNums, Integer bestWinNums) {
+        this.name = name;
+        this.email = email;
+        this.picture = picture;
+        this.currentWinNums = currentWinNums;
+        this.bestWinNums = bestWinNums;
+    }
+
     public User toEntity() {
         return User.builder()
-                .id(id)
                 .name(name)
                 .email(email)
                 .picture(picture)

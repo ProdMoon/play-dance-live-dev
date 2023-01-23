@@ -3,6 +3,7 @@ package com.example.manmu.controller;
 
 import com.example.manmu.ChatMessage;
 import com.example.manmu.Click;
+import com.example.manmu.GameSignal;
 import com.example.manmu.service.VoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -19,7 +20,7 @@ public class ChatController {
 
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage) {
-        template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
+        template.convertAndSend("/topic/public", chatMessage);
     }
 
     @MessageMapping("/chat.sendClick")
@@ -27,14 +28,14 @@ public class ChatController {
         template.convertAndSend("/topic/" + click.getRoomId(), click);
     }
 
-//    @MessageMapping("/chat.sendGameSignal")
-//    public void sendMessage(@Payload GameSignal gameSignal) {
-//        template.convertAndSend("/topic/" + gameSignal.getRoomId(), gameSignal);
-//    }
+    @MessageMapping("/chat.sendGameSignal")
+    public void sendMessage(@Payload GameSignal gameSignal) {
+        template.convertAndSend("/topic/public", gameSignal);
+    }
 
     @MessageMapping("/chat.addUser")
     public void addUser(@Payload ChatMessage chatMessage) {
-        template.convertAndSend("/topic/" + chatMessage.getRoomId(), chatMessage);
+        template.convertAndSend("/topic/public", chatMessage);
     }
 
 
