@@ -149,10 +149,8 @@ public class GameRoomService {
     public RoomDto startGame() {
         Room gameRoom = (Room) redisTemplate.opsForValue().get("ROOM");
         if(gameRoom != null) {
-            UserDto startChampion = gameRoom.getPlayers().get(0);
-            UserDto startChallenger = gameRoom.getPlayers().get(1);
-            gameRoom.removeWaiter(gameRoom.getWaiters().get(0));
-            gameRoom.removeWaiter(gameRoom.getWaiters().get(0));
+            UserDto startChampion = gameRoom.getWaiters().remove(0);
+            UserDto startChallenger = gameRoom.getWaiters().remove(0);
             gameRoom.setCurrentChampion(startChampion.getEmail());
             gameRoom.setCurrentChallenger(startChallenger.getEmail());
             gameRoom.addPlayer(startChampion);
