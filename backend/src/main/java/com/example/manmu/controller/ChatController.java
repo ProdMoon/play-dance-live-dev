@@ -25,7 +25,7 @@ public class ChatController {
 
     @MessageMapping("/chat.sendClick")
     public void sendMessage(@Payload Click click) {
-        template.convertAndSend("/topic/" + click.getRoomId(), click);
+        template.convertAndSend("/topic/public", click);
     }
 
     @MessageMapping("/chat.sendGameSignal")
