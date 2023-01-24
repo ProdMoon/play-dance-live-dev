@@ -9,4 +9,5 @@ public interface RankingRepository extends JpaRepository<Ranking, Long> {
     public Ranking findByUserEmail(String userEmail);
     public Ranking findByUserName(String userName);
     public List<Ranking> findAllByOrderByBestWinNumsDesc();
+
 }
