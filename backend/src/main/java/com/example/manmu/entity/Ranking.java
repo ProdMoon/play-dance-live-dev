@@ -1,9 +1,6 @@
 package com.example.manmu.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
@@ -20,8 +17,15 @@ public class Ranking {
     private Long id;
     private String userName;
     private String userEmail;
-    @ColumnDefault("0")
     private int bestWinNums;
-    @ColumnDefault("0")
     private int currentWinNums;
+
+    @Builder
+    public Ranking(String userName, String userEmail, int bestWinNums, int currentWinNums) {
+        this.userName = userName;
+        this.userEmail = userEmail;
+        this.bestWinNums = bestWinNums;
+        this.currentWinNums = currentWinNums;
+    }
+
 }

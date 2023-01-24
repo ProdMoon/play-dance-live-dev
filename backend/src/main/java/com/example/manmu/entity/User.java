@@ -4,6 +4,7 @@ import com.example.manmu.domain.user.Role;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -31,10 +32,10 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
-    @Column
+    @ColumnDefault("0")
     private Integer currentWinNums;
 
-    @Column
+    @ColumnDefault("0")
     private Integer bestWinNums;
 
     @Builder

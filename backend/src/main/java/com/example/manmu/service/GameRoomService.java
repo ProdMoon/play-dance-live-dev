@@ -1,6 +1,5 @@
 package com.example.manmu.service;
 
-import com.example.manmu.Click;
 import com.example.manmu.entity.*;
 import com.example.manmu.exception.UserNotFoundException;
 import com.example.manmu.repository.RankingRepository;
@@ -14,7 +13,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -49,7 +47,6 @@ public class GameRoomService {
         return null;
     }
 
-    @Transactional
     public RoomDto joinGame(String userMail, String userSong, String userConnectionId) {
         Room joinRoom = roomRedisTemplate.opsForValue().get("ROOM");
         User joinUser = userRepository.findByEmail(userMail).orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
@@ -61,10 +58,26 @@ public class GameRoomService {
                     .connectionId(userConnectionId)
                     .build();
             joinRoom.addWaiter(joinUserDto);
+            // check if user already has a ranking
+            joinUserMakeRanking(joinUser);
+
             roomRedisTemplate.opsForValue().set("ROOM", joinRoom);
             return new RoomDto(joinRoom);
         }
         return null;
+    }
+
+    private void joinUserMakeRanking(User joinUser) {
+        Ranking joinUserRanking = rankingRepository.findByUserEmail(joinUser.getEmail());
+        if (joinUserRanking == null) {
+            joinUserRanking = Ranking.builder()
+                    .userName(joinUser.getName())
+                    .userEmail(joinUser.getEmail())
+                    .currentWinNums(0)
+                    .bestWinNums(0)
+                    .build();
+            rankingRepository.save(joinUserRanking);
+        }
     }
 
     public RoomDto endGame(String currentUserMail) {
@@ -124,7 +137,7 @@ public class GameRoomService {
              * challenger wins
              */
             else {
-                currentChallengerRanking.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums() + 1);
+                currentChallengerRanking.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums()+1);
                 if (currentChallengerRanking.getCurrentWinNums() > currentChallengerRanking.getBestWinNums()) {
                     currentChallengerRanking.setBestWinNums(currentChallengerRanking.getCurrentWinNums());
                 }
