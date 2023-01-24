@@ -32,11 +32,7 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
-    @ColumnDefault("0")
-    private Integer currentWinNums;
 
-    @ColumnDefault("0")
-    private Integer bestWinNums;
 
     @Builder
     public User(Long id, String name, String email, String picture, Role role, Integer currentWinNums, Integer bestWinNums) {
@@ -45,8 +41,7 @@ public class User extends BaseTimeEntity {
         this.email = email;
         this.picture = picture;
         this.role = role;
-        this.currentWinNums = currentWinNums;
-        this.bestWinNums = bestWinNums;
+
     }
 
     public User(String name, String email, String picture, Role role, Integer currentWinNums, Integer bestWinNums) {
@@ -54,8 +49,7 @@ public class User extends BaseTimeEntity {
         this.email = email;
         this.picture = picture;
         this.role = role;
-        this.currentWinNums = currentWinNums;
-        this.bestWinNums = bestWinNums;
+
     }
 
     public User update(String name, String picture) {
