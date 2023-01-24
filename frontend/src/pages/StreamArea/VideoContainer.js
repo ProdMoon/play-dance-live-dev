@@ -9,7 +9,8 @@ const VideoContainer = (props) => {
 
   return (
     <>
-      {publisher !== undefined && champion !== null ? (
+      {champion !== null &&
+      (champion === myConnectionId || challenger === myConnectionId) ? (
         myConnectionId === champion ? (
           <div id='video-container'>
             <div
@@ -60,7 +61,9 @@ const VideoContainer = (props) => {
           </div>
         )
       ) : null}
-      {publisher === undefined && champion !== null ? (
+      {champion !== null &&
+      champion !== myConnectionId &&
+      challenger !== myConnectionId ? (
         <div id='video-container'>
           {subscribers.length > 0 ? (
             subscribers.map((sub, i) => {
