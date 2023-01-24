@@ -137,7 +137,7 @@ public class GameRoomService {
              * challenger wins
              */
             else {
-                currentChallengerRanking.setCurrentWinNums(currentChallengerUser.getCurrentWinNums()+1);
+                currentChallengerRanking.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums()+1);
                 if (currentChallengerRanking.getCurrentWinNums() > currentChallengerRanking.getBestWinNums()) {
                     currentChallengerRanking.setBestWinNums(currentChallengerRanking.getCurrentWinNums());
                 }
