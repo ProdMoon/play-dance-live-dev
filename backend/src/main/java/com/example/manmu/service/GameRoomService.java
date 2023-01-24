@@ -222,4 +222,12 @@ public class GameRoomService {
             }
         }
     }
+
+    public RoomDto findRoom(){
+        Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
+        if(gameRoom != null){
+            return new RoomDto(gameRoom);
+        }
+        return null;
+    }
 }

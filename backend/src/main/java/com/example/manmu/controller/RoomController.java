@@ -79,7 +79,8 @@ public class RoomController {
         String userMail = gameSignal.getSender();
         RoomDto gameRoomDto = gameRoomService.endGame(userMail);
         if (gameRoomDto == null) {
-            UserDto challengerDto = gameRoomDto.getCurrentChallenger();
+            RoomDto roomDto = gameRoomService.findRoom();
+            UserDto challengerDto = roomDto.getCurrentChallenger();
             gameSignal.setType("SONG_START");
             gameSignal.setConnectionId(challengerDto.getConnectionId());
             gameSignal.setSong(challengerDto.getSong());
