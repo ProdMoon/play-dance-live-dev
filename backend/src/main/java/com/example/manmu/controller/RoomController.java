@@ -25,8 +25,6 @@ public class RoomController {
 
     @PostMapping("/api/room/create")
     public ResponseEntity<RoomDto> createRoom(@RequestBody(required = false) Map<String, Object> params) {
-        String userMail = (String) params.get("userMail");
-        String roomSongs = (String) params.get("roomSong");
         RoomDto roomDto = gameRoomService.createRoom();
         if (roomDto != null) {
             return new ResponseEntity<>(roomDto, HttpStatus.OK);
@@ -120,7 +118,6 @@ public class RoomController {
     public void vote(@Payload VoteData VoteData) {
         String type = VoteData.getType();
         String sender = VoteData.getSender();
-        String winner = VoteData.getWinner();
         Integer pollLeft = VoteData.getPollLeft();
         Integer pollRight = VoteData.getPollRight();
         gameRoomService.vote(VoteData);
