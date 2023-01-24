@@ -25,8 +25,8 @@ export default function SocketContextProvider({ children }) {
     challenger: null,
   });
 
-  const voteAObject = useState(1);
-  const voteBObject = useState(1);
+  const voteAObject = useState(0);
+  const voteBObject = useState(0);
   const progAObject = useState(50);
   const progBObject = useState(50);
 
@@ -91,8 +91,8 @@ export default function SocketContextProvider({ children }) {
             ...prevState,
             type: messageBody.type, // GAME_START
             sender: messageBody.sender,
-            champion: messageBody.champion.connectionId,
-            challenger: messageBody.challenger.connectionId,
+            champion: messageBody.champion,
+            challenger: messageBody.challenger,
             song: messageBody.song,
           }))
         }
