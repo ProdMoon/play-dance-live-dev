@@ -21,7 +21,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 
 import java.time.Duration;
 
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 300)
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 86400) // 24시간
 @RequiredArgsConstructor
 @Configuration
 @EnableRedisRepositories
