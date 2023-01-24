@@ -1,10 +1,8 @@
 package com.example.manmu;
-import com.example.manmu.entity.Ranking;
 import com.example.manmu.entity.RankingDto;
 import com.example.manmu.entity.UserDto;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 
 import java.util.List;
 

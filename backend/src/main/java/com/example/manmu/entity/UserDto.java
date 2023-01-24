@@ -35,8 +35,6 @@ public class UserDto {
                 .name(name)
                 .email(email)
                 .picture(picture)
-                .currentWinNums(currentWinNums)
-                .bestWinNums(bestWinNums)
                 .build();
     }
 }

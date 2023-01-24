@@ -8,13 +8,8 @@ import lombok.Setter;
 public class VoteData {
 
     private String type;
-
     private String sender;
-
-    private String winner;
-
     private Integer pollLeft;
-
     private Integer pollRight;
 
 }

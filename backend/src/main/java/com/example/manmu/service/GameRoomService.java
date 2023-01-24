@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +20,6 @@ public class GameRoomService {
     private final RedisTemplate<String, Room> roomRedisTemplate;
     private final RankingRepository rankingRepository;
     private final UserRepository userRepository;
-    private static final Logger logger = LoggerFactory.getLogger(GameRoomService.class);
 
     public RoomDto createRoom() {
         Room streamRoom = Room.builder()
@@ -60,7 +56,7 @@ public class GameRoomService {
                     .build();
             joinRoom.addWaiter(joinUserDto);
             // check if user already has a ranking
-            joinUserMakeRanking(joinUser);
+            makeJoinUserRanking(joinUser);
 
             roomRedisTemplate.opsForValue().set("ROOM", joinRoom);
             return new RoomDto(joinRoom);
@@ -68,7 +64,7 @@ public class GameRoomService {
         return null;
     }
 
-    private void joinUserMakeRanking(User joinUser) {
+    private void makeJoinUserRanking(User joinUser) {
         // Try to find an existing ranking for the user
         Ranking joinUserRanking = rankingRepository.findByUser(joinUser);
 
@@ -79,11 +75,14 @@ public class GameRoomService {
                     .currentWinNums(0)
                     .bestWinNums(0)
                     .build();
-        } else {
-            // Update the existing ranking
-            joinUserRanking.setCurrentWinNums(joinUserRanking.getCurrentWinNums() + 1);
-            joinUserRanking.setBestWinNums(Math.max(joinUserRanking.getBestWinNums(), joinUserRanking.getCurrentWinNums()));
+            rankingRepository.save(joinUserRanking);
         }
+    }
+    private void updateWinnerRanking(User joinUser)  {
+        Ranking joinUserRanking = rankingRepository.findByUser(joinUser);
+        // Update the existing ranking
+        joinUserRanking.setCurrentWinNums(joinUserRanking.getCurrentWinNums() + 1);
+        joinUserRanking.setBestWinNums(Math.max(joinUserRanking.getBestWinNums(), joinUserRanking.getCurrentWinNums()));
         rankingRepository.save(joinUserRanking);
     }
 
@@ -116,10 +115,11 @@ public class GameRoomService {
                 return null;
             }
             else if (leftScore > rightScore) {
-                joinUserMakeRanking(currentChampionUser);
+                updateWinnerRanking(currentChampionUser);
 
                 currentChallengerRanking.setCurrentWinNums(0);
                 rankingRepository.save(currentChallengerRanking);
+
                 List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
                         map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
                 gameRoom.setRankingList(rankingDtoList);
@@ -136,16 +136,18 @@ public class GameRoomService {
              * challenger wins
              */
             else {
-                joinUserMakeRanking(currentChallengerUser);
-                List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
-                        map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
-                gameRoom.setRankingList(rankingDtoList);
+                updateWinnerRanking(currentChallengerUser);
 
                 currentChampionRanking.setCurrentWinNums(0);
                 rankingRepository.save(currentChampionRanking);
 
+                List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+                        map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+                gameRoom.setRankingList(rankingDtoList);
+
                 gameRoom.removePlayer(currentChampion);
                 gameRoom.setCurrentChampion(currentChallenger);
+
                 UserDto newChallenger = gameRoom.getWaiters().remove(0);
                 gameRoom.addPlayer(newChallenger);
                 gameRoom.setCurrentChallenger(newChallenger);
@@ -155,21 +157,26 @@ public class GameRoomService {
             }
         }
     }
+//    private void updateLoserRankingAndChallenger(User currentLoser, Room gameRoom) {
+//        Ranking currentLoserRanking = rankingRepository.findByUser(currentLoser);
+//
+//        currentLoserRanking.setCurrentWinNums(0);
+//        rankingRepository.save(currentLoserRanking);
+//
+//        List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+//                map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+//        gameRoom.setRankingList(rankingDtoList);
+//
+//        gameRoom.removePlayer(gameRoo);
+//        UserDto newChallenger = gameRoom.getWaiters().remove(0);
+//        gameRoom.addPlayer(newChallenger);
+//        gameRoom.setCurrentChallenger(newChallenger);
+//    }
     public void vote (VoteData voteData){
-        String type = voteData.getType();
-        String sender = voteData.getSender();
-        String winner = voteData.getWinner();
         Integer pollLeft = voteData.getPollLeft();
         Integer pollRight = voteData.getPollRight();
-        redisTemplate.opsForValue().set("WINNER", winner);
         redisTemplate.opsForValue().set("POLL_LEFT", pollLeft);
         redisTemplate.opsForValue().set("POLL_RIGHT", pollRight);
-    }
-
-    public String findUserName(String userMail) {
-        User user = userRepository.findByEmail(userMail)
-                .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
-        return user.getName();
     }
 
     public RoomDto startGame() {
@@ -198,19 +205,6 @@ public class GameRoomService {
             for (UserDto userDto : roomUsers) {
                 if (userDto.getEmail().equals(userMail)) {
                     return userDto;
-                }
-            }
-        }
-        return null;
-    }
-
-    public String getConnectionIdByUserMail(String userMail) {
-        Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
-        if (gameRoom != null) {
-            List<UserDto> roomUsers = gameRoom.getPlayers();
-            for (UserDto userDto : roomUsers) {
-                if (userDto.getEmail().equals(userMail)) {
-                    return userDto.getConnectionId();
                 }
             }
         }
