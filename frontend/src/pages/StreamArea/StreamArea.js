@@ -168,6 +168,17 @@ const StreamArea = () => {
       setWinnerView(true);
     }
 
+    // 새로운 게임 챌린지 신호...
+    if (gameInfo.type === 'GAME_CHALLENGE') {
+      if (gameInfo.challenger.connectionId === myConnectionId) {
+        const timeout = setTimeout(() => {
+          console.info('나는 새로운 챌린저입니다.');
+          songStart();
+        }, 3000);
+        return () => clearTimeout(timeout);
+      }
+    }
+
     /*************************
      * DEPRECATED SIGNALS... *
      *************************/
@@ -242,10 +253,6 @@ const StreamArea = () => {
       localAudioRef.current.addEventListener('ended', sendRoundEndMessage);
     }
   }, [currentSongUrl]);
-
-  useEffect(() => {
-    console.info('champion changed : ' + gameInfo.champion.connectionId);
-  }, [gameInfo.champion]);
 
   const createAudioSource = async () => {
     const audioCtx = new AudioContext();
@@ -333,6 +340,17 @@ const StreamArea = () => {
     );
   };
 
+  function songStart() {
+    client.send(
+      '/app/song/start',
+      {},
+      JSON.stringify({
+        type: 'SONG_START',
+        sender: userInfo.userEmail,
+      }),
+    );
+  }
+
   function sendRoundEndMessage() {
     client.send(
       '/app/song/end',
@@ -343,6 +361,7 @@ const StreamArea = () => {
       }),
     );
     // replaceTrackToAudioDevice();
+    setCurrentSongUrl(null);
     localAudioRef.current.removeEventListener('ended', sendRoundEndMessage);
   }
 
@@ -384,7 +403,9 @@ const StreamArea = () => {
     });
 
     // Reconnection의 타임아웃을 없앱니다.
-    newOV.setAdvancedConfiguration({noStreamPlayingEventExceptionTimeout: 5000000})
+    newOV.setAdvancedConfiguration({
+      noStreamPlayingEventExceptionTimeout: 5000000,
+    });
 
     // 4) 유효한 user token을 가지고 session에 연결합니다.
 
@@ -685,8 +706,12 @@ const StreamArea = () => {
                 myConnectionId={myConnectionId}
                 publisher={publisher}
                 subscribers={subscribers}
-                champion={gameInfo.champion ? gameInfo.champion.connectionId : null}
-                challenger={gameInfo.challenger ? gameInfo.challenger.connectionId : null}
+                champion={
+                  gameInfo.champion ? gameInfo.champion.connectionId : null
+                }
+                challenger={
+                  gameInfo.challenger ? gameInfo.challenger.connectionId : null
+                }
               />
             </Grid>
           </Grid>

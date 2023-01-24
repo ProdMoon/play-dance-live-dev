@@ -85,6 +85,18 @@ export default function SocketContextProvider({ children }) {
           }
         }
 
+        // 새로운 챌린지 신호...
+        if (messageBody.type === 'GAME_CHALLENGE') {
+          setGameInfo((prevState) => ({
+            ...prevState,
+            type: messageBody.type, // GAME_CHALLENGE
+            sender: messageBody.sender,
+            champion: messageBody.champion,
+            challenger: messageBody.challenger,
+            song: messageBody.song,
+          }));
+        }
+
         // 예외 케이스 : 처음에 start 상황
         if (messageBody.type === 'GAME_START') {
           setGameInfo((prevState) => ({
@@ -94,7 +106,7 @@ export default function SocketContextProvider({ children }) {
             champion: messageBody.champion,
             challenger: messageBody.challenger,
             song: messageBody.song,
-          }))
+          }));
         }
 
         /*************************
