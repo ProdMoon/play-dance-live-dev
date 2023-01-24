@@ -27,7 +27,6 @@ public class Ranking {
     private Integer bestWinNums;
 
     @Builder
-
     public Ranking(User user, Integer currentWinNums, Integer bestWinNums) {
         this.user = user;
         this.currentWinNums = currentWinNums;

@@ -1,5 +1,6 @@
 package com.example.manmu;
 import com.example.manmu.entity.Ranking;
+import com.example.manmu.entity.RankingDto;
 import com.example.manmu.entity.UserDto;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,6 @@ public class GameSignal {
     private UserDto challenger;
     private String userName;
     private String song;
-    private List<Ranking> rankingList;
+    private List<RankingDto> rankingList;
     private String connectionId;
 }

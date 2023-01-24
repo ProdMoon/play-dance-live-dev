@@ -19,13 +19,13 @@ public class Room implements Serializable {
     private List<UserDto> players;
     private List<UserDto> waiters;
     private List<String> playSongs;
-    private List<Ranking> rankingList;
+    private List<RankingDto> rankingList;
     private UserDto currentChampion;
     private UserDto currentChallenger;
 
 
     @Builder
-    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<Ranking> rankingList, UserDto currentChampion, UserDto currentChallenger) {
+    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<RankingDto> rankingList, UserDto currentChampion, UserDto currentChallenger) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
