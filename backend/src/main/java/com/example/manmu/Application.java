@@ -12,7 +12,6 @@ public class Application {
 
 //	springapplication.run()가 was실행
 	public static void main(String[] args) {
-		System.setProperty("es.set.netty.runtime.available.processors", "false");
 		SpringApplication.run(Application.class, args);
 	}
 
