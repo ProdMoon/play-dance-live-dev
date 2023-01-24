@@ -1,5 +1,6 @@
 package com.example.manmu.service;
 
+import com.example.manmu.Click;
 import com.example.manmu.entity.*;
 import com.example.manmu.exception.UserNotFoundException;
 import com.example.manmu.repository.RankingRepository;
@@ -159,7 +160,6 @@ public class GameRoomService {
         redisTemplate.opsForValue().set("WINNER", winner);
         redisTemplate.opsForValue().set("POLL_LEFT", pollLeft);
         redisTemplate.opsForValue().set("POLL_RIGHT", pollRight);
-
     }
 
     public String findUserName(String userMail) {
@@ -178,6 +178,10 @@ public class GameRoomService {
             gameRoom.addPlayer(startChampion);
             gameRoom.addPlayer(startChallenger);
             roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
+
+            redisTemplate.opsForValue().set("POLL_LEFT", 0);
+            redisTemplate.opsForValue().set("POLL_RIGHT", 0);
+
             return new RoomDto(gameRoom);
         }
         return null;
@@ -229,5 +233,19 @@ public class GameRoomService {
             return new RoomDto(gameRoom);
         }
         return null;
+    }
+
+    public void voteClick(String value) {
+        if (value.equals("A")) {
+            Integer pollLeft = (Integer) redisTemplate.opsForValue().get("POLL_LEFT");
+            if (pollLeft != null) {
+                redisTemplate.opsForValue().set("POLL_LEFT", pollLeft + 1);
+            }
+        } else if (value.equals("B")) {
+            Integer pollRight = (Integer) redisTemplate.opsForValue().get("POLL_RIGHT");
+            if (pollRight != null) {
+                redisTemplate.opsForValue().set("POLL_RIGHT", pollRight + 1);
+            }
+        }
     }
 }
