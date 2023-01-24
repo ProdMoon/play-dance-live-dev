@@ -18,21 +18,39 @@ const VideoContainer = (props) => {
             >
               <UserVideoComponent streamManager={publisher} />
             </div>
-            <div
-              id={subscribers[0].stream.connection.connectionId}
-              className='video-comp'
-            >
-              <UserVideoComponent streamManager={subscribers[0]} />
-            </div>
+            {subscribers.length > 0
+              ? subscribers.map((sub, i) => {
+                  if (sub.stream.connection.connectionId === challenger) {
+                    return (
+                      <div
+                        id={sub.stream.connection.connectionId}
+                        key={i}
+                        className='video-comp'
+                      >
+                        <UserVideoComponent streamManager={sub} />
+                      </div>
+                    );
+                  }
+                })
+              : null}
           </div>
         ) : (
           <div id='video-container'>
-            <div
-              id={subscribers[0].stream.connection.connectionId}
-              className='video-comp'
-            >
-              <UserVideoComponent streamManager={subscribers[0]} />
-            </div>
+            {subscribers.length > 0
+              ? subscribers.map((sub, i) => {
+                  if (sub.stream.connection.connectionId === champion) {
+                    return (
+                      <div
+                        id={sub.stream.connection.connectionId}
+                        key={i}
+                        className='video-comp'
+                      >
+                        <UserVideoComponent streamManager={sub} />
+                      </div>
+                    );
+                  }
+                })
+              : null}
             <div
               id={publisher.stream.connection.connectionId}
               className='video-comp'

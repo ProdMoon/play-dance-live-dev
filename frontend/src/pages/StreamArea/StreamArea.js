@@ -144,7 +144,7 @@ const StreamArea = () => {
       notDancer.classList.add('resting');
 
       // champion의 차례이면 투표창을 띄워줍니다.
-      if (gameInfo.connectionId === gameInfo.champion) {
+      if (gameInfo.connectionId === gameInfo.champion.connectionId) {
         setVoteView(true);
       }
 
@@ -231,7 +231,7 @@ const StreamArea = () => {
 
       // TODO: 승리 처리
     }
-  }, [gameInfo.type]);
+  }, [gameInfo]);
 
   useEffect(async () => {
     if (currentSongUrl !== null) {
@@ -244,7 +244,7 @@ const StreamArea = () => {
   }, [currentSongUrl]);
 
   useEffect(() => {
-    console.log('champion changed : ' + gameInfo.champion);
+    console.info('champion changed : ' + gameInfo.champion.connectionId);
   }, [gameInfo.champion]);
 
   const createAudioSource = async () => {
@@ -685,8 +685,8 @@ const StreamArea = () => {
                 myConnectionId={myConnectionId}
                 publisher={publisher}
                 subscribers={subscribers}
-                champion={gameInfo.champion}
-                challenger={gameInfo.challenger}
+                champion={gameInfo.champion ? gameInfo.champion.connectionId : null}
+                challenger={gameInfo.challenger ? gameInfo.challenger.connectionId : null}
               />
             </Grid>
           </Grid>
@@ -699,8 +699,8 @@ const StreamArea = () => {
               `다음 라운드 곡 : ${songLabel}`,
               `챌린지 버전을 골라주세요!`,
             ]}
-            leftText='2x'
-            rightText='일반'
+            leftText={gameInfo.champion.name}
+            rightText={gameInfo.challenger.name}
           />
         </div>
       ) : null}
