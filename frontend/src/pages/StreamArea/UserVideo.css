@@ -7,6 +7,8 @@ video {
 .streamcomponent {
     z-index: 99;
     position: relative;
+    height: 100%;
+    background-color: darkgreen;
 }
 .streamcomponent div {
     z-index: 100;

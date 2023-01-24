@@ -2,37 +2,44 @@ import './Test.css';
 import { useEffect } from 'react';
 import { Box, Grid } from '@mui/material';
 
+import Vote from '../Vote/Vote';
+
 const Test = () => {
 
     useEffect(() => {
         const normalBtn = document.getElementById("btn1");
-        const video1Btn = document.getElementById("btn2");
-        const video2Btn = document.getElementById("btn3");
+        const championBtn = document.getElementById("btn2");
+        const challengerBtn = document.getElementById("btn3");
+        const stage = document.querySelector(".stage");
+
         const videos = document.querySelectorAll(".video-comp");
-        const video1 = document.getElementById("1");
-        const video2 = document.getElementById("2");
+        const champion = document.getElementById("1");
+        const challenger = document.getElementById("2");
     
         normalBtn.addEventListener("click", () => {
             videos.forEach((video) => {
-                video.classList.remove("dancing", "resting");
-            })
+                video.classList.remove("dancing", "champion-resting", "challenger-resting");
+              })
+            stage.classList.remove("background-effect");
         });
     
-        video1Btn.addEventListener("click", () => {
-            video1.classList.remove("resting");
-            video1.classList.add("dancing");
+        championBtn.addEventListener("click", () => {
+            champion.classList.remove("champion-resting");
+            champion.classList.add("dancing");
+            stage.classList.add("background-effect");
             
-            video2.classList.remove("dancing");
-            video2.classList.add("resting");
+            challenger.classList.remove("dancing");
+            challenger.classList.add("challenger-resting");
         });
     
-        video2Btn.addEventListener("click", () => {
-            video2.classList.remove("resting");
-            video2.classList.add("dancing");
+        challengerBtn.addEventListener("click", () => {
+            challenger.classList.remove("challenger-resting");
+            challenger.classList.add("dancing");
             
-            video1.classList.remove("dancing");
-            video1.classList.add("resting");
+            champion.classList.remove("dancing");
+            champion.classList.add("champion-resting");
         });
+
       }, []);
 
   
@@ -41,13 +48,13 @@ const Test = () => {
       <Grid className='containerItem' item xs={3}>
         <Box className='backgroundPaper' elevation={5}>
             <button id="btn1">대기해라</button>
-            <button id="btn2">video 1 춤춰라</button>
-            <button id="btn3">video 2 춤춰라</button>
+            <button id="btn2">챔피언 춤춰라</button>
+            <button id="btn3">도전자 춤춰라</button>
         </Box>
       </Grid>
 
       <Grid className='containerItem' item xs={6}>
-        <Box className='backgroundPaper containerItem' elevation={5}>
+        <Box className='backgroundPaper containerItem flex-column stage' elevation={5}>
         <div id='video-container'>
 
             <div id={1} className='video-comp'>
@@ -59,6 +66,7 @@ const Test = () => {
             </div>
 
         </div>
+        <Vote />
         </Box>
       </Grid>
 

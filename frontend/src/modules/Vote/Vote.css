@@ -8,6 +8,7 @@
     height: 5rem;
     width: 100%;
     background-color: rgba(0,0,0,.5);
+    z-index: 999999;
 }
 .vote-option {
     position: absolute;
@@ -142,4 +143,105 @@
   100% {
     transform: scale(1.3);
   }
+}
+
+/* heart animation */
+div.heart {
+    width: 30px;
+    height: 30px;
+    opacity: 1;
+    position: absolute;
+    bottom: 5%;
+    display: none;
+    z-index: 99999999999999999999;
+}
+div.heart i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 1;
+}
+.colOne {
+    color: #fce473;
+}
+.colTwo {
+    color: #f68b39;
+}
+.colThree {
+    color: #ed6c63;
+}
+.colFour {
+    color: #847bb9;
+}
+.colFive {
+    color: #97cd76;
+}
+.colSix {
+    color: #35b1d1;
+}
+@keyframes flowOne {
+    0% {
+    opacity: 0;
+    bottom: 100%;
+    left: 14%}
+40% {
+    opacity: .8;
+}
+50% {
+    opacity: 1;
+    left: 0;
+}
+60% {
+    opacity: .2;
+}
+80% {
+    bottom: 400%}
+100% {
+    opacity: 0;
+    bottom: 1000%;
+    left: 18%}
+}@keyframes flowTwo {
+    0% {
+    opacity: 0;
+    bottom: 100%;
+    left: 0;
+}
+40% {
+    opacity: .8;
+}
+50% {
+    opacity: 1;
+    left: 11%}
+60% {
+    opacity: .2;
+}
+80% {
+    bottom: 600%}
+100% {
+    opacity: 0;
+    bottom: 800%;
+    left: 0;
+}
+}@keyframes flowThree {
+    0% {
+    opacity: 0;
+    bottom: 100%;
+    left: 0;
+}
+40% {
+    opacity: .8;
+}
+50% {
+    opacity: 1;
+    left: 30%}
+60% {
+    opacity: .2;
+}
+80% {
+    bottom: 700%}
+100% {
+    opacity: 0;
+    bottom: 900%;
+    left: 0;
+}
 }
