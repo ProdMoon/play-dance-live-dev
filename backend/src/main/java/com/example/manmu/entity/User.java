@@ -59,16 +59,6 @@ public class User extends BaseTimeEntity {
         return this;
     }
 
-    public Integer updateCurrentWinNums(Integer currentWinNums) {
-        this.currentWinNums = currentWinNums;
-        return this.currentWinNums;
-    }
-
-    public Integer updateBestWinNums(Integer bestWinNums) {
-        this.bestWinNums = bestWinNums;
-        return this.bestWinNums;
-    }
-
     public String getRoleKey() {
         return this.role.getKey();
     }

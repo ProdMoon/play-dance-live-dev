@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,8 +103,8 @@ public class GameRoomService {
                     .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChampion.getEmail()));
             User currentChallengerUser = userRepository.findByEmail(currentChallenger.getEmail())
                     .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChallenger.getEmail()));
-            Ranking currentChampionRanking = rankingRepository.findByUserEmail(currentChampion.getEmail());
-            Ranking currentChallengerRanking = rankingRepository.findByUserEmail(currentChallenger.getEmail());
+            Ranking currentChampionRanking = rankingRepository.findByUser(currentChampion.toEntity());
+            Ranking currentChallengerRanking = rankingRepository.findByUser(currentChallenger.toEntity());
             /*
              * champion wins
              * currentChampion과 currentChallenger의 poll을 비교하여 승수를 더해준다.
@@ -115,21 +116,13 @@ public class GameRoomService {
                 return null;
             }
             else if (leftScore > rightScore) {
-                currentChampionRanking.setCurrentWinNums(currentChampionRanking.getCurrentWinNums() + 1);
-                if (currentChampionRanking.getCurrentWinNums() > currentChampionRanking.getBestWinNums()) {
-                    currentChampionRanking.setBestWinNums(currentChampionRanking.getCurrentWinNums());
-                }
-                rankingRepository.save(currentChampionRanking);
+                joinUserMakeRanking(currentChampionUser);
 
                 currentChallengerRanking.setCurrentWinNums(0);
                 rankingRepository.save(currentChallengerRanking);
-                gameRoom.setRankingList(rankingRepository.findAllByOrderByUser_BestWinNumsDesc());
-
-                currentChampionUser.updateCurrentWinNums(currentChampionUser.getCurrentWinNums() + 1);
-                currentChampionUser.updateBestWinNums(currentChampionUser.getCurrentWinNums());
-                userRepository.save(currentChampionUser);
-                currentChallengerUser.updateCurrentWinNums(0);
-                userRepository.save(currentChallengerUser);
+                List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+                        map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+                gameRoom.setRankingList(rankingDtoList);
 
                 gameRoom.removePlayer(currentChallenger);
                 UserDto newChallenger = gameRoom.getWaiters().remove(0);
@@ -143,21 +136,13 @@ public class GameRoomService {
              * challenger wins
              */
             else {
-                currentChallengerRanking.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums()+1);
-                if (currentChallengerRanking.getCurrentWinNums() > currentChallengerRanking.getBestWinNums()) {
-                    currentChallengerRanking.setBestWinNums(currentChallengerRanking.getCurrentWinNums());
-                }
-                rankingRepository.save(currentChallengerRanking);
-                gameRoom.setRankingList(rankingRepository.findAllByOrderByUser_BestWinNumsDesc());
+                joinUserMakeRanking(currentChallengerUser);
+                List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+                        map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+                gameRoom.setRankingList(rankingDtoList);
 
                 currentChampionRanking.setCurrentWinNums(0);
                 rankingRepository.save(currentChampionRanking);
-
-                currentChampionUser.updateCurrentWinNums(0);
-                userRepository.save(currentChampionUser);
-                currentChallengerUser.updateCurrentWinNums(currentChallengerRanking.getCurrentWinNums() + 1);
-                currentChallengerUser.updateBestWinNums(currentChallengerUser.getCurrentWinNums());
-                userRepository.save(currentChallengerUser);
 
                 gameRoom.removePlayer(currentChampion);
                 gameRoom.setCurrentChampion(currentChallenger);

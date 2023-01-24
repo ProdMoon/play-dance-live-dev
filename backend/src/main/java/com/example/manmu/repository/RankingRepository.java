@@ -10,7 +10,8 @@ public interface RankingRepository extends JpaRepository<Ranking, Long> {
 
     public Ranking findByUser(User user);
 
-    public List<Ranking> findAllByOrderByUser_BestWinNumsDesc();
+    //    public List<Ranking> findAllByOrderByUser_BestWinNumsDesc();
+    List<Ranking> findAllByOrderByBestWinNumsDesc();
 }
 
 //    public List<Ranking> findAllByOrderByBestWinNumsDesc();
