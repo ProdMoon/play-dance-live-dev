@@ -103,8 +103,8 @@ public class GameRoomService {
                     .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChampion.getEmail()));
             User currentChallengerUser = userRepository.findByEmail(currentChallenger.getEmail())
                     .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChallenger.getEmail()));
-            Ranking currentChampionRanking = rankingRepository.findByUser(currentChampion.toEntity());
-            Ranking currentChallengerRanking = rankingRepository.findByUser(currentChallenger.toEntity());
+            Ranking currentChampionRanking = rankingRepository.findByUser(currentChampionUser);
+            Ranking currentChallengerRanking = rankingRepository.findByUser(currentChallengerUser);
             /*
              * champion wins
              * currentChampion과 currentChallenger의 poll을 비교하여 승수를 더해준다.
