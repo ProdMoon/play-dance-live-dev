@@ -47,7 +47,8 @@ public class GameRoomService {
 
     public RoomDto joinGame(String userMail, String userSong, String userConnectionId) {
         Room joinRoom = roomRedisTemplate.opsForValue().get("ROOM");
-        User joinUser = userRepository.findByEmail(userMail).orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
+        User joinUser = userRepository.findByEmail(userMail)
+                .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
         if (joinRoom != null && joinUser != null) {
             UserDto joinUserDto = UserDto.builder()
                     .name(joinUser.getName())
@@ -56,6 +57,7 @@ public class GameRoomService {
                     .connectionId(userConnectionId)
                     .build();
             joinRoom.addWaiter(joinUserDto);
+            joinRoom.addViewer(userMail);
             // check if user already has a ranking
             makeJoinUserRanking(joinUser);
 
@@ -63,6 +65,17 @@ public class GameRoomService {
             return new RoomDto(joinRoom);
         }
         return null;
+    }
+
+    public RoomDto enterGame(String userMail){
+        Room enterRoom = roomRedisTemplate.opsForValue().get("ROOM");
+        User enterUser = userRepository.findByEmail(userMail)
+                .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + userMail));
+        if (enterRoom != null && enterUser != null) {
+            enterRoom.addViewer(userMail);
+            roomRedisTemplate.opsForValue().set("ROOM", enterRoom);
+            return new RoomDto(enterRoom);
+        }
     }
 
     public PollSignal getCurrentPoll() {
