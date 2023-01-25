@@ -76,6 +76,7 @@ public class GameRoomService {
             roomRedisTemplate.opsForValue().set("ROOM", enterRoom);
             return new RoomDto(enterRoom);
         }
+        return null;
     }
 
     public PollSignal getCurrentPoll() {
