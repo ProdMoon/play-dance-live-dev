@@ -207,7 +207,7 @@ public class GameRoomService {
         redisTemplate.opsForValue().set("POLL_RIGHT", pollRight);
     }
 
-    public RoomDto startGame() {
+    public RoomDto startGame(String connectionId) {
         Room gameRoom = (Room) redisTemplate.opsForValue().get("ROOM");
         if(gameRoom != null) {
             UserDto startChampion = gameRoom.getWaiters().remove(0);
@@ -272,6 +272,14 @@ public class GameRoomService {
             if (pollRight != null) {
                 redisTemplate.opsForValue().set("POLL_RIGHT", pollRight + 1);
             }
+        }
+    }
+
+    public void setCurrentDancer(String userConnectionId) {
+        Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
+        if (gameRoom != null) {
+            gameRoom.setCurrentDancerConnectionId(userConnectionId);
+            roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
         }
     }
 }
