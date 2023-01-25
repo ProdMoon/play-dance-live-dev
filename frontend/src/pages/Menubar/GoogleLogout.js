@@ -55,6 +55,7 @@ function GoogleLogout() {
 
   return (
     <Button
+      className='menubar-item'
       onClick={(e) => {
         handleLogout(e);
       }}

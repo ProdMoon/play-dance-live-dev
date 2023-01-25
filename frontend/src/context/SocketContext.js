@@ -56,12 +56,21 @@ export default function SocketContextProvider({ children }) {
 
         // 참가자 리스트 변동...
         if (messageBody.type === 'REFRESH_WAITER_LIST') {
-          setParticipantList(messageBody.waiters);
+          const waiters = messageBody.waiters;
+          const ranking = messageBody.rankingList;
+          setParticipantList(waiters);
+          // setRankingList(ranking);
+          // setGameInfo((prevState) => ({
+          //   ...prevState,
+          //   champion: messageBody.champion,
+          //   challenger: messageBody.challenger,
+          // }))
         }
 
         // 랭킹 리스트 변동...
         if (messageBody.type === 'REFRESH_RANKING_LIST') {
-          setRankingList(messageBody.ranking);
+          const ranking = messageBody.ranking;
+          setRankingList(ranking);
         }
 
         // 노래 재생 신호...
@@ -95,6 +104,10 @@ export default function SocketContextProvider({ children }) {
             challenger: messageBody.challenger,
             song: messageBody.song,
           }));
+          const ranking = messageBody.rankingList;
+          setRankingList(ranking);
+          const waiters = messageBody.waiters;
+          setParticipantList(waiters);
         }
 
         // 예외 케이스 : 처음에 start 상황
@@ -107,6 +120,17 @@ export default function SocketContextProvider({ children }) {
             challenger: messageBody.challenger,
             song: messageBody.song,
           }));
+        }
+
+        // vote animation
+        if (messageBody.type === 'VOTE-click') {
+          messageBody.value === 'A'
+            ? setVoteA((prevState) => {
+                return prevState + 1;
+              })
+            : setVoteB((prevState) => {
+                return prevState + 1;
+              });
         }
 
         /*************************
@@ -191,17 +215,6 @@ export default function SocketContextProvider({ children }) {
             songVersion: messageBody.winner,
             poll: messageBody.poll,
           }));
-        }
-
-        // vote animation
-        if (messageBody.type === 'VOTE-click') {
-          messageBody.value === 'A'
-            ? setVoteA((prevState) => {
-                return prevState + 1;
-              })
-            : setVoteB((prevState) => {
-                return prevState + 1;
-              });
         }
       }),
     );

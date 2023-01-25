@@ -1,11 +1,10 @@
 import './Vote.css';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLoginContext } from '../../context/LoginContext';
 import { useSocketContext } from '../../context/SocketContext';
 import { Typography } from '@mui/material';
 
 const Vote = (props) => {
-  const upperText = props.upperText;
   const leftText = props.leftText;
   const rightText = props.rightText;
 
@@ -66,13 +65,6 @@ const Vote = (props) => {
 
   return (
     <div className='vote'>
-      {upperText.map((text) => {
-        return (
-          <Typography className='vote-upper-text' variant='h5'>
-            {text}
-          </Typography>
-        );
-      })}
       <div className='vote-main'>
         <div className='vote-progress-container'>
           <div
