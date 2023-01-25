@@ -7,7 +7,6 @@ import com.example.manmu.entity.VoteData;
 import com.example.manmu.service.GameRoomService;
 import com.example.manmu.entity.RoomDto;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.jni.Poll;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -56,6 +55,14 @@ public class RoomController {
             PollSignal pollSignal = gameRoomService.getCurrentPoll();
             template.convertAndSend("/topic/public", pollSignal);
         }
+    }
+
+    @MessageMapping("/song/change")
+    public void changeSong(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        String userSong = gameSignal.getSong();
+        String userConnectionId = gameSignal.getConnectionId();
+        RoomDto gameRoomDto = gameRoomService.changeSong(userMail, userSong);
     }
 
     @MessageMapping("/enter")

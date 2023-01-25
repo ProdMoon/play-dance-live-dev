@@ -18,4 +18,5 @@ public class GameSignal {
     private String song;
     private List<RankingDto> rankingList;
     private String connectionId;
+    private Integer currentWinNums;
 }
