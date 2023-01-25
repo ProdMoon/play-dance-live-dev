@@ -124,12 +124,12 @@ public class GameRoomService {
              */
             Integer leftScore = (Integer) redisTemplate.opsForValue().get("POLL_LEFT");
             Integer rightScore = (Integer) redisTemplate.opsForValue().get("POLL_RIGHT");
-            UserDto currentChampion = gameRoom.getCurrentChampion();
-            UserDto currentChallenger = gameRoom.getCurrentChallenger();
-            User currentChampionUser = userRepository.findByEmail(currentChampion.getEmail())
-                    .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChampion.getEmail()));
-            User currentChallengerUser = userRepository.findByEmail(currentChallenger.getEmail())
-                    .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChallenger.getEmail()));
+            UserDto currentChampionDto = gameRoom.getCurrentChampion();
+            UserDto currentChallengerDto = gameRoom.getCurrentChallenger();
+            User currentChampionUser = userRepository.findByEmail(currentChampionDto.getEmail())
+                    .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChampionDto.getEmail()));
+            User currentChallengerUser = userRepository.findByEmail(currentChallengerDto.getEmail())
+                    .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChallengerDto.getEmail()));
             Ranking currentChampionRanking = rankingRepository.findByUser(currentChampionUser);
             Ranking currentChallengerRanking = rankingRepository.findByUser(currentChallengerUser);
             
@@ -145,9 +145,9 @@ public class GameRoomService {
              */
             else if (leftScore > rightScore) {
                 updateWinnerRanking(currentChampionUser);
-                updateLoserRanking(gameRoom, currentChallenger, currentChallengerRanking);
-                currentChampion.setCurrentWinNums(currentChampionRanking.getCurrentWinNums());
-                currentChampion.setBestWinNums(currentChampionRanking.getBestWinNums());
+                currentChampionDto.setCurrentWinNums(currentChampionRanking.getCurrentWinNums());
+                currentChampionDto.setBestWinNums(currentChampionRanking.getBestWinNums());
+                updateLoserRanking(gameRoom, currentChallengerDto, currentChallengerRanking);
 
                 UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
@@ -161,10 +161,10 @@ public class GameRoomService {
              */
             else {
                 updateWinnerRanking(currentChallengerUser);
-                updateLoserRanking(gameRoom, currentChampion, currentChampionRanking);
-                currentChallenger.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums());
-                currentChallenger.setBestWinNums(currentChallengerRanking.getBestWinNums());
-                gameRoom.setCurrentChampion(currentChallenger);
+                currentChallengerDto.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums());
+                currentChallengerDto.setBestWinNums(currentChallengerRanking.getBestWinNums());
+                updateLoserRanking(gameRoom, currentChampionDto, currentChampionRanking);
+                gameRoom.setCurrentChampion(currentChallengerDto);
 
                 UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
@@ -193,6 +193,8 @@ public class GameRoomService {
         List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
                 map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
         gameRoom.setRankingList(rankingDtoList);
+        currentLoser.setCurrentWinNums(0);
+        currentLoser.setBestWinNums(currentLoserRanking.getBestWinNums());
         gameRoom.removePlayer(currentLoser);
     }
 
