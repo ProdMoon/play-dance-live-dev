@@ -61,8 +61,11 @@ public class RoomController {
     public void changeSong(@Payload GameSignal gameSignal) {
         String userMail = gameSignal.getSender();
         String userSong = gameSignal.getSong();
-        String userConnectionId = gameSignal.getConnectionId();
-        RoomDto gameRoomDto = gameRoomService.changeSong(userMail, userSong);
+        RoomDto roomDto = gameRoomService.changeSong(userMail, userSong);
+        gameSignal.setType("test");
+        gameSignal.setChampion(roomDto.getCurrentChampion());
+        gameSignal.setChallenger(roomDto.getCurrentChallenger());
+        template.convertAndSend("/topic/public", gameSignal);
     }
 
     @MessageMapping("/enter")

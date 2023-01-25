@@ -286,12 +286,17 @@ public class GameRoomService {
     public RoomDto changeSong(String userMail, String userSong) {
         Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
         if (gameRoom != null) {
-            UserDto findUser = findPlayerUserDtoByMail(userMail);
-            if (findUser != null) {
-                findUser.setSong(userSong);
-                roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
-                return new RoomDto(gameRoom);
+            UserDto championDto = gameRoom.getCurrentChampion();
+            UserDto challengerDto = gameRoom.getCurrentChallenger();
+            if(championDto.getEmail().equals(userMail)){
+                championDto.setSong(userSong);
+                gameRoom.setCurrentChampion(championDto);
+            }else if(challengerDto.getEmail().equals(userMail)){
+                challengerDto.setSong(userSong);
+                gameRoom.setCurrentChallenger(challengerDto);
             }
+            roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
+            return new RoomDto(gameRoom);
         }
         return null;
     }
