@@ -63,12 +63,13 @@ export default function SocketContextProvider({ children }) {
           const waiters = messageBody.waiters;
           const ranking = messageBody.rankingList;
           setParticipantList(waiters);
-          // setRankingList(ranking);
-          // setGameInfo((prevState) => ({
-          //   ...prevState,
-          //   champion: messageBody.champion,
-          //   challenger: messageBody.challenger,
-          // }))
+          setRankingList(ranking);
+          setGameInfo((prevState) => ({
+            ...prevState,
+            type: messageBody.type, // REFRESH_WAITER_LIST
+            champion: messageBody.champion,
+            challenger: messageBody.challenger,
+          }))
         }
 
         // 랭킹 리스트 변동...

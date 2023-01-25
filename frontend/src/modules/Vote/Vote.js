@@ -91,7 +91,7 @@ const Vote = (props) => {
           />
         </div>
         <div
-          className='vote-option vote-option__a'
+          className='vote-option vote-option__a hearts'
           onClick={(event) => {
             sendClick(event, 'A');
           }}
@@ -101,7 +101,7 @@ const Vote = (props) => {
           </div>
         </div>
         <div
-          className='vote-option vote-option__b'
+          className='vote-option vote-option__b hearts'
           onClick={(event) => {
             sendClick(event, 'B');
           }}
