@@ -8,5 +8,4 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 public class Click {
     private String type;
     private String value;
-    private String roomId;
 }

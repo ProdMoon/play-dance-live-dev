@@ -25,6 +25,7 @@ const Room = () => {
               setUserInfo((prevState) => ({
                 ...prevState,
                 roomId: data.roomId,
+                songs: data.songs,
               }));
             } else {
               console.info('There is no available room.');

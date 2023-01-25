@@ -1,9 +1,13 @@
 import './Vote.css';
-import { useState, useEffect, useRef } from 'react';
-// import { useLoginContext } from '../../context/LoginContext';
+import { useEffect } from 'react';
+import { useLoginContext } from '../../context/LoginContext';
 import { useSocketContext } from '../../context/SocketContext';
+import { Typography } from '@mui/material';
 
-const Vote = () => {
+const Vote = (props) => {
+  const leftText = props.leftText;
+  const rightText = props.rightText;
+  
     // socket
     const [userInfo, setUserInfo] = useLoginContext();
     const socketContext = useSocketContext();
@@ -45,7 +49,6 @@ const Vote = () => {
           }, c * 900);
     }
   
-
     const sendClick = (event, value) => {
       createBubbleEffect(event.currentTarget);
       const Click = {
@@ -56,10 +59,10 @@ const Vote = () => {
       client.send('/app/chat.sendClick', {}, JSON.stringify(Click));
     };
 
-    // useEffect(() => {
-    //   setProgA(getProgress(voteA));
-    //   setProgB(getProgress(voteB));
-    // }, [voteA, voteB])
+  // useEffect(() => {
+  //   setProgA(getProgress(voteA));
+  //   setProgB(getProgress(voteB));
+  // }, [voteA, voteB])
   
     const d = 5;
     useEffect(() => {
@@ -74,24 +77,44 @@ const Vote = () => {
       setProgB((prevState) => {return 0 < prevState ? prevState - d : 0});
     }, [voteB]);
   
-    return (
-      <div className="vote">
-        <div className="vote-progress-container">
-          <div className="vote-progress vote-progress__a" style={{ transform: `translateX(-${progA}%)` }} />
-          <div className="vote-progress vote-progress__b" style={{ transform: `translateX(${progB}%)` }} />
+  return (
+    <div className='vote'>
+      <div className='vote-main'>
+        <div className='vote-progress-container'>
+          <div
+            className='vote-progress vote-progress__a'
+            style={{ transform: `translateX(-${progA}%)` }}
+          />
+          <div
+            className='vote-progress vote-progress__b'
+            style={{ transform: `translateX(${progB}%)` }}
+          />
         </div>
-        <div className="vote-option vote-option__a" onClick={(event) => { sendClick(event, 'A') }}>
-        {/* <div className="vote-option vote-option__a hearts" onClick={(event) => { setVoteA((prevState)=>{return prevState+1}) }}> */}
-          <div className="vote-option-button vote-option-button__a">X2</div>
+        <div
+          className='vote-option vote-option__a'
+          onClick={(event) => {
+            sendClick(event, 'A');
+          }}
+        >
+          <div className='vote-option-button vote-option-button__a'>
+            <Typography variant='h6'>{leftText}</Typography>
+          </div>
         </div>
-        // <div className="vote-option vote-option__b" onClick={(event) => { sendClick(event, 'B') }}>
-        {/* // <div className="vote-option vote-option__b hearts" onClick={(event) => { setVoteB((prevState)=>{return prevState+1}) }}> */}
-          <div className="vote-option-button vote-option-button__b">일반</div>
+        <div
+          className='vote-option vote-option__b'
+          onClick={(event) => {
+            sendClick(event, 'B');
+          }}
+        >
+          <div className='vote-option-button vote-option-button__b'>
+            <Typography variant='h6'>{rightText}</Typography>
+          </div>
         </div>
-        <div className="vote-count vote-count__a">{voteA}</div>
-        <div className="vote-count vote-count__b">{voteB}</div>
+        <div className='vote-count vote-count__a'>{voteA}</div>
+        <div className='vote-count vote-count__b'>{voteB}</div>
       </div>
-    );
-}
+    </div>
+  );
+};
 
 export default Vote;

@@ -4,8 +4,10 @@ import com.example.manmu.domain.user.Role;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
 
 @Getter
 @NoArgsConstructor
@@ -30,12 +32,24 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
+
+
     @Builder
+    public User(Long id, String name, String email, String picture, Role role) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.picture = picture;
+        this.role = role;
+
+    }
+
     public User(String name, String email, String picture, Role role) {
         this.name = name;
         this.email = email;
         this.picture = picture;
         this.role = role;
+
     }
 
     public User update(String name, String picture) {
