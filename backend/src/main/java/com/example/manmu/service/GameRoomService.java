@@ -147,6 +147,7 @@ public class GameRoomService {
                 updateWinnerRanking(currentChampionUser);
                 currentChampionDto.setCurrentWinNums(currentChampionRanking.getCurrentWinNums());
                 currentChampionDto.setBestWinNums(currentChampionRanking.getBestWinNums());
+                gameRoom.setCurrentChampion(currentChampionDto);
                 updateLoserRanking(gameRoom, currentChallengerDto, currentChallengerRanking);
 
                 UserDto newChallenger = getNewChallenger(gameRoom);
