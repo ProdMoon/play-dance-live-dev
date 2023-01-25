@@ -83,19 +83,31 @@ const Slot = () => {
               <div id="planeMachine">
                 <div className="text-center">
                 <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
-                  Newjeans - Attention
+                  르세라핌 - ANTIFRAGILE
                 </div>
                 <div className="text-center">
                   <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
-                  NCT DREAM - Candy
+                  나연 - POP!
                 </div>
                 <div className="text-center">
                   <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
-                  ZICO - 아무노래
+                  NewJeans - Hype Boy
                 </div>
                 <div className="text-center">
                   <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
-                  Aespa - Next Level
+                  TWICE - The Feels
+                </div>
+                <div className="text-center">
+                  <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
+                  레드벨벳 - 러시안 룰렛
+                </div>
+                <div className="text-center">
+                  <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
+                  NewJeans - Ditto
+                </div>
+                <div className="text-center">
+                  <img className='cd-icon' src={`${process.env.PUBLIC_URL}/resources/images/cd-icon.png`} />
+                  aespa - Next Level
                 </div>
               </div>
 

@@ -39,49 +39,44 @@
   overflow: hidden;
 }
 
-  /* origin */
-  .slot-machine__tile--no-transition {
-    transition: none !important;
-  }
+/* origin */
+.slot-machine__tile--no-transition {
+  transition: none !important;
+}
 
-  
+.modal-overlay {
+  position: fixed; /* This will make it cover the entire page */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.5
+  ); /* This will make the background semi-transparent */
+  z-index: 9999; /* This will make sure it's above all other elements */
+  /* display:none; */
+}
 
-  .modal-overlay {
-    position: fixed; /* This will make it cover the entire page */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5); /* This will make the background semi-transparent */
-    z-index: 9999; /* This will make sure it's above all other elements */
-    /* display:none; */
-  }
-  
+.show {
+  display: block;
+}
 
-  .show {
-    display: block;
-  }
+.text-center {
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  max-width: fit-content;
+}
 
-  button {
-    position: relative;
-    width: 40px;
-    height: 200px;
-    z-index: 10000;
-  }
+.cd-icon {
+  width: 50px;
+  margin-right: 20px;
+}
 
-  .text-center {
-    display: flex;
-    /* justify-content: center; */
-    align-items: center;
-    max-width: fit-content;
-  }
-
-  .cd-icon {
-    width: 50px;
-    margin-right: 20px;
-  }
-
-  .play-logo {
-    width: 500px;
-    overflow: hidden;
-  }
+.play-logo {
+  width: 500px;
+  overflow: hidden;
+}

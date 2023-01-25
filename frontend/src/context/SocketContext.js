@@ -25,7 +25,6 @@ export default function SocketContextProvider({ children }) {
     challenger: null,
   });
 
-
   // for vote
   const voteAObject = useState(1);
   const voteBObject = useState(1);
@@ -67,9 +66,11 @@ export default function SocketContextProvider({ children }) {
           setGameInfo((prevState) => ({
             ...prevState,
             type: messageBody.type, // REFRESH_WAITER_LIST
+            sender: messageBody.sender,
             champion: messageBody.champion,
             challenger: messageBody.challenger,
-          }))
+            connectionId: messageBody.connectionId,
+          }));
         }
 
         // 랭킹 리스트 변동...
@@ -259,7 +260,7 @@ export default function SocketContextProvider({ children }) {
         voteBs: voteBObject,
         progAs: progAObject,
         progBs: progBObject,
-        slotNums : slotNumObject,
+        slotNums: slotNumObject,
       }}
     >
       {children}

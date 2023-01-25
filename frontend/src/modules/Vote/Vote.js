@@ -64,7 +64,7 @@ const Vote = (props) => {
   //   setProgB(getProgress(voteB));
   // }, [voteA, voteB])
   
-    const d = 5;
+    const d = 2;
     useEffect(() => {
       makeHeart('a');
       setProgB((prevState) => {return prevState < 100 ? prevState + d : 100});
