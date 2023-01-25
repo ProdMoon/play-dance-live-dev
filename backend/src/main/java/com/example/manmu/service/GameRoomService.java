@@ -226,7 +226,7 @@ public class GameRoomService {
         return null;
     }
 
-    public UserDto findRoomUserDtoByMail(String userMail) {
+    public UserDto findPlayerUserDtoByMail(String userMail) {
         Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
         if (gameRoom != null) {
             List<UserDto> roomUsers = gameRoom.getPlayers();
@@ -281,5 +281,18 @@ public class GameRoomService {
             gameRoom.setCurrentDancerConnectionId(userConnectionId);
             roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
         }
+    }
+
+    public RoomDto changeSong(String userMail, String userSong) {
+        Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
+        if (gameRoom != null) {
+            UserDto findUser = findPlayerUserDtoByMail(userMail);
+            if (findUser != null) {
+                findUser.setSong(userSong);
+                roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
+                return new RoomDto(gameRoom);
+            }
+        }
+        return null;
     }
 }
