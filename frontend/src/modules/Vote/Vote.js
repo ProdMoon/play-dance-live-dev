@@ -5,17 +5,17 @@ import { useSocketContext } from '../../context/SocketContext';
 
 const Vote = () => {
     // socket
-    // const [userInfo, setUserInfo] = useLoginContext();
-    // const socketContext = useSocketContext();
-    // const client = socketContext.client;
-    const [voteA, setVoteA] = useState(1);
-    const [voteB, setVoteB] = useState(1);
-    const [progA, setProgA] = useState(50);
-    const [progB, setProgB] = useState(50);
+    const [userInfo, setUserInfo] = useLoginContext();
+    const socketContext = useSocketContext();
+    const client = socketContext.client;
+    const [voteA, setVoteA] = socketContext.voteAs;
+    const [voteB, setVoteB] = socketContext.voteBs;
+    const [progA, setProgA] = socketContext.progAs;
+    const [progB, setProgB] = socketContext.progBs;
   
     // vote UI
-    const getProgress = (vote) => 
-      (1 - (vote / (voteA + voteB)) || 0) * 100;
+    // const getProgress = (vote) => 
+    //   (1 - (vote / (voteA + voteB)) || 0) * 100;
   
     const createBubbleEffect = (target) => {
       const $bubble = document.createElement('div');
@@ -53,7 +53,7 @@ const Vote = () => {
         value: value,
         roomId: userInfo.roomId
       };
-      // client.send('/app/chat.sendClick', {}, JSON.stringify(Click));
+      client.send('/app/chat.sendClick', {}, JSON.stringify(Click));
     };
 
     // useEffect(() => {
@@ -80,12 +80,12 @@ const Vote = () => {
           <div className="vote-progress vote-progress__a" style={{ transform: `translateX(-${progA}%)` }} />
           <div className="vote-progress vote-progress__b" style={{ transform: `translateX(${progB}%)` }} />
         </div>
-        {/* <div className="vote-option vote-option__a" onClick={(event) => { sendClick(event, 'A') }}> */}
-        <div className="vote-option vote-option__a hearts" onClick={(event) => { setVoteA((prevState)=>{return prevState+1}) }}>
+        <div className="vote-option vote-option__a" onClick={(event) => { sendClick(event, 'A') }}>
+        {/* <div className="vote-option vote-option__a hearts" onClick={(event) => { setVoteA((prevState)=>{return prevState+1}) }}> */}
           <div className="vote-option-button vote-option-button__a">X2</div>
         </div>
-        {/* <div className="vote-option vote-option__b" onClick={(event) => { sendClick(event, 'B') }}> */}
-        <div className="vote-option vote-option__b hearts" onClick={(event) => { setVoteB((prevState)=>{return prevState+1}) }}>
+        // <div className="vote-option vote-option__b" onClick={(event) => { sendClick(event, 'B') }}>
+        {/* // <div className="vote-option vote-option__b hearts" onClick={(event) => { setVoteB((prevState)=>{return prevState+1}) }}> */}
           <div className="vote-option-button vote-option-button__b">일반</div>
         </div>
         <div className="vote-count vote-count__a">{voteA}</div>
