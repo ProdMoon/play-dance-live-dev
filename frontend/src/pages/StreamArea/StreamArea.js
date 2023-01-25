@@ -8,6 +8,8 @@ import { Button, Grid, Typography } from '@mui/material';
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
 import Vote from '../../modules/Vote/Vote';
+import Slot from '../../modules/Slot/Slot';
+
 import { useSocketContext } from '../../context/SocketContext';
 import { SongListData } from '../../assets/songListData';
 import VideoContainer from './VideoContainer';
@@ -64,6 +66,30 @@ const StreamArea = () => {
   const [winnerView, setWinnerView] = useState(false);
   const [finalVoteView, setFinalVoteView] = useState(false);
   const [finalWinnerView, setFinalWinnerView] = useState(false);
+  
+  // Slot 관련 States
+  const [slotView, setSlotView] = useState(false);
+  const [slotNum, setSlotNum] = socketContextObjects.slotNums;
+  const testSlotNum = (num) => {
+    setSlotNum(num);
+    setSlotView(true);
+  };
+  // const [slotNum, setSlotNum] = useState(0);
+  // useEffect(() => {
+  //   console.log('use effect : slotNum ' + slotNum);
+  //   if (slotNum) {
+  //     const planeMachineElement = document.querySelector('#planeMachine');
+  //     const modalOverlay = document.querySelector('.modal-overlay');
+  //     const plane = document.querySelector('#plane');
+  //     const planeMachine = new SlotMachine(planeMachineElement, {
+  //       delay: 500,
+  //       randomize() {
+  //         return slotNum-1;
+  //       },
+  //     });
+  //     planeMachine.shuffle(10)  // 돌려돌려
+  //   }
+  // }, [slotNum]);  
 
   // Audio 관련
   const [currentSongUrl, setCurrentSongUrl] = useState(null);
@@ -759,6 +785,15 @@ const StreamArea = () => {
           className={'countdown'}
         />
       ) : null}
+      {slotView ? (
+          <Slot />
+      ) : null}
+    <button className='slot-btn' onClick={()=>{testSlotNum(Math.floor(Math.random() * 4))}}>돌려돌려</button>
+    <button className='slot-btn' onClick={()=>{testSlotNum(0)}}>어텐션</button>
+    <button className='slot-btn' onClick={()=>{testSlotNum(1)}}>캔디</button>
+    <button className='slot-btn' onClick={()=>{testSlotNum(2)}}>아무노래</button>
+    <button className='slot-btn' onClick={()=>{testSlotNum(3)}}>넥레</button>
+    <button className='slot-btn' onClick={()=>{setSlotView(false)}}>숨기기</button>
     </div>
   );
 };

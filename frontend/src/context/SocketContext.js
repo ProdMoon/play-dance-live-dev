@@ -25,10 +25,14 @@ export default function SocketContextProvider({ children }) {
     challenger: null,
   });
 
-  const voteAObject = useState(0);
-  const voteBObject = useState(0);
+
+  // for vote
+  const voteAObject = useState(1);
+  const voteBObject = useState(1);
   const progAObject = useState(50);
   const progBObject = useState(50);
+  // for slot
+  const slotNumObject = useState(undefined);
 
   // 자식 요소들에 read-only로 제공되는 States
   const [client, setClient] = useState(null);
@@ -254,6 +258,7 @@ export default function SocketContextProvider({ children }) {
         voteBs: voteBObject,
         progAs: progAObject,
         progBs: progBObject,
+        slotNums : slotNumObject,
       }}
     >
       {children}

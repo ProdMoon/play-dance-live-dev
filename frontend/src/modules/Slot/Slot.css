@@ -1,0 +1,87 @@
+#plane {
+  width: min-content;
+  height: min-content;
+  position: fixed;
+  top: 50%;
+  left: 56%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+}
+/* display:none; */
+
+#plane .content {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  font-size: 50px;
+  font-weight: 300;
+  line-height: 42px;
+  text-align: center;
+}
+
+#plane .content {
+  font-size: 70px;
+  font-weight: 300;
+  line-height: 80px;
+}
+
+.badge {
+  color: white;
+  vertical-align: middle;
+  font-size: 30px;
+  background-color: rgb(0, 175, 225);
+}
+
+#planeMachine {
+  height: 81px;
+  display: inline-block;
+  text-align: left;
+  overflow: hidden;
+}
+
+  /* origin */
+  .slot-machine__tile--no-transition {
+    transition: none !important;
+  }
+
+  
+
+  .modal-overlay {
+    position: fixed; /* This will make it cover the entire page */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* This will make the background semi-transparent */
+    z-index: 9999; /* This will make sure it's above all other elements */
+    /* display:none; */
+  }
+  
+
+  .show {
+    display: block;
+  }
+
+  button {
+    position: relative;
+    width: 40px;
+    height: 200px;
+    z-index: 10000;
+  }
+
+  .text-center {
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    max-width: fit-content;
+  }
+
+  .cd-icon {
+    width: 50px;
+    margin-right: 20px;
+  }
+
+  .play-logo {
+    width: 500px;
+    overflow: hidden;
+  }

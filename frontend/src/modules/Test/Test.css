@@ -1,0 +1,108 @@
+#root {
+    width: 100vw;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+#video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.video-comp {
+    position: absolute;
+    top: 15%;
+    width: 42%;
+    height: 80%;
+    border-radius: 10px;
+    transition: all 0.5s ease;
+}
+
+.video-comp:first-child {
+    background-color: palevioletred;
+    left: 4%;
+}
+
+.video-comp:last-child {
+    background-color: cornflowerblue;
+    left: 54%;
+}
+
+.dancing {
+    position: absolute;
+    left: 28% !important;
+    top: 12%;
+    width: 46%;
+    height: 84%;
+    border-radius: 10px;
+    z-index: 99;
+
+    --borderWidth: 0.4em;
+    border-radius: var(--borderWidth);
+}
+.dancing:after {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--borderWidth));
+    left: calc(-1 * var(--borderWidth));
+    height: calc(100% + var(--borderWidth) * 2);
+    width: calc(100% + var(--borderWidth) * 2);
+    background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82);
+    border-radius: calc(2 * var(--borderWidth));
+    z-index: -1111;
+    animation: animatedgradient 3s ease alternate infinite;
+    background-size: 300% 300%;
+}
+  
+  
+  @keyframes animatedgradient {
+      0% {
+          background-position: 0% 50%;
+      }
+      50% {
+          background-position: 100% 50%;
+      }
+      100% {
+          background-position: 0% 50%;
+      }
+  }
+
+.champion-resting {
+    position: absolute;
+    left: 3% !important;
+    top: 66% !important;
+    width: 18%;
+    height: 30%;
+    border-radius: 10px;
+    z-index: 100;
+}
+.challenger-resting {
+    position: absolute;
+    left: 79% !important;
+    top: 66% !important;
+    width: 18%;
+    height: 30%;
+    border-radius: 10px;
+    z-index: 100;
+}
+
+.background-effect {
+
+}
+
+
+@keyframes background-animation {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: -100% 0%;
+    }
+}
+

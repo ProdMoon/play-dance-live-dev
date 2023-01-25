@@ -69,6 +69,17 @@ body {
   background-color: rgba(64, 84, 121, 0.671);
 }
 
+/* 스크롤바 설정*/
+::-webkit-scrollbar{
+  width: 0.2em;
+}
+
+/* 스크롤바 막대 설정*/
+::-webkit-scrollbar-thumb{
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 2em;  
+}
+
 @keyframes color-change {
   0% {
     background-color: #331a70;
