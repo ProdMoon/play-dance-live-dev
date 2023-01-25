@@ -46,6 +46,7 @@ public class RoomController {
         gameSignal.setChampion(gameRoomDto.getCurrentChampion());
         gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
         gameSignal.setRankingList(gameRoomDto.getRankingList());
+        gameSignal.setConnectionId(gameRoomDto.getCurrentDancerConnectionId());
         template.convertAndSend("/topic/public", gameSignal);
         try{
         Thread.sleep(100);
@@ -66,6 +67,7 @@ public class RoomController {
         gameSignal.setChampion(gameRoomDto.getCurrentChampion());
         gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
         gameSignal.setRankingList(gameRoomDto.getRankingList());
+        gameSignal.setConnectionId(gameRoomDto.getCurrentDancerConnectionId());
         template.convertAndSend("/topic/public", gameSignal);
         try{
             Thread.sleep(100);
@@ -99,8 +101,10 @@ public class RoomController {
     }
 
     @MessageMapping("/song/start")
-    public void sendChampionSong(@Payload GameSignal gameSignal) {
-        UserDto championUserDto = gameRoomService.findRoom().getCurrentChampion();
+    public void sendSong(@Payload GameSignal gameSignal) {
+        RoomDto gameRoomDto = gameRoomService.findRoom();
+        UserDto championUserDto = gameRoomDto.getCurrentChampion();
+        gameRoomService.setCurrentDancer(championUserDto.getConnectionId());
         gameSignal.setSong(championUserDto.getSong());
         gameSignal.setConnectionId(championUserDto.getConnectionId());
         template.convertAndSend("/topic/public", gameSignal);
@@ -113,6 +117,7 @@ public class RoomController {
         if (gameRoomDto == null) {
             RoomDto roomDto = gameRoomService.findRoom();
             UserDto challengerDto = roomDto.getCurrentChallenger();
+            gameRoomService.setCurrentDancer(challengerDto.getConnectionId());
             gameSignal.setType("SONG_START");
             gameSignal.setConnectionId(challengerDto.getConnectionId());
             gameSignal.setSong(challengerDto.getSong());

@@ -274,4 +274,12 @@ public class GameRoomService {
             }
         }
     }
+
+    public void setCurrentDancer(String userConnectionId) {
+        Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
+        if (gameRoom != null) {
+            gameRoom.setCurrentDancerConnectionId(userConnectionId);
+            roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
+        }
+    }
 }

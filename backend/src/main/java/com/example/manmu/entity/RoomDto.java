@@ -16,9 +16,10 @@ public class RoomDto {
     private List<RankingDto> rankingList;
     private UserDto currentChampion;
     private UserDto currentChallenger;
+    private String currentDancerConnectionId;
 
     @Builder
-    public RoomDto(List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<RankingDto> rankingList, UserDto currentChampion, UserDto currentChallenger) {
+    public RoomDto(List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<RankingDto> rankingList, UserDto currentChampion, UserDto currentChallenger, String currentDancerConnectionId) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
@@ -26,6 +27,7 @@ public class RoomDto {
         this.rankingList = rankingList;
         this.currentChampion = currentChampion;
         this.currentChallenger = currentChallenger;
+        this.currentDancerConnectionId = currentDancerConnectionId;
     }
 
     public RoomDto(Room room) {
@@ -36,6 +38,7 @@ public class RoomDto {
         this.rankingList = room.getRankingList();
         this.currentChampion = room.getCurrentChampion();
         this.currentChallenger = room.getCurrentChallenger();
+        this.currentDancerConnectionId = room.getCurrentDancerConnectionId();
     }
 
     public Room toEntity() {
@@ -47,6 +50,7 @@ public class RoomDto {
                 .rankingList(rankingList)
                 .currentChampion(currentChampion)
                 .currentChallenger(currentChallenger)
+                .currentDancerConnectionId(currentDancerConnectionId)
                 .build();
     }
 }

@@ -22,10 +22,12 @@ public class Room implements Serializable {
     private List<RankingDto> rankingList;
     private UserDto currentChampion;
     private UserDto currentChallenger;
+    private String currentDancerConnectionId;
 
 
     @Builder
-    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs, List<RankingDto> rankingList, UserDto currentChampion, UserDto currentChallenger) {
+    public Room(String roomId, List<String> viewers, List<UserDto> players, List<UserDto> waiters, List<String> playSongs,
+                List<RankingDto> rankingList, UserDto currentChampion, UserDto currentChallenger, String currentDancerConnectionId) {
         this.viewers = viewers;
         this.players = players;
         this.waiters = waiters;
@@ -33,6 +35,7 @@ public class Room implements Serializable {
         this.rankingList = rankingList;
         this.currentChampion = currentChampion;
         this.currentChallenger = currentChallenger;
+        this.currentDancerConnectionId = currentDancerConnectionId;
     }
     public void addPlayer(UserDto player) {
 //        lock.writeLock().lock();
