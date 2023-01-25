@@ -60,7 +60,9 @@ public class GameRoomService {
             joinRoom.addViewer(userMail);
             // check if user already has a ranking
             makeJoinUserRanking(joinUser);
-
+            List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+                    map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+            joinRoom.setRankingList(rankingDtoList);
             roomRedisTemplate.opsForValue().set("ROOM", joinRoom);
             return new RoomDto(joinRoom);
         }
