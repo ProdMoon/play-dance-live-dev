@@ -106,13 +106,7 @@ public class GameRoomService {
             rankingRepository.save(joinUserRanking);
         }
     }
-    private void updateWinnerRanking(User joinUser)  {
-        Ranking joinUserRanking = rankingRepository.findByUser(joinUser);
-        // Update the existing ranking
-        joinUserRanking.setCurrentWinNums(joinUserRanking.getCurrentWinNums() + 1);
-        joinUserRanking.setBestWinNums(Math.max(joinUserRanking.getBestWinNums(), joinUserRanking.getCurrentWinNums()));
-        rankingRepository.save(joinUserRanking);
-    }
+
 
     public RoomDto endGame(String currentUserMail) {
         Room gameRoom = roomRedisTemplate.opsForValue().get("ROOM");
@@ -144,10 +138,10 @@ public class GameRoomService {
              * gameRoom의 정보를 update 함(challenger remove, add new challenger, update ranking)
              */
             else if (leftScore > rightScore) {
-                updateWinnerRanking(currentChampionUser);
-                currentChampionDto.setCurrentWinNums(currentChampionRanking.getCurrentWinNums());
-                currentChampionDto.setBestWinNums(currentChampionRanking.getBestWinNums());
+                System.out.println("before" + currentChampionDto.getCurrentWinNums());
+                updateWinnerRanking(gameRoom, currentChampionDto, currentChampionRanking);
                 gameRoom.setCurrentChampion(currentChampionDto);
+                System.out.println("after" + currentChampionDto.getCurrentWinNums());
                 updateLoserRanking(gameRoom, currentChallengerDto, currentChallengerRanking);
 
                 UserDto newChallenger = getNewChallenger(gameRoom);
@@ -161,11 +155,10 @@ public class GameRoomService {
              * challenger wins
              */
             else {
-                updateWinnerRanking(currentChallengerUser);
-                currentChallengerDto.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums());
-                currentChallengerDto.setBestWinNums(currentChallengerRanking.getBestWinNums());
+                updateWinnerRanking(gameRoom, currentChallengerDto, currentChallengerRanking);
                 updateLoserRanking(gameRoom, currentChampionDto, currentChampionRanking);
                 gameRoom.setCurrentChampion(currentChallengerDto);
+
 
                 UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
@@ -187,16 +180,29 @@ public class GameRoomService {
         return newChallenger;
     }
 
-    private void updateLoserRanking(Room gameRoom, UserDto currentLoser, Ranking currentLoserRanking) {
+    private void updateWinnerRanking(Room gameRoom, UserDto currentWinnerDto, Ranking currentWinnerRanking) {
+        currentWinnerRanking.setCurrentWinNums(currentWinnerRanking.getCurrentWinNums() + 1);
+        currentWinnerRanking.setBestWinNums(Math.max(currentWinnerRanking.getBestWinNums(), currentWinnerRanking.getCurrentWinNums()));
+        currentWinnerDto.setCurrentWinNums(currentWinnerRanking.getCurrentWinNums());
+        currentWinnerDto.setBestWinNums(currentWinnerRanking.getBestWinNums());
+        // Update the existing ranking
+        List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+                map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+        gameRoom.setRankingList(rankingDtoList);
+
+        rankingRepository.save(currentWinnerRanking);
+    }
+    private void updateLoserRanking(Room gameRoom, UserDto currentLoserDto, Ranking currentLoserRanking) {
         currentLoserRanking.setCurrentWinNums(0);
         rankingRepository.save(currentLoserRanking);
 
         List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
                 map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
         gameRoom.setRankingList(rankingDtoList);
-        currentLoser.setCurrentWinNums(0);
-        currentLoser.setBestWinNums(currentLoserRanking.getBestWinNums());
-        gameRoom.removePlayer(currentLoser);
+
+        currentLoserDto.setCurrentWinNums(0);
+        currentLoserDto.setBestWinNums(currentLoserRanking.getBestWinNums());
+        gameRoom.removePlayer(currentLoserDto);
     }
 
     //    private void updateLoserRankingAndChallenger(User currentLoser, Room gameRoom) {
@@ -327,5 +333,10 @@ public class GameRoomService {
             return new RoomDto(gameRoom);
         }
         return null;
+    }
+
+    public void resetPoll() {
+        redisTemplate.opsForValue().set("POLL_LEFT", 0);
+        redisTemplate.opsForValue().set("POLL_RIGHT", 0);
     }
 }
