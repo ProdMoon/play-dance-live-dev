@@ -61,35 +61,46 @@ const StreamArea = () => {
   const [voteB, setVoteB] = socketContextObjects.voteBs;
   const [progA, setProgA] = socketContextObjects.progAs;
   const [progB, setProgB] = socketContextObjects.progBs;
-  const [songLabel, setSongLabel] = useState(null);
   const [voteView, setVoteView] = useState(false);
   const [winnerView, setWinnerView] = useState(false);
-  const [finalVoteView, setFinalVoteView] = useState(false);
-  const [finalWinnerView, setFinalWinnerView] = useState(false);
 
   // Slot 관련 States
   const [slotView, setSlotView] = useState(false);
   const [slotNum, setSlotNum] = socketContextObjects.slotNums;
-  const testSlotNum = (num) => {
-    setSlotNum(num);
-    setSlotView(true);
-  };
-  // const [slotNum, setSlotNum] = useState(0);
-  // useEffect(() => {
-  //   console.log('use effect : slotNum ' + slotNum);
-  //   if (slotNum) {
-  //     const planeMachineElement = document.querySelector('#planeMachine');
-  //     const modalOverlay = document.querySelector('.modal-overlay');
-  //     const plane = document.querySelector('#plane');
-  //     const planeMachine = new SlotMachine(planeMachineElement, {
-  //       delay: 500,
-  //       randomize() {
-  //         return slotNum-1;
-  //       },
-  //     });
-  //     planeMachine.shuffle(10)  // 돌려돌려
-  //   }
-  // }, [slotNum]);
+  const slotAudio = useRef();
+
+  // slotNum이 설정되고 나서 발동됩니다.
+  useEffect(() => {
+    if (slotNum !== undefined) {
+      // 슬롯을 표시해줍니다.
+      setSlotView(true);
+      slotAudio.current.pause();
+      slotAudio.current.currentTime = 0;
+      slotAudio.current.play();
+
+      const timeout = setTimeout(() => {
+        setSlotView(false);
+        setSlotNum(undefined);
+
+        // champion의 차례이면 투표창을 띄워줍니다.
+        if (gameInfo.connectionId === gameInfo.champion.connectionId) {
+          setVoteView(true);
+        }
+
+        // 자기 차례면 시작
+        if (gameInfo.connectionId === myConnectionId) {
+          const songName = gameInfo.song;
+          const songObject = songList.get(songName);
+          setCurrentSongUrl(songObject.normalSrc);
+        }
+
+        // 카운트다운을 합니다.
+        setCount(3);
+      }, 7500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [slotNum]);
 
   // Audio 관련
   const [currentSongUrl, setCurrentSongUrl] = useState(null);
@@ -121,7 +132,7 @@ const StreamArea = () => {
       } else {
         // 시청하기를 통해 들어온 시청자이면 join 요청을 보냅니다.
         client.send(
-          '/app/join',
+          '/app/enter',
           {},
           JSON.stringify({
             sender: userInfo.userEmail,
@@ -158,16 +169,20 @@ const StreamArea = () => {
   }, [count]);
 
   useEffect(async () => {
-    // 강조 표시를 모두 지워줍니다.
-    const videos = document.querySelectorAll('.video-comp');
-    videos.forEach((video) => {
-      video.classList.remove('dancing', 'resting');
-    });
-
-    setWinnerView(false);
-
     // 노래 시작 신호...
     if (gameInfo.type === 'SONG_START') {
+      // 강조 표시를 모두 지워줍니다.
+      const videos = document.querySelectorAll('.video-comp');
+      videos.forEach((video) => {
+        video.classList.remove(
+          'dancing',
+          'champion-resting',
+          'challenger-resting',
+        );
+      });
+
+      setWinnerView(false);
+
       // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
       let dancer = document.querySelector(
         `.video-comp#${gameInfo.connectionId}`,
@@ -178,31 +193,20 @@ const StreamArea = () => {
       if (gameInfo.champion.connectionId === gameInfo.connectionId) {
         dancer.classList.remove('champion-resting');
         dancer.classList.add('dancing');
-  
+
         notDancer.classList.remove('dancing');
         notDancer.classList.add('challenger-resting');
       } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
         dancer.classList.remove('challenger-resting');
         dancer.classList.add('dancing');
-  
+
         notDancer.classList.remove('dancing');
         notDancer.classList.add('champion-resting');
       }
 
-      // champion의 차례이면 투표창을 띄워줍니다.
-      if (gameInfo.connectionId === gameInfo.champion.connectionId) {
-        setVoteView(true);
-      }
-
-      // 자기 차례면 시작
-      if (gameInfo.connectionId === myConnectionId) {
-        const songName = gameInfo.song;
-        const songObject = songList.get(songName);
-        setCurrentSongUrl(songObject.normalSrc);
-      }
-
-      // 카운트다운을 합니다.
-      setCount(3);
+      // 룰렛머신을 돌립니다.
+      const songObjectIndex = songList.get(gameInfo.song).index;
+      setSlotNum(songObjectIndex);
     }
 
     // 게임 종료 신호...
@@ -213,6 +217,16 @@ const StreamArea = () => {
       setVoteB(0);
       setProgA(50);
       setProgB(50);
+
+      // 강조 표시를 모두 지워줍니다.
+      const videos = document.querySelectorAll('.video-comp');
+      videos.forEach((video) => {
+        video.classList.remove(
+          'dancing',
+          'champion-resting',
+          'challenger-resting',
+        );
+      });
 
       // 결과창을 보여줍니다.
       setWinnerView(true);
@@ -231,74 +245,35 @@ const StreamArea = () => {
 
     // 참가자 리스트의 갱신... (join 시에도 발동)
     if (gameInfo.type === 'REFRESH_WAITER_LIST') {
-      // 투표창을 보여줍니다.
-      if (gameInfo.champion !== null) {
+      // 처음 들어왔는데 게임이 진행중인 상태라면...
+      if (
+        gameInfo.sender === userInfo.userEmail &&
+        gameInfo.champion !== null
+      ) {
+        // 투표창을 보여줍니다.
         setVoteView(true);
+
+        // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
+        let dancer = document.querySelector(
+          `.video-comp#${gameInfo.connectionId}`,
+        );
+        let notDancer = document.querySelector(
+          `.video-comp:not(#${gameInfo.connectionId})`,
+        );
+        if (gameInfo.champion.connectionId === gameInfo.connectionId) {
+          dancer.classList.remove('champion-resting');
+          dancer.classList.add('dancing');
+
+          notDancer.classList.remove('dancing');
+          notDancer.classList.add('challenger-resting');
+        } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
+          dancer.classList.remove('challenger-resting');
+          dancer.classList.add('dancing');
+
+          notDancer.classList.remove('dancing');
+          notDancer.classList.add('champion-resting');
+        }
       }
-    }
-
-    /*************************
-     * DEPRECATED SIGNALS... *
-     *************************/
-
-    // 시작 신호 수신 시 행동
-    if (gameInfo.type === 'ROUND_START') {
-      // 먼저 열려있는 알림창을 닫습니다.
-      setWinnerView(false);
-
-      // VOTE를 초기화합니다.
-      setVoteA(0);
-      setVoteB(0);
-      setProgA(50);
-      setProgB(50);
-
-      // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
-      let dancer = document.querySelector(
-        `.video-comp#${gameInfo.connectionId}`,
-      );
-      let notDancer = document.querySelector(
-        `.video-comp:not(#${gameInfo.connectionId})`,
-      );
-      dancer.classList.remove('resting');
-      dancer.classList.add('dancing');
-
-      notDancer.classList.remove('dancing');
-      notDancer.classList.add('resting');
-
-      if (userInfo.isPublisher && gameInfo.sender === userInfo.userEmail) {
-        // TODO: songName을 서버가 뿌려줘야함.
-        const songName = userInfo.song;
-        const songObject = songList.get(songName);
-
-        // 틀어야 할 노래에 따라 알맞은 src를 넣어줍니다.
-        setCurrentSongUrl(songObject.src);
-      }
-
-      // 카운트다운을 합니다.
-      setCount(3);
-    }
-
-    // 종료 신호 수신 시 행동
-    if (gameInfo.type === 'ROUND_END') {
-      // 강조 표시를 모두 지워줍니다.
-      const videos = document.querySelectorAll('.video-comp');
-      videos.forEach((video) => {
-        video.classList.remove('dancing', 'resting');
-      });
-    }
-
-    // 투표 시작 신호 수신 시 행동
-    if (gameInfo.type === 'VOTE_START') {
-      // 투표창을 띄웁니다.
-      setVoteView(true);
-    }
-
-    // 투표 종료 신호 수신 시 행동
-    if (gameInfo.type === 'VOTE_END') {
-      // 투표창을 닫습니다.
-      setVoteView(false);
-
-      // TODO: 승리 처리
     }
   }, [gameInfo]);
 
@@ -405,6 +380,7 @@ const StreamArea = () => {
       JSON.stringify({
         type: 'SONG_START',
         sender: userInfo.userEmail,
+        // connectionId: myConnectionId,
       }),
     );
   }
@@ -759,7 +735,13 @@ const StreamArea = () => {
               ) : null}
             </Grid>
 
-            <Grid item xs='auto'>
+            <Grid
+              item
+              xs='auto'
+              sx={{
+                height: '80%',
+              }}
+            >
               <VideoContainer
                 myConnectionId={myConnectionId}
                 publisher={publisher}
@@ -814,54 +796,10 @@ const StreamArea = () => {
         />
       ) : null}
       {slotView ? <Slot /> : null}
-      <button
-        className='slot-btn'
-        onClick={() => {
-          testSlotNum(Math.floor(Math.random() * 4));
-        }}
-      >
-        돌려돌려
-      </button>
-      <button
-        className='slot-btn'
-        onClick={() => {
-          testSlotNum(0);
-        }}
-      >
-        어텐션
-      </button>
-      <button
-        className='slot-btn'
-        onClick={() => {
-          testSlotNum(1);
-        }}
-      >
-        캔디
-      </button>
-      <button
-        className='slot-btn'
-        onClick={() => {
-          testSlotNum(2);
-        }}
-      >
-        아무노래
-      </button>
-      <button
-        className='slot-btn'
-        onClick={() => {
-          testSlotNum(3);
-        }}
-      >
-        넥레
-      </button>
-      <button
-        className='slot-btn'
-        onClick={() => {
-          setSlotView(false);
-        }}
-      >
-        숨기기
-      </button>
+      <audio
+        ref={slotAudio}
+        src={`${process.env.PUBLIC_URL}/resources/musics/roulette.mp3`}
+      />
     </div>
   );
 };

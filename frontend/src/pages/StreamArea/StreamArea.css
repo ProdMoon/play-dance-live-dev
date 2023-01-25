@@ -1,35 +1,12 @@
-/* .stream-container {
-	padding: 0;
+.flex-column {
+  display: flex;
+  flex-direction: column;
 }
-
-.gradient-border {
-	position: relative;
-}
-
-.gradient-border::after {
-	position: absolute;
-	content: "";
-	top: -5px;
-	left: -5px;
-	z-index: 5;
-	width: calc(100% + 10px);
-	height: calc(100% + 10px);
-	background: linear-gradient(60deg, hsl(224, 85%, 66%), hsl(269, 85%, 66%), hsl(314, 85%, 66%), hsl(359, 85%, 66%), hsl(44, 85%, 66%), hsl(89, 85%, 66%), hsl(134, 85%, 66%), hsl(179, 85%, 66%));
-	background-size: 300% 300%;
-	background-position: 0 50%;
-	border-radius: calc(2 * 3px);
-	animation: moveGradient 4s alternate infinite;
-}
-
-@keyframes moveGradient {
-	50% {
-		background-position: 100% 50%;
-	}
-} */
 
 #video-container {
   position: relative;
   width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
 }
@@ -53,20 +30,78 @@
 
 .dancing {
   position: absolute;
-  left: 26% !important;
-  top: 4%;
-  width: 48%;
-  height: 92%;
+  left: 28% !important;
+  top: 12%;
+  width: 46%;
+  height: 84%;
   border-radius: 10px;
   z-index: 99;
+
+  --borderWidth: 0.4em;
+  border-radius: var(--borderWidth);
+}
+.dancing:after {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--borderWidth));
+  left: calc(-1 * var(--borderWidth));
+  height: calc(100% + var(--borderWidth) * 2);
+  width: calc(100% + var(--borderWidth) * 2);
+  background: linear-gradient(
+    60deg,
+    #f79533,
+    #f37055,
+    #ef4e7b,
+    #a166ab,
+    #5073b8,
+    #1098ad,
+    #07b39b,
+    #6fba82
+  );
+  border-radius: calc(2 * var(--borderWidth));
+  z-index: -1111;
+  animation: animatedgradient 3s ease alternate infinite;
+  background-size: 300% 300%;
 }
 
-.resting {
+@keyframes animatedgradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* .resting {
   position: absolute;
   left: 60% !important;
   top: 72% !important;
   width: 14%;
   height: 24%;
+  border-radius: 10px;
+  z-index: 100;
+} */
+
+.champion-resting {
+  position: absolute;
+  left: 3% !important;
+  top: 66% !important;
+  width: 18%;
+  height: 30%;
+  border-radius: 10px;
+  z-index: 100;
+}
+
+.challenger-resting {
+  position: absolute;
+  left: 79% !important;
+  top: 66% !important;
+  width: 18%;
+  height: 30%;
   border-radius: 10px;
   z-index: 100;
 }
