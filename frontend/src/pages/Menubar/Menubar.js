@@ -1,6 +1,5 @@
 import '../../styles/Menubar.css';
 
-import GoogleLogin from './GoogleLogin';
 import GoogleLogout from './GoogleLogout';
 import Participants from './Participants';
 import Ranking from './Ranking';
@@ -10,7 +9,7 @@ const Menubar = () => {
   return (
     <div className='menubar-container'>
       <img
-        className='menubar-logo'
+        className='menubar-logo menubar-item'
         src={`${process.env.PUBLIC_URL}/resources/images/menubar-logo.png`}
       />
       <GoogleLogout />

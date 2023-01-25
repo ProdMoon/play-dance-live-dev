@@ -161,8 +161,12 @@ const StreamArea = () => {
 
     // 게임 종료 신호...
     if (gameInfo.type === 'GAME_END') {
-      // 투표창을 닫습니다.
+      // 투표창을 닫고 투표기록을 초기화합니다.
       setVoteView(false);
+      setVoteA(0);
+      setVoteB(0);
+      setProgA(50);
+      setProgB(50);
 
       // 결과창을 보여줍니다.
       setWinnerView(true);
@@ -720,10 +724,6 @@ const StreamArea = () => {
       {voteView ? (
         <div className='vote-container'>
           <Vote
-            upperText={[
-              `다음 라운드 곡 : ${songLabel}`,
-              `챌린지 버전을 골라주세요!`,
-            ]}
             leftText={gameInfo.champion.name}
             rightText={gameInfo.challenger.name}
           />
@@ -732,55 +732,10 @@ const StreamArea = () => {
       {winnerView ? (
         <div className='vote-container'>
           <div className='vote-background'>
-            <Typography variant='h5'>다음 라운드는</Typography>
-            <Typography variant='h5'>{songLabel}의</Typography>
+            <Typography variant='h5'>축하합니다!</Typography>
             <Typography variant='h5'>
-              {gameInfo.songVersion === 'normal' ? '일반' : '2배속'} 버전으로
-              진행됩니다!
-            </Typography>
-          </div>
-        </div>
-      ) : null}
-      {finalVoteView ? (
-        <div className='vote-container'>
-          <Vote
-            upperText={[`최종 승자를 정해주세요!`]}
-            leftText={
-              userInfo.isPublisher
-                ? userInfo.userEmail === userInfo.roomOwner
-                  ? userInfo.userName
-                  : JSON.parse(subscribers[0].stream.connection.data).clientData
-                : JSON.parse(subscribers[0].stream.connection.data).clientData
-            }
-            rightText={
-              userInfo.isPublisher
-                ? userInfo.userEmail === userInfo.roomOwner
-                  ? JSON.parse(subscribers[0].stream.connection.data).clientData
-                  : userInfo.userName
-                : JSON.parse(subscribers[1].stream.connection.data).clientData
-            }
-          />
-        </div>
-      ) : null}
-      {finalWinnerView ? (
-        <div className='vote-container'>
-          <div className='vote-background'>
-            <Typography variant='h5'>
-              축하합니다! 최종 승자는{' '}
-              {gameInfo.songVersion === 'double'
-                ? userInfo.isPublisher
-                  ? userInfo.userEmail === userInfo.roomOwner
-                    ? userInfo.userName
-                    : JSON.parse(subscribers[0].stream.connection.data)
-                        .clientData
-                  : JSON.parse(subscribers[0].stream.connection.data).clientData
-                : userInfo.isPublisher
-                ? userInfo.userEmail === userInfo.roomOwner
-                  ? JSON.parse(subscribers[0].stream.connection.data).clientData
-                  : userInfo.userName
-                : JSON.parse(subscribers[1].stream.connection.data)
-                    .clientData}{' '}
-              입니다!
+              챔피언 : {gameInfo.champion.name}{' '}
+              {gameInfo.champion.currentWinNums}연승 중!
             </Typography>
           </div>
         </div>
