@@ -38,9 +38,12 @@ public class RoomController {
         String userMail = gameSignal.getSender();
         String userSong = gameSignal.getSong();
         String userConnectionId = gameSignal.getConnectionId();
-        List<UserDto> waiters = gameRoomService.joinGame(userMail, userSong, userConnectionId).getWaiters();
+        RoomDto gameRoomDto = gameRoomService.joinGame(userMail, userSong, userConnectionId);
         gameSignal.setType("REFRESH_WAITER_LIST");
-        gameSignal.setWaiters(waiters);
+        gameSignal.setWaiters(gameRoomDto.getWaiters());
+        gameSignal.setChampion(gameRoomDto.getCurrentChampion());
+        gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
+        gameSignal.setRankingList(gameRoomDto.getRankingList());
         template.convertAndSend("/topic/public", gameSignal);
     }
 
@@ -57,9 +60,11 @@ public class RoomController {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            } finally {
+                gameSignal.setType("REFRESH_WAITER_LIST");
+                template.convertAndSend("/topic/public", gameSignal);
             }
-            gameSignal.setType("REFRESH_WAITER_LIST");
-            template.convertAndSend("/topic/public", gameSignal);
+
         }
     }
 
