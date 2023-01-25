@@ -57,6 +57,26 @@ public class RoomController {
         }
     }
 
+    @MessageMapping("/enter")
+    public void enterGame(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        RoomDto gameRoomDto = gameRoomService.enterGame(userMail);
+        gameSignal.setType("REFRESH_WAITER_LIST");
+        gameSignal.setWaiters(gameRoomDto.getWaiters());
+        gameSignal.setChampion(gameRoomDto.getCurrentChampion());
+        gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
+        gameSignal.setRankingList(gameRoomDto.getRankingList());
+        template.convertAndSend("/topic/public", gameSignal);
+        try{
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            PollSignal pollSignal = gameRoomService.getCurrentPoll();
+            template.convertAndSend("/topic/public", pollSignal);
+        }
+    }
+
     @MessageMapping("/start")
     public void startGame(@Payload GameSignal gameSignal) {
         RoomDto startRoomDto = gameRoomService.startGame();
