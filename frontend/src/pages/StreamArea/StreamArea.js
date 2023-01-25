@@ -66,7 +66,7 @@ const StreamArea = () => {
   const [winnerView, setWinnerView] = useState(false);
   const [finalVoteView, setFinalVoteView] = useState(false);
   const [finalWinnerView, setFinalWinnerView] = useState(false);
-  
+
   // Slot 관련 States
   const [slotView, setSlotView] = useState(false);
   const [slotNum, setSlotNum] = socketContextObjects.slotNums;
@@ -89,7 +89,7 @@ const StreamArea = () => {
   //     });
   //     planeMachine.shuffle(10)  // 돌려돌려
   //   }
-  // }, [slotNum]);  
+  // }, [slotNum]);
 
   // Audio 관련
   const [currentSongUrl, setCurrentSongUrl] = useState(null);
@@ -112,10 +112,22 @@ const StreamArea = () => {
     }
   }, []);
 
-  // joinSession()이 완료되고, 본인이 참가하기를 통해 들어온 참가자이면 publish합니다. 영상은 바로 송출되지 않습니다.
+  // joinSession()이 완료되었을 때 발동됩니다.
   useEffect(() => {
-    if (session !== undefined && userInfo.isParticipant === true) {
-      publishStream();
+    if (session !== undefined) {
+      if (userInfo.isParticipant === true) {
+        // 본인이 참가하기를 통해 들어온 참가자이면 publish합니다. 영상은 바로 송출되지 않습니다.
+        publishStream();
+      } else {
+        // 시청하기를 통해 들어온 시청자이면 join 요청을 보냅니다.
+        client.send(
+          '/app/join',
+          {},
+          JSON.stringify({
+            sender: userInfo.userEmail,
+          }),
+        );
+      }
     }
   }, [session]);
 
@@ -163,11 +175,19 @@ const StreamArea = () => {
       let notDancer = document.querySelector(
         `.video-comp:not(#${gameInfo.connectionId})`,
       );
-      dancer.classList.remove('resting');
-      dancer.classList.add('dancing');
-
-      notDancer.classList.remove('dancing');
-      notDancer.classList.add('resting');
+      if (gameInfo.champion.connectionId === gameInfo.connectionId) {
+        dancer.classList.remove('champion-resting');
+        dancer.classList.add('dancing');
+  
+        notDancer.classList.remove('dancing');
+        notDancer.classList.add('challenger-resting');
+      } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
+        dancer.classList.remove('challenger-resting');
+        dancer.classList.add('dancing');
+  
+        notDancer.classList.remove('dancing');
+        notDancer.classList.add('champion-resting');
+      }
 
       // champion의 차례이면 투표창을 띄워줍니다.
       if (gameInfo.connectionId === gameInfo.champion.connectionId) {
@@ -206,6 +226,14 @@ const StreamArea = () => {
           songStart();
         }, 3000);
         return () => clearTimeout(timeout);
+      }
+    }
+
+    // 참가자 리스트의 갱신... (join 시에도 발동)
+    if (gameInfo.type === 'REFRESH_WAITER_LIST') {
+      // 투표창을 보여줍니다.
+      if (gameInfo.champion !== null) {
+        setVoteView(true);
       }
     }
 
@@ -785,15 +813,55 @@ const StreamArea = () => {
           className={'countdown'}
         />
       ) : null}
-      {slotView ? (
-          <Slot />
-      ) : null}
-    <button className='slot-btn' onClick={()=>{testSlotNum(Math.floor(Math.random() * 4))}}>돌려돌려</button>
-    <button className='slot-btn' onClick={()=>{testSlotNum(0)}}>어텐션</button>
-    <button className='slot-btn' onClick={()=>{testSlotNum(1)}}>캔디</button>
-    <button className='slot-btn' onClick={()=>{testSlotNum(2)}}>아무노래</button>
-    <button className='slot-btn' onClick={()=>{testSlotNum(3)}}>넥레</button>
-    <button className='slot-btn' onClick={()=>{setSlotView(false)}}>숨기기</button>
+      {slotView ? <Slot /> : null}
+      <button
+        className='slot-btn'
+        onClick={() => {
+          testSlotNum(Math.floor(Math.random() * 4));
+        }}
+      >
+        돌려돌려
+      </button>
+      <button
+        className='slot-btn'
+        onClick={() => {
+          testSlotNum(0);
+        }}
+      >
+        어텐션
+      </button>
+      <button
+        className='slot-btn'
+        onClick={() => {
+          testSlotNum(1);
+        }}
+      >
+        캔디
+      </button>
+      <button
+        className='slot-btn'
+        onClick={() => {
+          testSlotNum(2);
+        }}
+      >
+        아무노래
+      </button>
+      <button
+        className='slot-btn'
+        onClick={() => {
+          testSlotNum(3);
+        }}
+      >
+        넥레
+      </button>
+      <button
+        className='slot-btn'
+        onClick={() => {
+          setSlotView(false);
+        }}
+      >
+        숨기기
+      </button>
     </div>
   );
 };
