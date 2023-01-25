@@ -132,6 +132,10 @@ public class GameRoomService {
                     .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChallenger.getEmail()));
             Ranking currentChampionRanking = rankingRepository.findByUser(currentChampionUser);
             Ranking currentChallengerRanking = rankingRepository.findByUser(currentChallengerUser);
+            
+            if (leftScore == null || rightScore == null) {
+                return null;
+            }
             /*
              * champion wins
              * currentChampion과 currentChallenger의 poll을 비교하여 승수를 더해준다.
@@ -139,24 +143,16 @@ public class GameRoomService {
              * currentChallenger의 승수는 0으로 초기화한다.
              * gameRoom의 정보를 update 함(challenger remove, add new challenger, update ranking)
              */
-            if (leftScore == null || rightScore == null) {
-                return null;
-            }
             else if (leftScore > rightScore) {
                 updateWinnerRanking(currentChampionUser);
+                updateLoserRanking(gameRoom, currentChallenger, currentChallengerRanking);
+                currentChampion.setCurrentWinNums(currentChampionRanking.getCurrentWinNums());
+                currentChampion.setBestWinNums(currentChampionRanking.getBestWinNums());
 
-                currentChallengerRanking.setCurrentWinNums(0);
-                rankingRepository.save(currentChallengerRanking);
-
-                List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
-                        map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
-                gameRoom.setRankingList(rankingDtoList);
-
-                gameRoom.removePlayer(currentChallenger);
-                UserDto newChallenger = gameRoom.getWaiters().remove(0);
+                UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
                 gameRoom.setCurrentChallenger(newChallenger);
-
+                
                 redisTemplate.opsForValue().set("ROOM", gameRoom);
                 return new RoomDto(gameRoom);
             }
@@ -165,18 +161,12 @@ public class GameRoomService {
              */
             else {
                 updateWinnerRanking(currentChallengerUser);
-
-                currentChampionRanking.setCurrentWinNums(0);
-                rankingRepository.save(currentChampionRanking);
-
-                List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
-                        map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
-                gameRoom.setRankingList(rankingDtoList);
-
-                gameRoom.removePlayer(currentChampion);
+                updateLoserRanking(gameRoom, currentChampion, currentChampionRanking);
+                currentChallenger.setCurrentWinNums(currentChallengerRanking.getCurrentWinNums());
+                currentChallenger.setBestWinNums(currentChallengerRanking.getBestWinNums());
                 gameRoom.setCurrentChampion(currentChallenger);
 
-                UserDto newChallenger = gameRoom.getWaiters().remove(0);
+                UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
                 gameRoom.setCurrentChallenger(newChallenger);
 
@@ -185,7 +175,28 @@ public class GameRoomService {
             }
         }
     }
-//    private void updateLoserRankingAndChallenger(User currentLoser, Room gameRoom) {
+
+    private UserDto getNewChallenger(Room gameRoom) {
+        UserDto newChallenger = gameRoom.getWaiters().remove(0);
+        User newChallengerUser = userRepository.findByEmail(newChallenger.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + newChallenger.getEmail()));
+        Ranking newChallengerRanking = rankingRepository.findByUser(newChallengerUser);
+        newChallenger.setCurrentWinNums(newChallengerRanking.getCurrentWinNums());
+        newChallenger.setBestWinNums(newChallengerRanking.getBestWinNums());
+        return newChallenger;
+    }
+
+    private void updateLoserRanking(Room gameRoom, UserDto currentLoser, Ranking currentLoserRanking) {
+        currentLoserRanking.setCurrentWinNums(0);
+        rankingRepository.save(currentLoserRanking);
+
+        List<RankingDto> rankingDtoList = rankingRepository.findAllByOrderByBestWinNumsDesc().stream().
+                map(ranking -> new RankingDto(ranking.getUser().getName(), ranking.getBestWinNums())).collect(Collectors.toList());
+        gameRoom.setRankingList(rankingDtoList);
+        gameRoom.removePlayer(currentLoser);
+    }
+
+    //    private void updateLoserRankingAndChallenger(User currentLoser, Room gameRoom) {
 //        Ranking currentLoserRanking = rankingRepository.findByUser(currentLoser);
 //
 //        currentLoserRanking.setCurrentWinNums(0);
@@ -210,20 +221,34 @@ public class GameRoomService {
     public RoomDto startGame() {
         Room gameRoom = (Room) redisTemplate.opsForValue().get("ROOM");
         if(gameRoom != null) {
-            UserDto startChampion = gameRoom.getWaiters().remove(0);
-            UserDto startChallenger = gameRoom.getWaiters().remove(0);
-            gameRoom.setCurrentChampion(startChampion);
-            gameRoom.setCurrentChallenger(startChallenger);
-            gameRoom.addPlayer(startChampion);
-            gameRoom.addPlayer(startChallenger);
+            UserDto startChampionDto = gameRoom.getWaiters().remove(0);
+            UserDto startChallengerDto = gameRoom.getWaiters().remove(0);
+            setDtoWinNums(gameRoom, startChampionDto, startChallengerDto);
             roomRedisTemplate.opsForValue().set("ROOM", gameRoom);
-
             redisTemplate.opsForValue().set("POLL_LEFT", 0);
             redisTemplate.opsForValue().set("POLL_RIGHT", 0);
-
             return new RoomDto(gameRoom);
         }
         return null;
+    }
+
+    private void setDtoWinNums(Room gameRoom, UserDto startChampionDto, UserDto startChallengerDto) {
+        User startChampionUser = userRepository.findByEmail(startChampionDto.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + startChampionDto.getEmail()));
+        User startChallengerUser = userRepository.findByEmail(startChallengerDto.getEmail())
+                        .orElseThrow(()-> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + startChallengerDto.getEmail()));
+        Ranking startChampionRanking = rankingRepository.findByUser(startChampionUser);
+        Ranking startChallengerRanking = rankingRepository.findByUser(startChallengerUser);
+
+        startChampionDto.setCurrentWinNums(startChampionRanking.getCurrentWinNums());
+        startChampionDto.setBestWinNums(startChampionRanking.getBestWinNums());
+        startChallengerDto.setCurrentWinNums(startChallengerRanking.getCurrentWinNums());
+        startChallengerDto.setBestWinNums(startChallengerRanking.getBestWinNums());
+
+        gameRoom.setCurrentChampion(startChampionDto);
+        gameRoom.setCurrentChallenger(startChallengerDto);
+        gameRoom.addPlayer(startChampionDto);
+        gameRoom.addPlayer(startChallengerDto);
     }
 
     public UserDto findPlayerUserDtoByMail(String userMail) {
