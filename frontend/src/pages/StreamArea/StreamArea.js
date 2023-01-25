@@ -3,7 +3,7 @@ import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 
 import './StreamArea.css';
-import { Button, Grid, Typography } from '@mui/material';
+import { Button, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
@@ -50,6 +50,9 @@ const StreamArea = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [currentVideoDevice, setCurrentVideoDevice] = useState(undefined);
   const [myConnectionId, setMyConnectionId] = useState(undefined);
+
+  // 곡 선택용
+  const [selectedSong, setSelectedSong] = useState('');
 
   // Websocket 관련 States
   const socketContextObjects = useSocketContext();
@@ -143,19 +146,31 @@ const StreamArea = () => {
   }, [session]);
 
   // waiters에 들어가기 위해 join 메시지를 보냅니다.
-  useEffect(() => {
-    if (session !== undefined && userInfo.isParticipant === true) {
-      client.send(
-        '/app/join',
-        {},
-        JSON.stringify({
-          sender: userInfo.userEmail,
-          song: 'candy',
-          connectionId: myConnectionId,
-        }),
-      );
-    }
-  }, [myConnectionId]);
+  // useEffect(() => {
+  //   if (session !== undefined && userInfo.isParticipant === true) {
+  //     client.send(
+  //       '/app/join',
+  //       {},
+  //       JSON.stringify({
+  //         sender: userInfo.userEmail,
+  //         song: 'candy',
+  //         connectionId: myConnectionId,
+  //       }),
+  //     );
+  //   }
+  // }, [myConnectionId]);
+
+  function handleJoin() {
+    client.send(
+      '/app/join',
+      {},
+      JSON.stringify({
+        sender: userInfo.userEmail,
+        song: selectedSong,
+        connectionId: myConnectionId,
+      }),
+    );
+  }
 
   // 카운트다운 이펙트
   const [count, setCount] = useState(0);
@@ -397,6 +412,11 @@ const StreamArea = () => {
     // replaceTrackToAudioDevice();
     setCurrentSongUrl(null);
     localAudioRef.current.removeEventListener('ended', sendRoundEndMessage);
+  }
+
+  // 곡 선택용
+  const handleSongSelect = (event) => {
+    setSelectedSong(event.target.value);
   }
 
   const deleteSubscriber = (streamManager) => {
@@ -679,17 +699,35 @@ const StreamArea = () => {
             direction='column'
             wrap='nowrap'
           >
-            <Grid id='session-header' item>
-              <Button
-                id='buttonLeaveSession'
-                onClick={leaveSession}
-                variant='outlined'
-                sx={{ margin: '5px' }}
-              >
-                세션 떠나기
-              </Button>
-              {userInfo.isParticipant === true ? (
+            {userInfo.isParticipant === true ? (
+              <Grid id='session-header' item>
                 <>
+                  <FormControl fullWidth>
+                    <InputLabel>곡 선택</InputLabel>
+                    <Select
+                      labelId='demo-simple-select-label'
+                      id='demo-simple-select'
+                      value={selectedSong}
+                      label='곡 선택'
+                      onChange={handleSongSelect}
+                    >
+                      <MenuItem value='antifragile'>ANTIFRAGILE</MenuItem>
+                      <MenuItem value='pop'>POP!</MenuItem>
+                      <MenuItem value='hypeboy'>Hype Boy</MenuItem>
+                      <MenuItem value='thefeels'>The Feels</MenuItem>
+                      <MenuItem value='russianroulette'>러시안 룰렛</MenuItem>
+                      <MenuItem value='ditto'>Ditto</MenuItem>
+                      <MenuItem value='nextlevel'>Next Level</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    id='buttonLeaveSession'
+                    onClick={leaveSession}
+                    variant='outlined'
+                    sx={{ margin: '5px' }}
+                  >
+                    세션 떠나기
+                  </Button>
                   <Button
                     onClick={handleCreate}
                     variant='contained'
@@ -697,6 +735,14 @@ const StreamArea = () => {
                     sx={{ margin: '5px' }}
                   >
                     CREATE
+                  </Button>
+                  <Button
+                    onClick={handleJoin}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    JOIN
                   </Button>
                   <Button
                     onClick={handleStart}
@@ -715,25 +761,25 @@ const StreamArea = () => {
                     SONG START
                   </Button>
                 </>
-              ) : null}
-              {mainStreamManager !== undefined ? (
-                <>
-                  <Button
-                    id='buttonSwitchCamera'
-                    onClick={switchCamera}
-                    variant='outlined'
-                    sx={{ margin: '5px' }}
-                  >
-                    카메라 전환
-                  </Button>
-                  <AudioTag
-                    audioRef={audioRef}
-                    localAudioRef={localAudioRef}
-                    currentSongUrl={currentSongUrl}
-                  />
-                </>
-              ) : null}
-            </Grid>
+                {mainStreamManager !== undefined ? (
+                  <>
+                    <Button
+                      id='buttonSwitchCamera'
+                      onClick={switchCamera}
+                      variant='outlined'
+                      sx={{ margin: '5px' }}
+                    >
+                      카메라 전환
+                    </Button>
+                    <AudioTag
+                      audioRef={audioRef}
+                      localAudioRef={localAudioRef}
+                      currentSongUrl={currentSongUrl}
+                    />
+                  </>
+                ) : null}
+              </Grid>
+            ) : null}
 
             <Grid
               item
