@@ -1,3 +1,4 @@
+import { Divider } from '@mui/material';
 import '../../styles/Menubar.css';
 
 import GoogleLogout from './GoogleLogout';
@@ -8,13 +9,23 @@ import UserProfile from './UserProfile';
 const Menubar = () => {
   return (
     <div className='menubar-container'>
-      <img
-        className='menubar-logo menubar-item'
-        src={`${process.env.PUBLIC_URL}/resources/images/menubar-logo.png`}
-      />
+      <div className='menubar-item'>
+        <img
+          className='menubar-logo'
+          src={`${process.env.PUBLIC_URL}/resources/images/menubar-logo.png`}
+        />
+      </div>
       <GoogleLogout />
       <UserProfile />
+      <Divider
+        flexItem={true}
+        sx={{ margin: '10px', backgroundColor: 'black' }}
+      />
       <Ranking />
+      <Divider
+        flexItem={true}
+        sx={{ margin: '10px', backgroundColor: 'black' }}
+      />
       <Participants />
     </div>
   );

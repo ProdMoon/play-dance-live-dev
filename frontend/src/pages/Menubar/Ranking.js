@@ -1,4 +1,13 @@
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material';
 import { useSocketContext } from '../../context/SocketContext';
 
 const Ranking = () => {
@@ -7,7 +16,8 @@ const Ranking = () => {
 
   return (
     <div className='menubar-item'>
-      {/* <TableContainer component={Paper}>
+      <div className='list-table'>
+        {/* <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} size='small' aria-label='a dense table'>
           <TableHead>
             <TableRow>
@@ -37,21 +47,22 @@ const Ranking = () => {
         </Table>
       </TableContainer> */}
 
-      <Typography>현재 랭킹</Typography>
-      {currentRanking !== null
-        ? currentRanking.map((elem, i) => {
-            return (
-              <Typography>
-                {i + 1}위 {elem.name}{' '}
-                {elem.bestWinNums > 0 ? (
-                  <span style={{ color: 'red' }}>{elem.bestWinNums}연승</span>
-                ) : (
-                  <span style={{ color: 'skyblue' }}>new</span>
-                )}
-              </Typography>
-            );
-          })
-        : null}
+        <Typography variant='h5'>현재 랭킹</Typography>
+        {currentRanking !== null
+          ? currentRanking.map((elem, i) => {
+              return (
+                <Typography>
+                  {i + 1}위 {elem.name}{' '}
+                  {elem.bestWinNums > 0 ? (
+                    <span style={{ color: 'red' }}>{elem.bestWinNums}연승</span>
+                  ) : (
+                    <span style={{ color: 'skyblue' }}>new</span>
+                  )}
+                </Typography>
+              );
+            })
+          : null}
+      </div>
     </div>
   );
 };

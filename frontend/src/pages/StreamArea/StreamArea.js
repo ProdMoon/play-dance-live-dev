@@ -201,6 +201,9 @@ const StreamArea = () => {
     return () => (timer ? clearTimeout(timer) : null);
   }, [count]);
 
+  /*************************
+   *    게임 진행 관련 부분    *
+   *************************/
   useEffect(async () => {
     let timeout = null;
 

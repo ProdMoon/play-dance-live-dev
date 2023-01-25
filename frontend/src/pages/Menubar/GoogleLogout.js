@@ -54,15 +54,16 @@ function GoogleLogout() {
   };
 
   return (
-    <Button
-      className='menubar-item'
-      onClick={(e) => {
-        handleLogout(e);
-      }}
-      variant='outlined'
-    >
-      LOGOUT
-    </Button>
+    <div className='menubar-item'>
+      <Button
+        onClick={(e) => {
+          handleLogout(e);
+        }}
+        variant='outlined'
+      >
+        LOGOUT
+      </Button>
+    </div>
   );
 }
 
