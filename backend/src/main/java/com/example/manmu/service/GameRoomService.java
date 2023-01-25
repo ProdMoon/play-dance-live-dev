@@ -1,5 +1,6 @@
 package com.example.manmu.service;
 
+import com.example.manmu.PollSignal;
 import com.example.manmu.entity.*;
 import com.example.manmu.exception.UserNotFoundException;
 import com.example.manmu.repository.RankingRepository;
@@ -62,6 +63,17 @@ public class GameRoomService {
             return new RoomDto(joinRoom);
         }
         return null;
+    }
+
+    public PollSignal getCurrentPoll() {
+        Integer leftScore = (Integer) redisTemplate.opsForValue().get("POLL_LEFT");
+        Integer rightScore = (Integer) redisTemplate.opsForValue().get("POLL_RIGHT");
+        PollSignal pollSignal = PollSignal.builder()
+                .championPoll(rightScore)
+                .challengerPoll(leftScore)
+                .build();
+
+        return pollSignal;
     }
 
     private void makeJoinUserRanking(User joinUser) {

@@ -1,11 +1,13 @@
 package com.example.manmu.controller;
 
 import com.example.manmu.GameSignal;
+import com.example.manmu.PollSignal;
 import com.example.manmu.entity.UserDto;
 import com.example.manmu.entity.VoteData;
 import com.example.manmu.service.GameRoomService;
 import com.example.manmu.entity.RoomDto;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.jni.Poll;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -45,6 +47,14 @@ public class RoomController {
         gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
         gameSignal.setRankingList(gameRoomDto.getRankingList());
         template.convertAndSend("/topic/public", gameSignal);
+        try{
+        Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            PollSignal pollSignal = gameRoomService.getCurrentPoll();
+            template.convertAndSend("/topic/public", pollSignal);
+        }
     }
 
     @MessageMapping("/start")
@@ -99,6 +109,7 @@ public class RoomController {
                 throw new RuntimeException(e);
             }
             gameSignal.setType("GAME_CHALLENGE");
+            gameSignal.setWaiters(gameRoomDto.getWaiters());
             gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
             template.convertAndSend("/topic/public", gameSignal);
         }
