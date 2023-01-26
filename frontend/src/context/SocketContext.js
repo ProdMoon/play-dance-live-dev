@@ -25,10 +25,13 @@ export default function SocketContextProvider({ children }) {
     challenger: null,
   });
 
-  const voteAObject = useState(0);
-  const voteBObject = useState(0);
+  // for vote
+  const voteAObject = useState(1);
+  const voteBObject = useState(1);
   const progAObject = useState(50);
   const progBObject = useState(50);
+  // for slot
+  const slotNumObject = useState(undefined);
 
   // 자식 요소들에 read-only로 제공되는 States
   const [client, setClient] = useState(null);
@@ -56,12 +59,24 @@ export default function SocketContextProvider({ children }) {
 
         // 참가자 리스트 변동...
         if (messageBody.type === 'REFRESH_WAITER_LIST') {
-          setParticipantList(messageBody.waiters);
+          const waiters = messageBody.waiters;
+          const ranking = messageBody.rankingList;
+          setParticipantList(waiters);
+          setRankingList(ranking);
+          setGameInfo((prevState) => ({
+            ...prevState,
+            type: messageBody.type, // REFRESH_WAITER_LIST
+            sender: messageBody.sender,
+            champion: messageBody.champion,
+            challenger: messageBody.challenger,
+            connectionId: messageBody.connectionId,
+          }));
         }
 
         // 랭킹 리스트 변동...
         if (messageBody.type === 'REFRESH_RANKING_LIST') {
-          setRankingList(messageBody.ranking);
+          const ranking = messageBody.ranking;
+          setRankingList(ranking);
         }
 
         // 노래 재생 신호...
@@ -95,6 +110,10 @@ export default function SocketContextProvider({ children }) {
             challenger: messageBody.challenger,
             song: messageBody.song,
           }));
+          const ranking = messageBody.rankingList;
+          setRankingList(ranking);
+          const waiters = messageBody.waiters;
+          setParticipantList(waiters);
         }
 
         // 예외 케이스 : 처음에 start 상황
@@ -107,6 +126,17 @@ export default function SocketContextProvider({ children }) {
             challenger: messageBody.challenger,
             song: messageBody.song,
           }));
+        }
+
+        // vote animation
+        if (messageBody.type === 'VOTE-click') {
+          messageBody.value === 'A'
+            ? setVoteA((prevState) => {
+                return prevState + 1;
+              })
+            : setVoteB((prevState) => {
+                return prevState + 1;
+              });
         }
 
         /*************************
@@ -192,17 +222,6 @@ export default function SocketContextProvider({ children }) {
             poll: messageBody.poll,
           }));
         }
-
-        // vote animation
-        if (messageBody.type === 'VOTE-click') {
-          messageBody.value === 'A'
-            ? setVoteA((prevState) => {
-                return prevState + 1;
-              })
-            : setVoteB((prevState) => {
-                return prevState + 1;
-              });
-        }
       }),
     );
   }
@@ -241,6 +260,7 @@ export default function SocketContextProvider({ children }) {
         voteBs: voteBObject,
         progAs: progAObject,
         progBs: progBObject,
+        slotNums: slotNumObject,
       }}
     >
       {children}

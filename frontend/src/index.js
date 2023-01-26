@@ -11,6 +11,7 @@ import '@fontsource/roboto/700.css';
 // import registerServiceWorker from "./registerServiceWorker";
 import Home from './pages/Home/Home';
 import StreamArea from './pages/StreamArea/StreamArea';
+import Test from './modules/Test/Test';
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,12 @@ const router = createBrowserRouter([
     path: '/streamarea',
     element: <StreamArea />,
   },
+  // for test
+  {
+    path: '/test',
+    element: <Test />,
+  },
+
 ]);
 
 ReactDOM.render(

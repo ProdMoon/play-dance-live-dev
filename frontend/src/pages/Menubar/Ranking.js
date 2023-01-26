@@ -1,14 +1,27 @@
 import { Typography } from '@mui/material';
-
-const currentRanking = ['1위 아이브 3연승', '2위 뉴진스 2연승', '3위 괴벨스', '4위 리덕스'];
+import { useSocketContext } from '../../context/SocketContext';
 
 const Ranking = () => {
+  const socketContext = useSocketContext();
+  const currentRanking = socketContext.rankingList;
+
   return (
-    <div>
+    <div className='menubar-item'>
       <Typography>현재 랭킹</Typography>
-      {currentRanking.map((elem) => {
-        return <Typography>{elem}</Typography>;
-      })}
+      {currentRanking !== null
+        ? currentRanking.map((elem, i) => {
+            return (
+              <Typography>
+                {i + 1}위 {elem.name}{' '}
+                {elem.bestWinNums > 0 ? (
+                  <span style={{ color: 'red' }}>{elem.bestWinNums}연승</span>
+                ) : (
+                  <span style={{ color: 'skyblue' }}>new</span>
+                )}
+              </Typography>
+            );
+          })
+        : null}
     </div>
   );
 };
