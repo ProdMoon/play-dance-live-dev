@@ -137,10 +137,9 @@ public class RoomController {
             gameSignal.setType("GAME_END");
             gameSignal.setChampion(gameRoomDto.getCurrentChampion());
             gameSignal.setRankingList(gameRoomDto.getRankingList());
-            gameRoomService.resetPoll();
             template.convertAndSend("/topic/public", gameSignal);
             try {
-                Thread.sleep(500);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
