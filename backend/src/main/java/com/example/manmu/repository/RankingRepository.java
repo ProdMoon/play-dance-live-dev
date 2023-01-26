@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 public interface RankingRepository extends JpaRepository<Ranking, Long> {
@@ -14,7 +15,9 @@ public interface RankingRepository extends JpaRepository<Ranking, Long> {
     @Cacheable(value = "ranking")
     List<Ranking> findAllByOrderByBestWinNumsDesc();
 
+    @Transactional
     @Override
     @CacheEvict(value = "ranking", allEntries = true)
     <S extends Ranking> S save(S s);
+
 }
