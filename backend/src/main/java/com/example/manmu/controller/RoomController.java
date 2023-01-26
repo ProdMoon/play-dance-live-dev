@@ -2,6 +2,7 @@ package com.example.manmu.controller;
 
 import com.example.manmu.GameSignal;
 import com.example.manmu.PollSignal;
+import com.example.manmu.entity.User;
 import com.example.manmu.entity.UserDto;
 import com.example.manmu.entity.VoteData;
 import com.example.manmu.service.GameRoomService;
@@ -114,9 +115,12 @@ public class RoomController {
     public void sendSong(@Payload GameSignal gameSignal) {
         RoomDto gameRoomDto = gameRoomService.findRoom();
         UserDto championUserDto = gameRoomDto.getCurrentChampion();
+        UserDto challengerUserDto = gameRoomDto.getCurrentChallenger();
         gameRoomService.setCurrentDancer(championUserDto.getConnectionId());
         gameSignal.setSong(championUserDto.getSong());
         gameSignal.setConnectionId(championUserDto.getConnectionId());
+        gameSignal.setChampion(championUserDto);
+        gameSignal.setChallenger(challengerUserDto);
         template.convertAndSend("/topic/public", gameSignal);
     }
 
@@ -131,6 +135,8 @@ public class RoomController {
             gameSignal.setType("SONG_START");
             gameSignal.setConnectionId(challengerDto.getConnectionId());
             gameSignal.setSong(challengerDto.getSong());
+            gameSignal.setChampion(roomDto.getCurrentChampion());
+            gameSignal.setChallenger(roomDto.getCurrentChallenger());
             template.convertAndSend("/topic/public", gameSignal);
         }
         else  {

@@ -40,6 +40,4 @@ public class ViduController {
         Connection connection = session.createConnection(properties);
         return new ResponseEntity<>(connection.getToken(), HttpStatus.OK);
     }
-
-
 }
