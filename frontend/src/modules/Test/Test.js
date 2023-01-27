@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Box, Grid } from '@mui/material';
 
 import Vote from '../Vote/Vote';
+import Fire from './Fire';
 
 const Test = () => {
 
@@ -13,20 +14,25 @@ const Test = () => {
         const stage = document.querySelector(".stage");
 
         const videos = document.querySelectorAll(".video-comp");
+        const fires = document.querySelectorAll(".fire");
         const champion = document.getElementById("1");
         const challenger = document.getElementById("2");
-    
+        
         normalBtn.addEventListener("click", () => {
             videos.forEach((video) => {
                 video.classList.remove("dancing", "champion-resting", "challenger-resting");
               })
-            stage.classList.remove("background-effect");
+            fires.forEach((fire) => {
+              fire.classList.remove("show");
+            }) 
         });
     
         championBtn.addEventListener("click", () => {
             champion.classList.remove("champion-resting");
             champion.classList.add("dancing");
-            stage.classList.add("background-effect");
+            fires.forEach((fire) => {
+              fire.classList.add("show");
+            }) 
             
             challenger.classList.remove("dancing");
             challenger.classList.add("challenger-resting");
@@ -36,6 +42,9 @@ const Test = () => {
             challenger.classList.remove("challenger-resting");
             challenger.classList.add("dancing");
             
+            fires.forEach((fire) => {
+              fire.classList.remove("show");
+            }) 
             champion.classList.remove("dancing");
             champion.classList.add("champion-resting");
         });
@@ -56,12 +65,15 @@ const Test = () => {
       <Grid className='containerItem' item xs={6}>
         <Box className='backgroundPaper containerItem flex-column stage' elevation={5}>
         <div id='video-container'>
-
             <div id={1} className='video-comp'>
+                <Fire />
+                <Fire />
+                <div className="winning-banner">4 연승</div>
                 <div className='streamcomponent'>video 1</div>
             </div>
 
             <div id={2} className='video-comp'>
+                <div className="trying-banner">도전자</div>
                 <div className='streamcomponent'>video 2</div>
             </div>
 

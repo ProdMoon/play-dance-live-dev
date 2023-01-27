@@ -61,17 +61,17 @@
 }
   
   
-  @keyframes animatedgradient {
-      0% {
-          background-position: 0% 50%;
-      }
-      50% {
-          background-position: 100% 50%;
-      }
-      100% {
-          background-position: 0% 50%;
-      }
-  }
+@keyframes animatedgradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
 
 .champion-resting {
     position: absolute;
@@ -92,17 +92,83 @@
     z-index: 100;
 }
 
-.background-effect {
+.winning-banner {
+    background-color: #F44336; /* red */
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.5em;
+    text-align: center;
+    position: absolute;
+    /* top: -12%; */
+    left: 50%;
+    transform: translate(-50%, -110%); 
+    border-radius: 20%;
+    animation: winning-burning 2s ease-in-out infinite, winning-flicker 2s ease-in-out infinite;
+    box-shadow: 0px 0px 30px 10px #ff6f00;
+  }
 
+.trying-banner {
+    background-color: #2196F3; /* blue */
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.5em;
+    text-align: center;
+    position: absolute;
+    /* top: -12%; */
+    left: 50%;
+    transform: translate(-50%, -110%); 
+    border-radius: 20%;
+    animation: trying-burning 2s ease-in-out infinite, trying-flicker 2s ease-in-out infinite;
+    box-shadow: 0px 0px 20px 5px #2196F3;
 }
 
-
-@keyframes background-animation {
+@keyframes trying-burning {
     0% {
-        background-position: 0% 0%;
+        background-color: #2196F3; /* blue */
+    }
+    50% {
+        background-color: #1e88e5; /* dark blue */
     }
     100% {
-        background-position: -100% 0%;
+        background-color: #2196F3; /* blue */
     }
 }
-
+@keyframes trying-flicker {
+    0% {
+        box-shadow: 0px 0px 20px 5px #2196F3;
+    }
+    50% {
+        box-shadow: none;
+    }
+    100% {
+        box-shadow: 0px 0px 20px 5px #2196F3;
+    }
+}  
+@keyframes winning-flicker {
+    0% {
+      box-shadow: 0px 0px 20px 5px #ff6f00;
+    }
+    50% {
+      box-shadow: none;
+    }
+    100% {
+      box-shadow: 0px 0px 20px 5px #ff6f00;
+    }
+}
+@keyframes winning-burning {
+    0% {
+        background-color: #F44336; /* red */
+    }
+    25% {
+        background-color: #ff5722; /* dark orange */
+    }
+    50% {
+        background-color: #ff6f00; /* orange */
+    }
+    75% {
+        background-color: #ff8f00; /* light orange */
+    }
+    100% {
+        background-color: #F44336; /* red */
+    }
+}

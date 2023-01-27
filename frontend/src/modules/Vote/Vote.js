@@ -1,21 +1,25 @@
 import './Vote.css';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLoginContext } from '../../context/LoginContext';
 import { useSocketContext } from '../../context/SocketContext';
 import { Typography } from '@mui/material';
 
-const Vote = (props) => {
-  const leftText = props.leftText;
-  const rightText = props.rightText;
+const Vote = () => {
+  // const leftText = props.leftText;
+  // const rightText = props.rightText;
   
     // socket
-    const [userInfo, setUserInfo] = useLoginContext();
-    const socketContext = useSocketContext();
-    const client = socketContext.client;
-    const [voteA, setVoteA] = socketContext.voteAs;
-    const [voteB, setVoteB] = socketContext.voteBs;
-    const [progA, setProgA] = socketContext.progAs;
-    const [progB, setProgB] = socketContext.progBs;
+    // const [userInfo, setUserInfo] = useLoginContext();
+    // const socketContext = useSocketContext();
+    // const client = socketContext.client;
+    // const [voteA, setVoteA] = socketContext.voteAs;
+    // const [voteB, setVoteB] = socketContext.voteBs;
+    // const [progA, setProgA] = socketContext.progAs;
+    // const [progB, setProgB] = socketContext.progBs;
+    const [voteA, setVoteA] = useState(0);
+    const [voteB, setVoteB] = useState(0);
+    const [progA, setProgA] = useState(0);
+    const [progB, setProgB] = useState(0);
   
     // vote UI
     // const getProgress = (vote) => 
@@ -31,32 +35,32 @@ const Vote = (props) => {
     }
 
     const makeHeart = (option) => {
-          let b = Math.floor((Math.random() * 100) + 1);
-          let d = ["flowOne", "flowTwo", "flowThree"];
-          let a = ["colOne", "colTwo", "colThree", "colFour", "colFive", "colSix"];
-          let c = (Math.random() * (1.6 - 1.2) + 1.2).toFixed(1);
+          // let b = Math.floor((Math.random() * 100) + 1);
+          // let d = ["flowOne", "flowTwo", "flowThree"];
+          // let a = ["colOne", "colTwo", "colThree", "colFour", "colFive", "colSix"];
+          // let c = (Math.random() * (1.6 - 1.2) + 1.2).toFixed(1);
 
-          let newDiv = document.createElement("div");
-            newDiv.className = "heart part-" + b + " " + a[Math.floor((Math.random() * 6))];
-            newDiv.style.fontSize = Math.floor(Math.random() * (60 - 30) + 30) + "px";
-            newDiv.innerHTML = '<span>❤</span>';
-            document.querySelector(`.vote-option__${option}.hearts`).appendChild(newDiv);
-            newDiv.style.animation = "" + d[Math.floor((Math.random() * 3))] + " " + c + "s linear";
-            newDiv.style.display = 'block';
+          // let newDiv = document.createElement("div");
+          //   newDiv.className = "heart part-" + b + " " + a[Math.floor((Math.random() * 6))];
+          //   newDiv.style.fontSize = Math.floor(Math.random() * (60 - 30) + 30) + "px";
+          //   newDiv.innerHTML = '<span>❤</span>';
+          //   document.querySelector(`.vote-option__${option}.hearts`).appendChild(newDiv);
+          //   newDiv.style.animation = "" + d[Math.floor((Math.random() * 3))] + " " + c + "s linear";
+          //   newDiv.style.display = 'block';
 
-          setTimeout(function() {
-              newDiv.remove()
-          }, c * 900);
+          // setTimeout(function() {
+          //     newDiv.remove()
+          // }, c * 900);
     }
   
     const sendClick = (event, value) => {
-      createBubbleEffect(event.currentTarget);
-      const Click = {
-        type: 'VOTE-click',
-        value: value,
-        roomId: userInfo.roomId
-      };
-      client.send('/app/chat.sendClick', {}, JSON.stringify(Click));
+      // createBubbleEffect(event.currentTarget);
+      // const Click = {
+      //   type: 'VOTE-click',
+      //   value: value,
+      //   roomId: userInfo.roomId
+      // };
+      // client.send('/app/chat.sendClick', {}, JSON.stringify(Click));
     };
 
   // useEffect(() => {
@@ -97,7 +101,7 @@ const Vote = (props) => {
           }}
         >
           <div className='vote-option-button vote-option-button__a'>
-            <Typography variant='h6'>{leftText}</Typography>
+            {/* <Typography variant='h6'>{leftText}</Typography> */}
           </div>
         </div>
         <div
@@ -107,7 +111,7 @@ const Vote = (props) => {
           }}
         >
           <div className='vote-option-button vote-option-button__b'>
-            <Typography variant='h6'>{rightText}</Typography>
+            {/* <Typography variant='h6'>{rightText}</Typography> */}
           </div>
         </div>
         <div className='vote-count vote-count__a'>{voteA}</div>
