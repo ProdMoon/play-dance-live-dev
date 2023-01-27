@@ -47,7 +47,9 @@ const Ranking = () => {
         </Table>
       </TableContainer> */}
 
-        <Typography variant='h5'>현재 랭킹</Typography>
+        <Typography variant='h5'>
+          현재 <span style={{ color: 'gold' }}>랭킹</span>
+        </Typography>
         {currentRanking !== null
           ? currentRanking.map((elem, i) => {
               return (

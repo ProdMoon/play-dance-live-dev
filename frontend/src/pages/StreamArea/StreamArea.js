@@ -78,7 +78,6 @@ const StreamArea = () => {
   // Slot 관련 States
   const [slotView, setSlotView] = useState(false);
   const [slotNum, setSlotNum] = socketContextObjects.slotNums;
-  const slotAudio = useRef();
 
   // slotNum이 설정되고 나서 발동됩니다.
   useEffect(() => {
@@ -118,6 +117,8 @@ const StreamArea = () => {
   const [currentAudioSource, setCurrentAudioSource] = useState(null);
   const audioRef = useRef();
   const localAudioRef = useRef();
+  const slotAudio = useRef();
+  const gameEndAudio = useRef();
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -211,6 +212,7 @@ const StreamArea = () => {
     if (gameInfo.type === 'SONG_START') {
       // 강조 표시를 모두 지워줍니다.
       const videos = document.querySelectorAll('.video-comp');
+      const fires = document.querySelectorAll('.fire');
       videos.forEach((video) => {
         video.classList.remove(
           'dancing',
@@ -218,7 +220,9 @@ const StreamArea = () => {
           'challenger-resting',
         );
       });
-
+      // fires.forEach((fire) => {
+      //   fire.classList.remove('show');
+      // })
       setWinnerView(false);
 
       // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
@@ -231,13 +235,19 @@ const StreamArea = () => {
       if (gameInfo.champion.connectionId === gameInfo.connectionId) {
         dancer.classList.remove('champion-resting');
         dancer.classList.add('dancing');
+        // fires.forEach((fire) => {
+        //   fire.classList.add('show');
+        // })
 
         notDancer.classList.remove('dancing');
         notDancer.classList.add('challenger-resting');
       } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
         dancer.classList.remove('challenger-resting');
-        dancer.classList.add('dancing');
 
+        dancer.classList.add('dancing');
+        // fires.forEach((fire) => {
+        //   fire.classList.remove('show');
+        // })
         notDancer.classList.remove('dancing');
         notDancer.classList.add('champion-resting');
       }
@@ -265,6 +275,14 @@ const StreamArea = () => {
           'challenger-resting',
         );
       });
+      // fires.forEach((fire) => {
+      //   fire.classList.remove('show');
+      // })
+
+      // 결과 효과음을 재생합니다.
+      gameEndAudio.current.pause();
+      gameEndAudio.current.currentTime = 0;
+      gameEndAudio.current.play();
 
       // 결과창을 보여줍니다.
       setWinnerView(true);
@@ -276,7 +294,7 @@ const StreamArea = () => {
         timeout = setTimeout(() => {
           console.info('나는 새로운 챌린저입니다.');
           songStart();
-        }, 3000);
+        }, 5000);
       }
     }
 
@@ -300,6 +318,9 @@ const StreamArea = () => {
         if (gameInfo.champion.connectionId === gameInfo.connectionId) {
           dancer.classList.remove('champion-resting');
           dancer.classList.add('dancing');
+          // fires.forEach((fire) => {
+          //   fire.classList.add('show');
+          // })
 
           notDancer.classList.remove('dancing');
           notDancer.classList.add('challenger-resting');
@@ -307,6 +328,9 @@ const StreamArea = () => {
           dancer.classList.remove('challenger-resting');
           dancer.classList.add('dancing');
 
+          // fires.forEach((fire) => {
+          //   fire.classList.remove('show');
+          // })
           notDancer.classList.remove('dancing');
           notDancer.classList.add('champion-resting');
         }
@@ -829,6 +853,9 @@ const StreamArea = () => {
                 challenger={
                   gameInfo.challenger ? gameInfo.challenger.connectionId : null
                 }
+                currentWinNums={
+                  gameInfo.challenger ? gameInfo.champion.currentWinNums : null
+                }
               />
             </Grid>
           </Grid>
@@ -876,6 +903,10 @@ const StreamArea = () => {
       <audio
         ref={slotAudio}
         src={`${process.env.PUBLIC_URL}/resources/musics/roulette.mp3`}
+      />
+      <audio
+        ref={gameEndAudio}
+        src={`${process.env.PUBLIC_URL}/resources/musics/game_end.mp3`}
       />
     </div>
   );
