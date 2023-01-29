@@ -7,12 +7,16 @@ const Participants = () => {
 
   return (
     <div className='menubar-item'>
-      <Typography>다음 도전자</Typography>
-      {currentWaiters !== null
-        ? currentWaiters.map((elem) => {
-            return <Typography>{elem.name}</Typography>;
-          })
-        : null}
+      <div className='list-table'>
+        <Typography variant='h5'>
+          다음 <span style={{ color: 'skyblue' }}>도전자</span>
+        </Typography>
+        {currentWaiters !== null
+          ? currentWaiters.map((elem) => {
+              return <Typography>{elem.name}</Typography>;
+            })
+          : null}
+      </div>
     </div>
   );
 };

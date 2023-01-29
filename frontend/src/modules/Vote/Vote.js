@@ -25,9 +25,10 @@ const Vote = (props) => {
       const $bubble = document.createElement('div');
       $bubble.className = 'vote-option-bubble';
       target.appendChild($bubble);
-      setTimeout(() => {
+      let timeout = setTimeout(() => {
         $bubble.remove();
       }, 500);
+      return () => clearTimeout(timeout);
     }
 
     const makeHeart = (option) => {
@@ -44,9 +45,10 @@ const Vote = (props) => {
             newDiv.style.animation = "" + d[Math.floor((Math.random() * 3))] + " " + c + "s linear";
             newDiv.style.display = 'block';
 
-          setTimeout(function() {
+          let timeout = setTimeout(function() {
               newDiv.remove()
           }, c * 900);
+          return () => clearTimeout(timeout);
     }
   
     const sendClick = (event, value) => {

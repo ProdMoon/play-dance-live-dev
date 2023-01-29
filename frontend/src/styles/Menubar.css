@@ -35,5 +35,13 @@
 }
 
 .menubar-item {
+  display: flex;
+  justify-content: center;
   margin: 10px 0 10px 0;
+  width: 100%;
+}
+
+.list-table {
+  width: 100%;
+  padding-left: 12px;
 }

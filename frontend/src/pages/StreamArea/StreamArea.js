@@ -3,7 +3,15 @@ import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 
 import './StreamArea.css';
-import { Button, FormControl, Grid, InputLabel, MenuItem, Select, Typography } from '@mui/material';
+import {
+  Button,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
@@ -70,10 +78,10 @@ const StreamArea = () => {
   // Slot 관련 States
   const [slotView, setSlotView] = useState(false);
   const [slotNum, setSlotNum] = socketContextObjects.slotNums;
-  const slotAudio = useRef();
 
   // slotNum이 설정되고 나서 발동됩니다.
   useEffect(() => {
+    let timeout = null;
     if (slotNum !== undefined) {
       // 슬롯을 표시해줍니다.
       setSlotView(true);
@@ -81,7 +89,7 @@ const StreamArea = () => {
       slotAudio.current.currentTime = 0;
       slotAudio.current.play();
 
-      const timeout = setTimeout(() => {
+      timeout = setTimeout(() => {
         setSlotView(false);
         setSlotNum(undefined);
 
@@ -100,9 +108,8 @@ const StreamArea = () => {
         // 카운트다운을 합니다.
         setCount(3);
       }, 7500);
-
-      return () => clearTimeout(timeout);
     }
+    return () => (timeout ? clearTimeout(timeout) : null);
   }, [slotNum]);
 
   // Audio 관련
@@ -110,6 +117,8 @@ const StreamArea = () => {
   const [currentAudioSource, setCurrentAudioSource] = useState(null);
   const audioRef = useRef();
   const localAudioRef = useRef();
+  const slotAudio = useRef();
+  const gameEndAudio = useRef();
 
   const onbeforeunload = (event) => {
     leaveSession();
@@ -118,12 +127,9 @@ const StreamArea = () => {
   useEffect(() => {
     if (session === undefined) {
       joinSession();
-
       window.addEventListener('beforeunload', onbeforeunload);
-      return () => {
-        window.removeEventListener('beforeunload', onbeforeunload);
-      };
     }
+    return () => window.removeEventListener('beforeunload', onbeforeunload);
   }, []);
 
   // joinSession()이 완료되었을 때 발동됩니다.
@@ -172,22 +178,41 @@ const StreamArea = () => {
     );
   }
 
+  function handleSongChange() {
+    client.send(
+      '/app/song/change',
+      {},
+      JSON.stringify({
+        sender: userInfo.userEmail,
+        song: selectedSong,
+        connectionId: myConnectionId,
+      }),
+    );
+  }
+
   // 카운트다운 이펙트
   const [count, setCount] = useState(0);
   useEffect(() => {
+    let timer = null;
     if (count > 0) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setCount(count - 1);
       }, 1000);
-      return () => clearTimeout(timer);
     }
+    return () => (timer ? clearTimeout(timer) : null);
   }, [count]);
 
+  /*************************
+   *    게임 진행 관련 부분    *
+   *************************/
   useEffect(async () => {
+    let timeout = null;
+
     // 노래 시작 신호...
     if (gameInfo.type === 'SONG_START') {
       // 강조 표시를 모두 지워줍니다.
       const videos = document.querySelectorAll('.video-comp');
+      const fires = document.querySelectorAll('.fire');
       videos.forEach((video) => {
         video.classList.remove(
           'dancing',
@@ -195,7 +220,9 @@ const StreamArea = () => {
           'challenger-resting',
         );
       });
-
+      // fires.forEach((fire) => {
+      //   fire.classList.remove('show');
+      // })
       setWinnerView(false);
 
       // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
@@ -208,13 +235,19 @@ const StreamArea = () => {
       if (gameInfo.champion.connectionId === gameInfo.connectionId) {
         dancer.classList.remove('champion-resting');
         dancer.classList.add('dancing');
+        // fires.forEach((fire) => {
+        //   fire.classList.add('show');
+        // })
 
         notDancer.classList.remove('dancing');
         notDancer.classList.add('challenger-resting');
       } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
         dancer.classList.remove('challenger-resting');
-        dancer.classList.add('dancing');
 
+        dancer.classList.add('dancing');
+        // fires.forEach((fire) => {
+        //   fire.classList.remove('show');
+        // })
         notDancer.classList.remove('dancing');
         notDancer.classList.add('champion-resting');
       }
@@ -242,6 +275,14 @@ const StreamArea = () => {
           'challenger-resting',
         );
       });
+      // fires.forEach((fire) => {
+      //   fire.classList.remove('show');
+      // })
+
+      // 결과 효과음을 재생합니다.
+      gameEndAudio.current.pause();
+      gameEndAudio.current.currentTime = 0;
+      gameEndAudio.current.play();
 
       // 결과창을 보여줍니다.
       setWinnerView(true);
@@ -250,11 +291,10 @@ const StreamArea = () => {
     // 새로운 게임 챌린지 신호...
     if (gameInfo.type === 'GAME_CHALLENGE') {
       if (gameInfo.challenger.connectionId === myConnectionId) {
-        const timeout = setTimeout(() => {
+        timeout = setTimeout(() => {
           console.info('나는 새로운 챌린저입니다.');
           songStart();
-        }, 3000);
-        return () => clearTimeout(timeout);
+        }, 5000);
       }
     }
 
@@ -278,6 +318,9 @@ const StreamArea = () => {
         if (gameInfo.champion.connectionId === gameInfo.connectionId) {
           dancer.classList.remove('champion-resting');
           dancer.classList.add('dancing');
+          // fires.forEach((fire) => {
+          //   fire.classList.add('show');
+          // })
 
           notDancer.classList.remove('dancing');
           notDancer.classList.add('challenger-resting');
@@ -285,11 +328,15 @@ const StreamArea = () => {
           dancer.classList.remove('challenger-resting');
           dancer.classList.add('dancing');
 
+          // fires.forEach((fire) => {
+          //   fire.classList.remove('show');
+          // })
           notDancer.classList.remove('dancing');
           notDancer.classList.add('champion-resting');
         }
       }
     }
+    return () => (timeout ? clearTimeout(timeout) : null);
   }, [gameInfo]);
 
   useEffect(async () => {
@@ -417,7 +464,7 @@ const StreamArea = () => {
   // 곡 선택용
   const handleSongSelect = (event) => {
     setSelectedSong(event.target.value);
-  }
+  };
 
   const deleteSubscriber = (streamManager) => {
     let newSubscribers = [...subscribers];
@@ -760,6 +807,14 @@ const StreamArea = () => {
                   >
                     SONG START
                   </Button>
+                  <Button
+                    onClick={handleSongChange}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    SONG CHANGE
+                  </Button>
                 </>
                 {mainStreamManager !== undefined ? (
                   <>
@@ -798,6 +853,9 @@ const StreamArea = () => {
                 challenger={
                   gameInfo.challenger ? gameInfo.challenger.connectionId : null
                 }
+                currentWinNums={
+                  gameInfo.challenger ? gameInfo.champion.currentWinNums : null
+                }
               />
             </Grid>
           </Grid>
@@ -812,11 +870,11 @@ const StreamArea = () => {
         </div>
       ) : null}
       {winnerView ? (
-        <div className='vote-container'>
-          <div className='vote-background'>
-            <Typography variant='h5'>축하합니다!</Typography>
-            <Typography variant='h5'>
-              챔피언 : {gameInfo.champion.name}{' '}
+        <div className='result-container'>
+          <div className='result-background'>
+            <Typography variant='h3'>축하합니다!</Typography>
+            <Typography variant='h4'>
+              챔피언 <span color='orange'>{gameInfo.champion.name}</span>{' '}
               {gameInfo.champion.currentWinNums}연승 중!
             </Typography>
           </div>
@@ -845,6 +903,10 @@ const StreamArea = () => {
       <audio
         ref={slotAudio}
         src={`${process.env.PUBLIC_URL}/resources/musics/roulette.mp3`}
+      />
+      <audio
+        ref={gameEndAudio}
+        src={`${process.env.PUBLIC_URL}/resources/musics/game_end.mp3`}
       />
     </div>
   );

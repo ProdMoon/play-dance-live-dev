@@ -1,4 +1,5 @@
 import UserVideoComponent from './UserVideoComponent';
+import Fire from '../../modules/Fire/Fire'
 
 const VideoContainer = (props) => {
   const myConnectionId = props.myConnectionId;
@@ -6,6 +7,7 @@ const VideoContainer = (props) => {
   const subscribers = props.subscribers;
   const champion = props.champion;
   const challenger = props.challenger;
+  const currentWinNums = props.currentWinNums;
 
   return (
     <>
@@ -17,6 +19,9 @@ const VideoContainer = (props) => {
               id={publisher.stream.connection.connectionId}
               className='video-comp'
             >
+              <Fire />
+              <Fire />
+              <div className='winning-banner'>{currentWinNums ? currentWinNums + ' 연승' : '챔피언'}</div>
               <UserVideoComponent streamManager={publisher} />
             </div>
             {subscribers.length > 0
@@ -28,6 +33,7 @@ const VideoContainer = (props) => {
                         key={i}
                         className='video-comp'
                       >
+                        <div className='trying-banner'>도전자</div>
                         <UserVideoComponent streamManager={sub} />
                       </div>
                     );
@@ -46,6 +52,9 @@ const VideoContainer = (props) => {
                         key={i}
                         className='video-comp'
                       >
+                        <Fire />
+                        <Fire />
+                        <div className='winning-banner'>{currentWinNums ? currentWinNums + ' 연승' : '챔피언'}</div>
                         <UserVideoComponent streamManager={sub} />
                       </div>
                     );
@@ -56,6 +65,7 @@ const VideoContainer = (props) => {
               id={publisher.stream.connection.connectionId}
               className='video-comp'
             >
+              <div className='trying-banner'>도전자</div>
               <UserVideoComponent streamManager={publisher} />
             </div>
           </div>
@@ -74,6 +84,9 @@ const VideoContainer = (props) => {
                     key={i}
                     className='video-comp'
                   >
+                    <Fire />
+                    <Fire />
+                    <div className='winning-banner'>{currentWinNums ? currentWinNums + ' 연승' : '챔피언'}</div>
                     <UserVideoComponent streamManager={sub} />
                   </div>
                 );
@@ -91,6 +104,7 @@ const VideoContainer = (props) => {
                     key={i}
                     className='video-comp'
                   >
+                    <div className='trying-banner'>도전자</div>
                     <UserVideoComponent streamManager={sub} />
                   </div>
                 );

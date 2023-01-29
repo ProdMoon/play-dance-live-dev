@@ -96,7 +96,10 @@ export default function SocketContextProvider({ children }) {
             setGameInfo((prevState) => ({
               ...prevState,
               type: messageBody.type, // GAME_END
+              champion: messageBody.champion,
             }));
+            const ranking = messageBody.rankingList;
+            setRankingList(ranking);
           }
         }
 
