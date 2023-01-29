@@ -132,7 +132,7 @@ public class GameRoomService {
                     .orElseThrow(() -> new UserNotFoundException("해당 유저를 찾을 수 없습니다! " + currentChallengerDto.getEmail()));
             Ranking currentChampionRanking = rankingRepository.findByUser(currentChampionUser);
             Ranking currentChallengerRanking = rankingRepository.findByUser(currentChallengerUser);
-            
+
             if (leftScore == null || rightScore == null) {
                 return null;
             }
@@ -153,7 +153,7 @@ public class GameRoomService {
                 UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
                 gameRoom.setCurrentChallenger(newChallenger);
-                
+                resetPoll();
                 redisTemplate.opsForValue().set("ROOM", gameRoom);
                 return new RoomDto(gameRoom);
             }
@@ -170,7 +170,7 @@ public class GameRoomService {
                 UserDto newChallenger = getNewChallenger(gameRoom);
                 gameRoom.addPlayer(newChallenger);
                 gameRoom.setCurrentChallenger(newChallenger);
-
+                resetPoll();
                 redisTemplate.opsForValue().set("ROOM", gameRoom);
                 return new RoomDto(gameRoom);
             }
