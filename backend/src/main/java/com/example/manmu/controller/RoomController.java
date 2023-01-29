@@ -1,11 +1,18 @@
 package com.example.manmu.controller;
 
+import com.example.manmu.GameSignal;
+import com.example.manmu.PollSignal;
+import com.example.manmu.entity.User;
+import com.example.manmu.entity.UserDto;
+import com.example.manmu.entity.VoteData;
 import com.example.manmu.service.GameRoomService;
 import com.example.manmu.entity.RoomDto;
-import com.example.manmu.service.RoomHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -16,13 +23,11 @@ import java.util.*;
 public class RoomController {
 
     private final GameRoomService gameRoomService;
-    private final RoomHistoryService roomHistoryService;
+    private final SimpMessagingTemplate template;
 
     @PostMapping("/api/room/create")
     public ResponseEntity<RoomDto> createRoom(@RequestBody(required = false) Map<String, Object> params) {
-        String userId = (String) params.get("userId");
-        List<String> songs = (List<String>) params.get("songs");
-        RoomDto roomDto = gameRoomService.createRoom(userId, songs);
+        RoomDto roomDto = gameRoomService.createRoom();
         if (roomDto != null) {
             return new ResponseEntity<>(roomDto, HttpStatus.OK);
         } else {
@@ -30,57 +35,150 @@ public class RoomController {
         }
     }
 
-    @PostMapping("/api/room/match")
-    public ResponseEntity<RoomDto> TestMatchRoom(@RequestBody Map<String, Object> params){
-        String userId = (String) params.get("userId");
-        List<String> songs = (List<String>) params.get("songs");
-        RoomDto roomDto = gameRoomService.matchRoom(songs, userId);
-        if (roomDto != null) {
-            return new ResponseEntity<>(roomDto, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @MessageMapping("/join")
+    public void joinGame(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        String userSong = gameSignal.getSong();
+        String userConnectionId = gameSignal.getConnectionId();
+        RoomDto gameRoomDto = gameRoomService.joinGame(userMail, userSong, userConnectionId);
+        gameSignal.setType("REFRESH_WAITER_LIST");
+        gameSignal.setWaiters(gameRoomDto.getWaiters());
+        gameSignal.setChampion(gameRoomDto.getCurrentChampion());
+        gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
+        gameSignal.setRankingList(gameRoomDto.getRankingList());
+        gameSignal.setConnectionId(gameRoomDto.getCurrentDancerConnectionId());
+        template.convertAndSend("/topic/public", gameSignal);
+        try{
+        Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            PollSignal pollSignal = gameRoomService.getCurrentPoll();
+            template.convertAndSend("/topic/public", pollSignal);
         }
     }
 
-    @PostMapping("/api/room/enter")
-    public ResponseEntity<RoomDto> EnterRoom(@RequestBody Map<String, Object> params){
-        String userId = (String) params.get("userId");
-        String roomId = (String) params.get("roomId");
-        String direction = (String) params.get("direction");
-        RoomDto roomDto = gameRoomService.enterRoom(roomId, userId, direction);
+    @MessageMapping("/song/change")
+    public void changeSong(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        String userSong = gameSignal.getSong();
+        RoomDto roomDto = gameRoomService.changeSong(userMail, userSong);
+        gameSignal.setType("test");
+        gameSignal.setChampion(roomDto.getCurrentChampion());
+        gameSignal.setChallenger(roomDto.getCurrentChallenger());
+        template.convertAndSend("/topic/public", gameSignal);
+    }
+
+    @MessageMapping("/enter")
+    public void enterGame(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        RoomDto gameRoomDto = gameRoomService.enterGame(userMail);
+        gameSignal.setType("REFRESH_WAITER_LIST");
+        gameSignal.setWaiters(gameRoomDto.getWaiters());
+        gameSignal.setChampion(gameRoomDto.getCurrentChampion());
+        gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
+        gameSignal.setRankingList(gameRoomDto.getRankingList());
+        gameSignal.setConnectionId(gameRoomDto.getCurrentDancerConnectionId());
+        template.convertAndSend("/topic/public", gameSignal);
+        try{
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            PollSignal pollSignal = gameRoomService.getCurrentPoll();
+            template.convertAndSend("/topic/public", pollSignal);
+        }
+    }
+
+    @MessageMapping("/start")
+    public void startGame(@Payload GameSignal gameSignal) {
+        RoomDto startRoomDto = gameRoomService.startGame();
+        if (startRoomDto != null){
+            gameSignal.setType("GAME_START");
+            gameSignal.setWaiters(startRoomDto.getWaiters());
+            gameSignal.setChampion(startRoomDto.getCurrentChampion());
+            gameSignal.setChallenger(startRoomDto.getCurrentChallenger());
+            template.convertAndSend("/topic/public", gameSignal);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                gameSignal.setType("REFRESH_WAITER_LIST");
+                template.convertAndSend("/topic/public", gameSignal);
+            }
+
+        }
+    }
+
+    @MessageMapping("/song/start")
+    public void sendSong(@Payload GameSignal gameSignal) {
+        RoomDto gameRoomDto = gameRoomService.findRoom();
+        UserDto championUserDto = gameRoomDto.getCurrentChampion();
+        UserDto challengerUserDto = gameRoomDto.getCurrentChallenger();
+        gameRoomService.setCurrentDancer(championUserDto.getConnectionId());
+        gameSignal.setSong(championUserDto.getSong());
+        gameSignal.setConnectionId(championUserDto.getConnectionId());
+        gameSignal.setChampion(championUserDto);
+        gameSignal.setChallenger(challengerUserDto);
+        template.convertAndSend("/topic/public", gameSignal);
+    }
+
+    @MessageMapping("/song/end")
+    public void endSong(@Payload GameSignal gameSignal) {
+        String userMail = gameSignal.getSender();
+        RoomDto gameRoomDto = gameRoomService.endGame(userMail);
+        if (gameRoomDto == null) {
+            RoomDto roomDto = gameRoomService.findRoom();
+            UserDto challengerDto = roomDto.getCurrentChallenger();
+            gameRoomService.setCurrentDancer(challengerDto.getConnectionId());
+            gameSignal.setType("SONG_START");
+            gameSignal.setConnectionId(challengerDto.getConnectionId());
+            gameSignal.setSong(challengerDto.getSong());
+            gameSignal.setChampion(roomDto.getCurrentChampion());
+            gameSignal.setChallenger(roomDto.getCurrentChallenger());
+            template.convertAndSend("/topic/public", gameSignal);
+        }
+        else  {
+            gameSignal.setType("GAME_END");
+            gameSignal.setChampion(gameRoomDto.getCurrentChampion());
+            gameSignal.setRankingList(gameRoomDto.getRankingList());
+            gameRoomService.resetPoll();
+            template.convertAndSend("/topic/public", gameSignal);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            gameSignal.setType("GAME_CHALLENGE");
+            gameSignal.setWaiters(gameRoomDto.getWaiters());
+            gameSignal.setChallenger(gameRoomDto.getCurrentChallenger());
+            template.convertAndSend("/topic/public", gameSignal);
+        }
+    }
+
+
+    @PostMapping("/api/room")
+    public ResponseEntity<RoomDto> EnterRoom(@RequestBody Map<String, Object> params) {
+        String userMail = (String) params.get("userId");
+        RoomDto roomDto = gameRoomService.enterRoom(userMail);
         return new ResponseEntity<>(roomDto, HttpStatus.OK);
     }
 
     @PostMapping("/api/room/leave")
     public ResponseEntity<HttpStatus> leaveRoom(@RequestBody Map<String, Object> params) {
-        String userId = (String) params.get("userId");
-        String roomId = (String) params.get("roomId");
-        gameRoomService.leaveRoom(roomId, userId);
+        String userMail = (String) params.get("userId");
+        gameRoomService.leaveRoom(userMail);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/api/room/startPlaying")
-    public ResponseEntity<RoomDto> startGame(@RequestBody Map<String, String> params){
-        RoomDto roomDto =  gameRoomService.startPlaying(params.get("roomId"));
-        return new ResponseEntity<>(roomDto, HttpStatus.OK);
-    }
-
-
-    @DeleteMapping("/api/room")
-    public void endGame(@RequestBody Map<String, String> params){
-        roomHistoryService.saveRoomHistory(params.get("roomId"));
-        gameRoomService.endPlaying(params.get("roomId"));
-    }
-
-    @GetMapping("/api/room/getPlaying")
-    public ResponseEntity<List<RoomDto>> getPlayingRoom(){
-        List<RoomDto> roomDtos = gameRoomService.getPlayingRooms();
-        return new ResponseEntity<>(roomDtos, HttpStatus.OK);
-    }
-
-    @GetMapping("/api/room/getWaiting")
-    public ResponseEntity<List<RoomDto>> getWaitingRoom(){
-        List<RoomDto> roomDtos = gameRoomService.getWaitingRooms();
-        return new ResponseEntity<>(roomDtos, HttpStatus.OK);
+    @MessageMapping("/vote")
+    public void vote(@Payload VoteData VoteData) {
+        String type = VoteData.getType();
+        String sender = VoteData.getSender();
+        Integer pollLeft = VoteData.getPollLeft();
+        Integer pollRight = VoteData.getPollRight();
+        gameRoomService.vote(VoteData);
+        template.convertAndSend("/topic/public", VoteData);
     }
 }

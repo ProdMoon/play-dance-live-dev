@@ -3,13 +3,24 @@ import { OpenVidu } from 'openvidu-browser';
 import axios from 'axios';
 
 import './StreamArea.css';
-import { Button, Grid, Typography } from '@mui/material';
+import {
+  Button,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from '@mui/material';
 
 import UserVideoComponent from './UserVideoComponent';
 import { useLoginContext } from '../../context/LoginContext';
 import Vote from '../../modules/Vote/Vote';
+import Slot from '../../modules/Slot/Slot';
+
 import { useSocketContext } from '../../context/SocketContext';
 import { SongListData } from '../../assets/songListData';
+import VideoContainer from './VideoContainer';
 
 const APPLICATION_SERVER_URL = `https://${process.env.REACT_APP_HOST}/`;
 
@@ -48,6 +59,9 @@ const StreamArea = () => {
   const [currentVideoDevice, setCurrentVideoDevice] = useState(undefined);
   const [myConnectionId, setMyConnectionId] = useState(undefined);
 
+  // 곡 선택용
+  const [selectedSong, setSelectedSong] = useState('');
+
   // Websocket 관련 States
   const socketContextObjects = useSocketContext();
   const client = socketContextObjects.client;
@@ -58,246 +72,272 @@ const StreamArea = () => {
   const [voteB, setVoteB] = socketContextObjects.voteBs;
   const [progA, setProgA] = socketContextObjects.progAs;
   const [progB, setProgB] = socketContextObjects.progBs;
-  const [songLabel, setSongLabel] = useState(null);
   const [voteView, setVoteView] = useState(false);
   const [winnerView, setWinnerView] = useState(false);
-  const [finalVoteView, setFinalVoteView] = useState(false);
-  const [finalWinnerView, setFinalWinnerView] = useState(false);
+
+  // Slot 관련 States
+  const [slotView, setSlotView] = useState(false);
+  const [slotNum, setSlotNum] = socketContextObjects.slotNums;
+
+  // slotNum이 설정되고 나서 발동됩니다.
+  useEffect(() => {
+    let timeout = null;
+    if (slotNum !== undefined) {
+      // 슬롯을 표시해줍니다.
+      setSlotView(true);
+      slotAudio.current.pause();
+      slotAudio.current.currentTime = 0;
+      slotAudio.current.play();
+
+      timeout = setTimeout(() => {
+        setSlotView(false);
+        setSlotNum(undefined);
+
+        // champion의 차례이면 투표창을 띄워줍니다.
+        if (gameInfo.connectionId === gameInfo.champion.connectionId) {
+          setVoteView(true);
+        }
+
+        // 자기 차례면 시작
+        if (gameInfo.connectionId === myConnectionId) {
+          const songName = gameInfo.song;
+          const songObject = songList.get(songName);
+          setCurrentSongUrl(songObject.normalSrc);
+        }
+
+        // 카운트다운을 합니다.
+        setCount(3);
+      }, 7500);
+    }
+    return () => (timeout ? clearTimeout(timeout) : null);
+  }, [slotNum]);
 
   // Audio 관련
   const [currentSongUrl, setCurrentSongUrl] = useState(null);
   const [currentAudioSource, setCurrentAudioSource] = useState(null);
   const audioRef = useRef();
   const localAudioRef = useRef();
-
-  useEffect(() => {
-    if (userInfo.roomId !== undefined) {
-      if (OV !== null) {
-        narrowlyLeaveSession();
-      }
-      setMySessionId(userInfo.roomId);
-      joinSession();
-    }
-    window.addEventListener('beforeunload', onbeforeunload);
-    return () => {
-      window.removeEventListener('beforeunload', onbeforeunload);
-    };
-  }, [userInfo.roomId]);
+  const slotAudio = useRef();
+  const gameEndAudio = useRef();
 
   const onbeforeunload = (event) => {
     leaveSession();
   };
 
   useEffect(() => {
-    if (session !== undefined && userInfo.isPublisher === true) {
-      publishStream();
+    if (session === undefined) {
+      joinSession();
+      window.addEventListener('beforeunload', onbeforeunload);
+    }
+    return () => window.removeEventListener('beforeunload', onbeforeunload);
+  }, []);
+
+  // joinSession()이 완료되었을 때 발동됩니다.
+  useEffect(() => {
+    if (session !== undefined) {
+      if (userInfo.isParticipant === true) {
+        // 본인이 참가하기를 통해 들어온 참가자이면 publish합니다. 영상은 바로 송출되지 않습니다.
+        publishStream();
+      } else {
+        // 시청하기를 통해 들어온 시청자이면 join 요청을 보냅니다.
+        client.send(
+          '/app/enter',
+          {},
+          JSON.stringify({
+            sender: userInfo.userEmail,
+          }),
+        );
+      }
     }
   }, [session]);
+
+  // waiters에 들어가기 위해 join 메시지를 보냅니다.
+  // useEffect(() => {
+  //   if (session !== undefined && userInfo.isParticipant === true) {
+  //     client.send(
+  //       '/app/join',
+  //       {},
+  //       JSON.stringify({
+  //         sender: userInfo.userEmail,
+  //         song: 'candy',
+  //         connectionId: myConnectionId,
+  //       }),
+  //     );
+  //   }
+  // }, [myConnectionId]);
+
+  function handleJoin() {
+    client.send(
+      '/app/join',
+      {},
+      JSON.stringify({
+        sender: userInfo.userEmail,
+        song: selectedSong,
+        connectionId: myConnectionId,
+      }),
+    );
+  }
+
+  function handleSongChange() {
+    client.send(
+      '/app/song/change',
+      {},
+      JSON.stringify({
+        sender: userInfo.userEmail,
+        song: selectedSong,
+        connectionId: myConnectionId,
+      }),
+    );
+  }
 
   // 카운트다운 이펙트
   const [count, setCount] = useState(0);
   useEffect(() => {
+    let timer = null;
     if (count > 0) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setCount(count - 1);
       }, 1000);
-      return () => clearTimeout(timer);
     }
+    return () => (timer ? clearTimeout(timer) : null);
   }, [count]);
 
+  /*************************
+   *    게임 진행 관련 부분    *
+   *************************/
   useEffect(async () => {
-    // 시작 신호 수신 시 행동
-    if (gameInfo.type === 'ROUND_START') {
-      // 먼저 열려있는 알림창을 닫습니다.
+    let timeout = null;
+
+    // 노래 시작 신호...
+    if (gameInfo.type === 'SONG_START') {
+      // 강조 표시를 모두 지워줍니다.
+      const videos = document.querySelectorAll('.video-comp');
+      const fires = document.querySelectorAll('.fire');
+      videos.forEach((video) => {
+        video.classList.remove(
+          'dancing',
+          'champion-resting',
+          'challenger-resting',
+        );
+      });
+      // fires.forEach((fire) => {
+      //   fire.classList.remove('show');
+      // })
       setWinnerView(false);
 
-      // VOTE를 초기화합니다.
+      // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
+      let dancer = document.querySelector(
+        `.video-comp#${gameInfo.connectionId}`,
+      );
+      let notDancer = document.querySelector(
+        `.video-comp:not(#${gameInfo.connectionId})`,
+      );
+      if (gameInfo.champion.connectionId === gameInfo.connectionId) {
+        dancer.classList.remove('champion-resting');
+        dancer.classList.add('dancing');
+        // fires.forEach((fire) => {
+        //   fire.classList.add('show');
+        // })
+
+        notDancer.classList.remove('dancing');
+        notDancer.classList.add('challenger-resting');
+      } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
+        dancer.classList.remove('challenger-resting');
+
+        dancer.classList.add('dancing');
+        // fires.forEach((fire) => {
+        //   fire.classList.remove('show');
+        // })
+        notDancer.classList.remove('dancing');
+        notDancer.classList.add('champion-resting');
+      }
+
+      // 룰렛머신을 돌립니다.
+      const songObjectIndex = songList.get(gameInfo.song).index;
+      setSlotNum(songObjectIndex);
+    }
+
+    // 게임 종료 신호...
+    if (gameInfo.type === 'GAME_END') {
+      // 투표창을 닫고 투표기록을 초기화합니다.
+      setVoteView(false);
       setVoteA(0);
       setVoteB(0);
       setProgA(50);
       setProgB(50);
 
-      // 카운트다운을 합니다.
-      setCount(3);
-
-      // 수신한 connectionId가 아닌 사람이 방송할 차례이므로, 그 사람에게 테두리를 설정해줍니다.
-      let dancer = document.querySelector(
-        `.video-comp:not(#${gameInfo.connectionId})`,
-      );
-      let notDancer = document.querySelector(
-        `.video-comp#${gameInfo.connectionId}`,
-      );
-      dancer.classList.remove('resting');
-      dancer.classList.add('dancing');
-
-      notDancer.classList.remove('dancing');
-      notDancer.classList.add('resting');
-
-      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
-        const songName = userInfo.songs[gameInfo.currentRound - 1];
-        const songObject = songList.get(songName);
-
-        // 틀어야 할 노래 version에 따라 알맞은 src를 넣어줍니다.
-        switch (gameInfo.songVersion) {
-          case 'normal':
-            setCurrentSongUrl(songObject.normalSrc);
-            break;
-          case 'double':
-            setCurrentSongUrl(songObject.doubleSrc);
-            break;
-          default:
-            console.error('잘못된 song Version 요청입니다.');
-        }
-      }
-    }
-
-    // 종료 신호 수신 시 행동
-    if (gameInfo.type === 'ROUND_END') {
       // 강조 표시를 모두 지워줍니다.
       const videos = document.querySelectorAll('.video-comp');
       videos.forEach((video) => {
-        video.classList.remove('dancing', 'resting');
+        video.classList.remove(
+          'dancing',
+          'champion-resting',
+          'challenger-resting',
+        );
       });
+      // fires.forEach((fire) => {
+      //   fire.classList.remove('show');
+      // })
 
-      if (userInfo.isPublisher && gameInfo.sender !== userInfo.userEmail) {
-        if (userInfo.userEmail === userInfo.roomOwner) {
-          // 내가 방장이면 후공이므로, 내가 시작하기 위한 시작 신호를 보냅니다.
-          client.send(
-            '/app/chat.sendGameSignal',
-            {},
-            JSON.stringify({
-              type: 'ROUND_START',
-              sender: gameInfo.sender,
-              roomId: userInfo.roomId,
-              currentRound: gameInfo.currentRound,
-              songVersion: gameInfo.songVersion,
-              connectionId: subscribers[0].stream.connection.connectionId,
-            }),
-          );
-        } else {
-          // 내가 방장이 아니면 선공이었으므로, 라운드가 종료된 것입니다. 투표 신호를 보냅니다.
-          if (gameInfo.currentRound < 3) {
-            client.send(
-              '/app/chat.sendGameSignal',
-              {},
-              JSON.stringify({
-                type: 'VOTE_START',
-                sender: userInfo.userEmail,
-                roomId: userInfo.roomId,
-                currentRound: gameInfo.currentRound,
-                songVersion: gameInfo.songVersion,
-              }),
-            );
-          } else {
-            // 종료된 라운드가 3라운드라면, 최종 투표 신호를 보냅니다.
-            client.send(
-              '/app/chat.sendGameSignal',
-              {},
-              JSON.stringify({
-                type: 'FINAL_VOTE_START',
-                sender: userInfo.userEmail,
-                roomId: userInfo.roomId,
-                currentRound: gameInfo.currentRound,
-                songVersion: gameInfo.songVersion,
-              }),
-            );
-          }
+      // 결과 효과음을 재생합니다.
+      gameEndAudio.current.pause();
+      gameEndAudio.current.currentTime = 0;
+      gameEndAudio.current.play();
+
+      // 결과창을 보여줍니다.
+      setWinnerView(true);
+    }
+
+    // 새로운 게임 챌린지 신호...
+    if (gameInfo.type === 'GAME_CHALLENGE') {
+      if (gameInfo.challenger.connectionId === myConnectionId) {
+        timeout = setTimeout(() => {
+          console.info('나는 새로운 챌린저입니다.');
+          songStart();
+        }, 5000);
+      }
+    }
+
+    // 참가자 리스트의 갱신... (join 시에도 발동)
+    if (gameInfo.type === 'REFRESH_WAITER_LIST') {
+      // 처음 들어왔는데 게임이 진행중인 상태라면...
+      if (
+        gameInfo.sender === userInfo.userEmail &&
+        gameInfo.champion !== null
+      ) {
+        // 투표창을 보여줍니다.
+        setVoteView(true);
+
+        // 수신한 connectionId가 방송할 차례이므로, 그 사람의 스트림을 강조해줍니다.
+        let dancer = document.querySelector(
+          `.video-comp#${gameInfo.connectionId}`,
+        );
+        let notDancer = document.querySelector(
+          `.video-comp:not(#${gameInfo.connectionId})`,
+        );
+        if (gameInfo.champion.connectionId === gameInfo.connectionId) {
+          dancer.classList.remove('champion-resting');
+          dancer.classList.add('dancing');
+          // fires.forEach((fire) => {
+          //   fire.classList.add('show');
+          // })
+
+          notDancer.classList.remove('dancing');
+          notDancer.classList.add('challenger-resting');
+        } else if (gameInfo.challenger.connectionId === gameInfo.connectionId) {
+          dancer.classList.remove('challenger-resting');
+          dancer.classList.add('dancing');
+
+          // fires.forEach((fire) => {
+          //   fire.classList.remove('show');
+          // })
+          notDancer.classList.remove('dancing');
+          notDancer.classList.add('champion-resting');
         }
       }
     }
-
-    // 투표 시작 신호 수신 시 행동
-    if (gameInfo.type === 'VOTE_START') {
-      const songName = userInfo.songs[gameInfo.currentRound]; // songs는 index 0부터 시작하므로, currentRound를 사용하면 다음 라운드 곡을 지칭함.
-      const songObject = songList.get(songName);
-
-      setSongLabel(songObject.label);
-
-      // 투표창을 띄웁니다.
-      setVoteView(true);
-
-      // 방장이라면, 8초를 센 후에 투표 종료 시그널을 보냅니다.
-      if (userInfo.roomOwner === userInfo.userEmail) {
-        const tick = setTimeout(() => {
-          sendVoteEndSignal();
-        }, 8000);
-
-        // Clean-up
-        return () => clearTimeout(tick);
-      }
-    }
-
-    // !! Temporary !! : 방장을 위한 투표 종료 신호 수신 시 행동
-    if (gameInfo.type === 'VOTE_END_SIGNAL') {
-      if (userInfo.isPublisher && userInfo.roomOwner === userInfo.userEmail) {
-        sendVoteEndMessage();
-      }
-    }
-
-    // 투표 종료 신호 수신 시 행동
-    if (gameInfo.type === 'VOTE_END') {
-      // 투표창을 닫습니다.
-      setVoteView(false);
-
-      // 승리한 곡 버전을 표시합니다.
-      setWinnerView(true);
-
-      // 방장이라면, 3초 후에 다음 라운드 시작 신호를 보냅니다. (방장이 아닌 사람이 신호를 받을 예정)
-      if (userInfo.isPublisher && userInfo.roomOwner === userInfo.userEmail) {
-        const tick = setTimeout(() => {
-          client.send(
-            '/app/chat.sendGameSignal',
-            {},
-            JSON.stringify({
-              type: 'ROUND_START',
-              sender: userInfo.userEmail,
-              roomId: userInfo.roomId,
-              currentRound: gameInfo.currentRound + 1,
-              songVersion: gameInfo.songVersion,
-              connectionId: myConnectionId,
-            }),
-          );
-        }, 3000);
-
-        // Clean-up
-        return () => clearTimeout(tick);
-      }
-    }
-
-    // 최종 투표 시작 신호 수신 시 행동
-    if (gameInfo.type === 'FINAL_VOTE_START') {
-      // 투표창을 띄웁니다.
-      setFinalVoteView(true);
-
-      // 방장이라면, 8초를 센 후에 투표를 종료시킵니다.
-      if (userInfo.roomOwner === userInfo.userEmail) {
-        const tick = setTimeout(() => {
-          sendFinalVoteEndMessage();
-        }, 8000);
-
-        // Clean-up
-        return () => clearTimeout(tick);
-      }
-    }
-
-    // 최종 투표 종료 신호 수신 시 행동
-    if (gameInfo.type === 'FINAL_VOTE_END') {
-      // 투표창을 닫습니다.
-      setFinalVoteView(false);
-
-      // 최종 승리자를 표시합니다.
-      setFinalWinnerView(true);
-
-      // 방장은 서버에서 room을 제거해줍니다.
-      if (userInfo.roomOwner === userInfo.userEmail) {
-        axios.delete('/api/room', {
-          data: {
-            roomId: userInfo.roomId,
-          },
-        });
-      }
-    }
-  }, [gameInfo.type]);
+    return () => (timeout ? clearTimeout(timeout) : null);
+  }, [gameInfo]);
 
   useEffect(async () => {
     if (currentSongUrl !== null) {
@@ -360,97 +400,71 @@ const StreamArea = () => {
     localAudioRef.current.play();
   };
 
-  const handleReady = (e) => {
+  const handleStart = (e) => {
     e.preventDefault();
+    client.send(
+      '/app/start',
+      {},
+      JSON.stringify({
+        type: 'GAME_START',
+        sender: userInfo.userEmail,
+      }),
+    );
+  };
 
-    // Ready를 누르면, 방을 playing 상태로 만들어서 시청자가 입장할 수 있도록 합니다.
+  const handleCreate = (e) => {
+    e.preventDefault();
     axios.post(
-      '/api/room/startPlaying',
-      { roomId: userInfo.roomId },
+      '/api/room/create',
+      {},
       {
         headers: { 'Content-Type': 'application/json' },
       },
     );
   };
 
-  const handleStart = (e) => {
+  const handleSongStart = (e) => {
     e.preventDefault();
     client.send(
-      '/app/chat.sendGameSignal',
+      '/app/song/start',
       {},
       JSON.stringify({
-        type: 'ROUND_START',
-        sender: userInfo.roomOwner,
-        roomId: userInfo.roomId,
-        currentRound: 1,
-        songVersion: 'normal',
-        connectionId:
-          userInfo.roomOwner === userInfo.userEmail
-            ? myConnectionId
-            : subscribers[0].stream.connection.connectionId,
+        type: 'SONG_START',
+        sender: userInfo.userEmail,
       }),
     );
   };
 
-  function sendRoundEndMessage() {
+  function songStart() {
     client.send(
-      '/app/chat.sendGameSignal',
+      '/app/song/start',
       {},
       JSON.stringify({
-        type: 'ROUND_END',
+        type: 'SONG_START',
         sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        currentRound: gameInfo.currentRound,
-        songVersion: gameInfo.songVersion,
+        // connectionId: myConnectionId,
+      }),
+    );
+  }
+
+  function sendRoundEndMessage() {
+    client.send(
+      '/app/song/end',
+      {},
+      JSON.stringify({
+        type: 'SONG_END',
+        sender: userInfo.userEmail,
       }),
     );
     // replaceTrackToAudioDevice();
+    setCurrentSongUrl(null);
     localAudioRef.current.removeEventListener('ended', sendRoundEndMessage);
   }
 
-  function sendVoteEndSignal() {
-    client.send(
-      '/app/chat.sendGameSignal',
-      {},
-      JSON.stringify({
-        type: 'VOTE_END_SIGNAL',
-        sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        currentRound: gameInfo.currentRound,
-        songVersion: gameInfo.songVersion,
-      }),
-    );
-  }
-
-  function sendVoteEndMessage() {
-    client.send(
-      '/app/chat.vote',
-      {},
-      JSON.stringify({
-        type: 'VOTE_END',
-        sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        winner: voteA > voteB ? 'double' : 'normal',
-        poll: voteA > voteB ? voteA : voteB,
-        currentRound: gameInfo.currentRound,
-      }),
-    );
-  }
-
-  function sendFinalVoteEndMessage() {
-    client.send(
-      '/app/chat.vote',
-      {},
-      JSON.stringify({
-        type: 'FINAL_VOTE_END',
-        sender: userInfo.userEmail,
-        roomId: userInfo.roomId,
-        winner: voteA > voteB ? 'double' : 'normal',
-        poll: voteA > voteB ? voteA : voteB,
-        currentRound: gameInfo.currentRound,
-      }),
-    );
-  }
+  // 곡 선택용
+  const handleSongSelect = (event) => {
+    setSelectedSong(event.target.value);
+  };
 
   const deleteSubscriber = (streamManager) => {
     let newSubscribers = [...subscribers];
@@ -487,6 +501,11 @@ const StreamArea = () => {
     // 비동기 예외가 발생하는 경우...
     mySession.on('exception', (exception) => {
       console.warn(exception);
+    });
+
+    // Reconnection의 타임아웃을 없앱니다.
+    newOV.setAdvancedConfiguration({
+      noStreamPlayingEventExceptionTimeout: 5000000,
     });
 
     // 4) 유효한 user token을 가지고 session에 연결합니다.
@@ -555,6 +574,14 @@ const StreamArea = () => {
     setCurrentVideoDevice(newCurrentVideoDevice);
   };
 
+  const unpublishStream = () => {
+    const mySession = session;
+    mySession.unpublish(publisher);
+    setPublisher(undefined);
+    setCurrentVideoDevice(undefined);
+    setMainStreamManager(undefined);
+  };
+
   const leaveSession = () => {
     // 7) Session object를 통해 'disconnect' 메서드를 호출함으로써 session을 종료합니다.
     const mySession = session;
@@ -588,46 +615,13 @@ const StreamArea = () => {
     // User 관련 속성도 비워줍니다...
     setUserInfo((prevState) => ({
       ...prevState,
-      roomId: undefined,
-      songs: undefined,
       isPublisher: false,
+      isParticipant: false,
+      song: null,
       roomOwner: null,
     }));
 
     // Game 관련 속성도 비워줍니다...
-    setGameInfo((prevState) => ({
-      ...prevState,
-      sender: null,
-      type: null,
-      currentRound: 0,
-      songVersion: 'normal',
-      poll: null,
-      connectionId: null,
-    }));
-  };
-
-  const narrowlyLeaveSession = () => {
-    // 새로운 방송을 하기 위해 현재 방을 나갈 때만 호출되는 좁은 범위의 leaveSession입니다.
-    const mySession = session;
-
-    if (mySession) {
-      mySession.disconnect();
-    }
-
-    // 모든 속성을 비워줍니다...
-    setOV(null);
-    setMySessionId('default');
-    setMyUserName(
-      userInfo.userName ?? '익명' + Math.floor(Math.random() * 100),
-    );
-    setSession(undefined);
-    setMainStreamManager(undefined);
-    setPublisher(undefined);
-    setSubscribers([]);
-    setCurrentVideoDevice(undefined);
-    setMyConnectionId(undefined);
-
-    // Game 관련 속성을 비워줍니다...
     setGameInfo((prevState) => ({
       ...prevState,
       sender: null,
@@ -752,31 +746,50 @@ const StreamArea = () => {
             direction='column'
             wrap='nowrap'
           >
-            <Grid id='session-header' item>
-              <Button
-                id='buttonLeaveSession'
-                onClick={leaveSession}
-                variant='outlined'
-                sx={{ margin: '5px' }}
-              >
-                세션 떠나기
-              </Button>
-              {mainStreamManager !== undefined ? (
+            {userInfo.isParticipant === true ? (
+              <Grid id='session-header' item>
                 <>
+                  <FormControl fullWidth>
+                    <InputLabel>곡 선택</InputLabel>
+                    <Select
+                      labelId='demo-simple-select-label'
+                      id='demo-simple-select'
+                      value={selectedSong}
+                      label='곡 선택'
+                      onChange={handleSongSelect}
+                    >
+                      <MenuItem value='antifragile'>ANTIFRAGILE</MenuItem>
+                      <MenuItem value='pop'>POP!</MenuItem>
+                      <MenuItem value='hypeboy'>Hype Boy</MenuItem>
+                      <MenuItem value='thefeels'>The Feels</MenuItem>
+                      <MenuItem value='russianroulette'>러시안 룰렛</MenuItem>
+                      <MenuItem value='ditto'>Ditto</MenuItem>
+                      <MenuItem value='nextlevel'>Next Level</MenuItem>
+                    </Select>
+                  </FormControl>
                   <Button
-                    id='buttonSwitchCamera'
-                    onClick={switchCamera}
+                    id='buttonLeaveSession'
+                    onClick={leaveSession}
                     variant='outlined'
                     sx={{ margin: '5px' }}
                   >
-                    카메라 전환
+                    세션 떠나기
                   </Button>
                   <Button
-                    onClick={handleReady}
+                    onClick={handleCreate}
                     variant='contained'
+                    color='secondary'
                     sx={{ margin: '5px' }}
                   >
-                    READY
+                    CREATE
+                  </Button>
+                  <Button
+                    onClick={handleJoin}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    JOIN
                   </Button>
                   <Button
                     onClick={handleStart}
@@ -786,41 +799,64 @@ const StreamArea = () => {
                   >
                     START
                   </Button>
-                  <AudioTag
-                    audioRef={audioRef}
-                    localAudioRef={localAudioRef}
-                    currentSongUrl={currentSongUrl}
-                  />
-                </>
-              ) : null}
-            </Grid>
-
-            <Grid item xs='auto'>
-              <div id='video-container'>
-                {publisher !== undefined ? (
-                  <div
-                    id={publisher.stream.connection.connectionId}
-                    className='video-comp'
+                  <Button
+                    onClick={handleSongStart}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
                   >
-                    <UserVideoComponent streamManager={publisher} />
-                  </div>
+                    SONG START
+                  </Button>
+                  <Button
+                    onClick={handleSongChange}
+                    variant='contained'
+                    color='secondary'
+                    sx={{ margin: '5px' }}
+                  >
+                    SONG CHANGE
+                  </Button>
+                </>
+                {mainStreamManager !== undefined ? (
+                  <>
+                    <Button
+                      id='buttonSwitchCamera'
+                      onClick={switchCamera}
+                      variant='outlined'
+                      sx={{ margin: '5px' }}
+                    >
+                      카메라 전환
+                    </Button>
+                    <AudioTag
+                      audioRef={audioRef}
+                      localAudioRef={localAudioRef}
+                      currentSongUrl={currentSongUrl}
+                    />
+                  </>
                 ) : null}
-                {subscribers.length > 0 ? (
-                  subscribers.map((sub, i) => {
-                    return (
-                      <div
-                        id={sub.stream.connection.connectionId}
-                        key={i}
-                        className='video-comp'
-                      >
-                        <UserVideoComponent streamManager={sub} />
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className='video-comp' />
-                )}
-              </div>
+              </Grid>
+            ) : null}
+
+            <Grid
+              item
+              xs='auto'
+              sx={{
+                height: '80%',
+              }}
+            >
+              <VideoContainer
+                myConnectionId={myConnectionId}
+                publisher={publisher}
+                subscribers={subscribers}
+                champion={
+                  gameInfo.champion ? gameInfo.champion.connectionId : null
+                }
+                challenger={
+                  gameInfo.challenger ? gameInfo.challenger.connectionId : null
+                }
+                currentWinNums={
+                  gameInfo.challenger ? gameInfo.champion.currentWinNums : null
+                }
+              />
             </Grid>
           </Grid>
         </>
@@ -828,67 +864,18 @@ const StreamArea = () => {
       {voteView ? (
         <div className='vote-container'>
           <Vote
-            upperText={[
-              `다음 라운드 곡 : ${songLabel}`,
-              `챌린지 버전을 골라주세요!`,
-            ]}
-            leftText='2x'
-            rightText='일반'
+            leftText={gameInfo.champion.name}
+            rightText={gameInfo.challenger.name}
           />
         </div>
       ) : null}
       {winnerView ? (
-        <div className='vote-container'>
-          <div className='vote-background'>
-            <Typography variant='h5'>다음 라운드는</Typography>
-            <Typography variant='h5'>{songLabel}의</Typography>
-            <Typography variant='h5'>
-              {gameInfo.songVersion === 'normal' ? '일반' : '2배속'} 버전으로
-              진행됩니다!
-            </Typography>
-          </div>
-        </div>
-      ) : null}
-      {finalVoteView ? (
-        <div className='vote-container'>
-          <Vote
-            upperText={[`최종 승자를 정해주세요!`]}
-            leftText={
-              userInfo.isPublisher
-                ? userInfo.userEmail === userInfo.roomOwner
-                  ? userInfo.userName
-                  : JSON.parse(subscribers[0].stream.connection.data).clientData
-                : JSON.parse(subscribers[0].stream.connection.data).clientData
-            }
-            rightText={
-              userInfo.isPublisher
-                ? userInfo.userEmail === userInfo.roomOwner
-                  ? JSON.parse(subscribers[0].stream.connection.data).clientData
-                  : userInfo.userName
-                : JSON.parse(subscribers[1].stream.connection.data).clientData
-            }
-          />
-        </div>
-      ) : null}
-      {finalWinnerView ? (
-        <div className='vote-container'>
-          <div className='vote-background'>
-            <Typography variant='h5'>
-              축하합니다! 최종 승자는{' '}
-              {gameInfo.songVersion === 'double'
-                ? userInfo.isPublisher
-                  ? userInfo.userEmail === userInfo.roomOwner
-                    ? userInfo.userName
-                    : JSON.parse(subscribers[0].stream.connection.data)
-                        .clientData
-                  : JSON.parse(subscribers[0].stream.connection.data).clientData
-                : userInfo.isPublisher
-                ? userInfo.userEmail === userInfo.roomOwner
-                  ? JSON.parse(subscribers[0].stream.connection.data).clientData
-                  : userInfo.userName
-                : JSON.parse(subscribers[1].stream.connection.data)
-                    .clientData}{' '}
-              입니다!
+        <div className='result-container'>
+          <div className='result-background'>
+            <Typography variant='h3'>축하합니다!</Typography>
+            <Typography variant='h4'>
+              챔피언 <span color='orange'>{gameInfo.champion.name}</span>{' '}
+              {gameInfo.champion.currentWinNums}연승 중!
             </Typography>
           </div>
         </div>
@@ -912,6 +899,15 @@ const StreamArea = () => {
           className={'countdown'}
         />
       ) : null}
+      {slotView ? <Slot /> : null}
+      <audio
+        ref={slotAudio}
+        src={`${process.env.PUBLIC_URL}/resources/musics/roulette.mp3`}
+      />
+      <audio
+        ref={gameEndAudio}
+        src={`${process.env.PUBLIC_URL}/resources/musics/game_end.mp3`}
+      />
     </div>
   );
 };

@@ -1,34 +1,50 @@
 export const SongListData = [
   [
-    'attention',
-    {
-      label: 'Newjeans - Attention',
-      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/attention_normal.mp3`,
-      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/attention_double.mp3`,
-    },
-  ],
-  [
-    'candy',
-    {
-      label: 'NCT DREAM - Candy',
-      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/candy_normal.mp3`,
-      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/candy_double.mp3`,
-    },
-  ],
-  [
-    'amunorae',
-    {
-      label: 'ZICO - 아무노래',
-      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_normal.mp3`,
-      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/amunorae_double.mp3`,
-    },
-  ],
-  [
     'antifragile',
     {
-      label: 'LE SSERAFIM - ANTIFRAGILE',
+      label: '르세라핌 - ANTIFRAGILE',
       normalSrc: `${process.env.PUBLIC_URL}/resources/musics/antifragile_normal.mp3`,
-      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/antifragile_double.mp3`,
+      index: 0,
+    },
+  ],
+  [
+    'pop',
+    {
+      label: '나연 - POP!',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/pop_normal.mp3`,
+      index: 1,
+    },
+  ],
+  [
+    'hypeboy',
+    {
+      label: 'NewJeans - Hype Boy',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/hypeboy_normal.mp3`,
+      index: 2,
+    },
+  ],
+  [
+    'thefeels',
+    {
+      label: 'TWICE - The Feels',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/thefeels_normal.mp3`,
+      index: 3,
+    },
+  ],
+  [
+    'russianroulette',
+    {
+      label: '레드벨벳 - 러시안 룰렛',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/russianroulette_normal.mp3`,
+      index: 4,
+    },
+  ],
+  [
+    'ditto',
+    {
+      label: 'NewJeans - Ditto',
+      normalSrc: `${process.env.PUBLIC_URL}/resources/musics/ditto_normal.mp3`,
+      index: 5,
     },
   ],
   [
@@ -36,7 +52,7 @@ export const SongListData = [
     {
       label: 'aespa - Next Level',
       normalSrc: `${process.env.PUBLIC_URL}/resources/musics/nextlevel_normal.mp3`,
-      doubleSrc: `${process.env.PUBLIC_URL}/resources/musics/nextlevel_double.mp3`,
+      index: 6,
     },
   ],
 ];

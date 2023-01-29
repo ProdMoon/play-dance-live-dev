@@ -1,25 +1,33 @@
-import { Grid } from '@mui/material';
+import { Divider } from '@mui/material';
 import '../../styles/Menubar.css';
 
-import CreateRoom from './CreateRoom';
-import GoogleLogin from './GoogleLogin';
+import GoogleLogout from './GoogleLogout';
+import Participants from './Participants';
+import Ranking from './Ranking';
+import UserProfile from './UserProfile';
 
 const Menubar = () => {
   return (
-    <Grid container alignItems='center' direction='column' spacing={2} wrap='nowrap'>
-      <Grid item xs={3}>
+    <div className='menubar-container'>
+      <div className='menubar-item'>
         <img
           className='menubar-logo'
           src={`${process.env.PUBLIC_URL}/resources/images/menubar-logo.png`}
         />
-      </Grid>
-      <Grid item xs={3}>
-        <GoogleLogin />
-      </Grid>
-      <Grid item xs={6}>
-        <CreateRoom />
-      </Grid>
-    </Grid>
+      </div>
+      <GoogleLogout />
+      <UserProfile />
+      <Divider
+        flexItem={true}
+        sx={{ margin: '10px', backgroundColor: 'black' }}
+      />
+      <Ranking />
+      <Divider
+        flexItem={true}
+        sx={{ margin: '10px', backgroundColor: 'black' }}
+      />
+      <Participants />
+    </div>
   );
 };
 
