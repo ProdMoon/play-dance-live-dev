@@ -40,7 +40,7 @@ PLAY DANCE LIVE! 는 실시간으로 1대 1 릴레이 댄스 배틀을 펼치고
 
 ## 포스터
 
-![포스터_final](https://user-images.githubusercontent.com/112556572/216063211-26c9e8e8-6eaa-44af-91e5-54d6a8846d14.jpg)
+![포스터 저용량](https://user-images.githubusercontent.com/112556572/216071819-38b8642e-ab69-4ea0-b0fa-b8c1f0bee39d.jpg)
 
 <br>
 
