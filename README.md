@@ -286,14 +286,28 @@ WebRTC 특성 상 mp3 파일을 직접 AudioSource로 사용할 수 없으나, *
 ### 문준호
 [![junho github badge](https://img.shields.io/badge/GitHub-grey?logo=github)](https://github.com/ProdMoon)
 
-Team Leader, Frontend
+Team Leader / 스트리밍, 진행 로직 설계
 
 <br>
 
-### 문준호
+### 김다엘
 [![dael github badge](https://img.shields.io/badge/GitHub-grey?logo=github)](https://github.com/Daeell)
 
-Team Leader, Frontend
+Backend / 채팅, 소켓, 방송 데이터 관리
+
+<br>
+
+### 이강욱
+[![kangwook github badge](https://img.shields.io/badge/GitHub-grey?logo=github)](https://github.com/rivolt0421)
+
+Full Stack / 투표 시스템, 영상 레이아웃
+
+<br>
+
+### 정성현
+[![sunghyun github badge](https://img.shields.io/badge/GitHub-grey?logo=github)](https://github.com/skqls)
+
+Backend / DB, 인증 인가 시스템
 
 <br>
 
