@@ -62,7 +62,7 @@ Back-end:
     - Openvidu를 EC2에 잘 설치했습니다.
 
     - /opt/openvidu/.env 파일을 올바르게 설정했습니다.
-    (아래의 [도메인과 SSL 환경설정](https://github.com/ProdMoon/play-dance-live-dev/new/main?readme=1#%EB%8F%84%EB%A9%94%EC%9D%B8%EA%B3%BC-ssl-%ED%99%98%EA%B2%BD%EC%84%A4%EC%A0%95) 부분을 참고하세요)
+    (아래의 [도메인과 SSL 환경설정](https://github.com/ProdMoon/play-dance-live-dev#%EB%8F%84%EB%A9%94%EC%9D%B8%EA%B3%BC-ssl-%ED%99%98%EA%B2%BD%EC%84%A4%EC%A0%95) 부분을 참고하세요)
 
 - 그리고 여러분의 frontend 코드와 backend(application server) 코드를 약간 수정해주어야 합니다.
 
