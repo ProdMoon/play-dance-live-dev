@@ -290,10 +290,10 @@ Team Leader, Frontend
 
 <br>
 
-### 문준호
+### 김다엘
 [![dael github badge](https://img.shields.io/badge/GitHub-grey?logo=github)](https://github.com/Daeell)
 
-Team Leader, Frontend
+Backend
 
 <br>
 
