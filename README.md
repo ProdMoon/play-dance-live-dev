@@ -234,6 +234,21 @@ location /some/path/ {
 
 # 기술적 챌린지
 
+<img width="80%" src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c6864b9f-388d-479d-8146-c61ea46432f4/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230201%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230201T134507Z&X-Amz-Expires=86400&X-Amz-Signature=572ec4cd7fc735ecc231ce205f1fbac7b32076101761335ac26209c27366156a&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Untitled.png%22&x-id=GetObject"/>
+
+<br>
+
+Play-Dance-Live는 온라인 댄스 배틀 플랫폼으로. 춤과 음악의 싱크를 일치시키는 것이 중요합니다. 우리는 미디어 서버로 openvidu 프레임워크를 선택하였습니다. 하지만 openvidu의 기본 설정은 마이크와 같은 입력장치만 오디오 소스로 출력할 수 있도록 되어 있었습니다. 처음 선택한 방식은 플레이어가 웹 소켓 신호를 보내고 서버에서 시청자들에게 신호를 보내어 각자의 로컬 오디오를 동시에 재생시키는 것이었습니다. 그렇게 되면 송출자가 춤을 추기 시작할 때 신호를 보내서 음악을 재생시킨다면 타이밍에 맞춰서 춤과 음악이 동시에 재생됩니다.
+하지만 이렇게 될 경우 노래를 재생시킬 때문 소켓 신호를 보내기 때문에 중간이 들어오는 사람은 노래 시작 신호를 받지 못하게 됩니다. 또한 로컬 오디오는 영상과 별도로 재생이 되고 있는 상태이므로 영상이 잠깐 끊겨도 음악은 계속 재생되고 되어 영상과의 싱크가 맞지 않는 문제가 발생합니다.
+
+<br>
+
+<img width="80%" src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/73845a00-da93-41d2-a078-4f9abf578921/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230201%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230201T134558Z&X-Amz-Expires=86400&X-Amz-Signature=9fc3226aa9422cc0cba46e45b46742a2b25e8a3b5392917fd6a9f65db915bd8a&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Untitled.png%22&x-id=GetObject"/>
+
+<br>
+
+최종적으로 선택한 방식은 송출하는 쪽에서 MP3 음원을 오디오 소스로 사용하는 것입니다. openvidu는 마이크과 같은 입력장치만 오디오 소스로 활용할 수 있기 때문에 MP3파일을 송출할 수 없었으므로 이에 대한 대안으로 브라우저에서 지원하는 WebAudio API를 활용하였습니다. 기존에 마이크로 송출되던 오디오소스를 MP3 파일로 대체하였고 춤과 음악을 하나의 스트림으로 전송할 수 있게 되었습니다. 또한 중간에 들어오는 시청자들도 동일한 싱크로 음악을 감상할 수 있게 되었습니다.
+
 <br>
 
 # 팀원
