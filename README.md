@@ -253,4 +253,4 @@ Team Leader, Frontend
 
 ---
 
-MIT License. 2023. All rights reserved. 몰라 암튼 라이센스 있음.
+MIT License. 2023. codeEATERS. All rights reserved.
