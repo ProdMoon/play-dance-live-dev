@@ -8,7 +8,7 @@
 
 SW사관학교 정글 5기 **Team Project** _(2022.12.22 ~ 2023.1.28)_
 
-<img src='https://user-images.githubusercontent.com/112556572/216054697-f2d0ef98-4b9a-4e48-9f9b-0a1deb2920b6.png' width='20%' height='20%'>
+<img src='https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/PDL%EB%A1%9C%EA%B3%A0.png' width='20%' height='20%'>
 
 <br>
 
@@ -27,19 +27,19 @@ PLAY DANCE LIVE! 는 실시간으로 1대 1 릴레이 댄스 배틀을 펼치고
 > **랜덤으로 나오는 댄스 챌린지를 소화하고 챔피언의 자리를 차지해라!**
 
 - 랜덤으로 플레이 곡 선정
-  ![랜덤룰렛](https://user-images.githubusercontent.com/86596449/216260652-04734726-4b2d-41a2-8c51-04579d6a2320.gif)
+  ![랜덤룰렛](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EB%9E%9C%EB%8D%A4%EB%A3%B0%EB%A0%9B.gif)
 
 - 챌린지 스타트! 실시간으로 응원하자
 
-  ![실시간응원](https://user-images.githubusercontent.com/86596449/216260661-f0f7aa4a-e9cd-49f1-8267-3275ab07f133.gif)
+  ![실시간응원](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EC%8B%A4%EC%8B%9C%EA%B0%84%EC%9D%91%EC%9B%90.gif)
 
 - 승자는 계속해서 플레이
 
-  ![연승화면](https://user-images.githubusercontent.com/86596449/216260669-1af9e4ba-1d9d-4547-9d80-ec0f3aec67be.gif)
+  ![연승화면](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EC%97%B0%EC%8A%B9%ED%99%94%EB%A9%B4.gif)
 
 ## 포스터
 
-![포스터 저용량 복사](https://user-images.githubusercontent.com/112556572/216072534-f2a045aa-17cd-4489-939b-11ee2dd8bf55.jpg)
+![포스터 저용량 복사](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg)
 
 <br>
 
@@ -254,7 +254,7 @@ location /some/path/ {
 
 ### BEFORE : WebSocket을 이용한 Local Audio 재생 타이밍 동기화
 
-<img width="80%" src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c6864b9f-388d-479d-8146-c61ea46432f4/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230201%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230201T134507Z&X-Amz-Expires=86400&X-Amz-Signature=572ec4cd7fc735ecc231ce205f1fbac7b32076101761335ac26209c27366156a&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Untitled.png%22&x-id=GetObject"/>
+<img width="80%" src="https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EA%B8%B0%EC%B1%8C1.png"/>
 
 <br>
 
@@ -267,7 +267,7 @@ location /some/path/ {
 
 ### AFTER : WebAudio API를 이용하여 직접 mp3파일을 AudioSource로 사용
 
-<img width="80%" src="https://s3.us-west-2.amazonaws.com/secure.notion-static.com/73845a00-da93-41d2-a078-4f9abf578921/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20230201%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20230201T134558Z&X-Amz-Expires=86400&X-Amz-Signature=9fc3226aa9422cc0cba46e45b46742a2b25e8a3b5392917fd6a9f65db915bd8a&X-Amz-SignedHeaders=host&response-content-disposition=filename%3D%22Untitled.png%22&x-id=GetObject"/>
+<img width="80%" src="https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EA%B8%B0%EC%B1%8C2.png"/>
 
 <br>
 
