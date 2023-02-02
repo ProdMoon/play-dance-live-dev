@@ -27,16 +27,15 @@ PLAY DANCE LIVE! 는 실시간으로 1대 1 릴레이 댄스 배틀을 펼치고
 > **랜덤으로 나오는 댄스 챌린지를 소화하고 챔피언의 자리를 차지해라!**
 
 - 랜덤으로 플레이 곡 선정
-
-  ![그림1](https://user-images.githubusercontent.com/112556572/216065139-9f8c004f-1389-4ced-80ec-bc1f59158d49.gif)
+  ![랜덤룰렛](https://user-images.githubusercontent.com/86596449/216260652-04734726-4b2d-41a2-8c51-04579d6a2320.gif)
 
 - 챌린지 스타트! 실시간으로 응원하자
 
-  ![그림2](https://user-images.githubusercontent.com/112556572/216065137-d4b67734-c797-4518-8d55-1ee52a54e69f.gif)
+  ![실시간응원](https://user-images.githubusercontent.com/86596449/216260661-f0f7aa4a-e9cd-49f1-8267-3275ab07f133.gif)
 
 - 승자는 계속해서 플레이
 
-  ![그림3](https://user-images.githubusercontent.com/112556572/216065133-6f762d05-4dd3-433f-9bce-d53c5000ff64.gif)
+  ![연승화면](https://user-images.githubusercontent.com/86596449/216260669-1af9e4ba-1d9d-4547-9d80-ec0f3aec67be.gif)
 
 ## 포스터
 
