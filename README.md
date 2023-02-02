@@ -8,7 +8,7 @@
 
 SW사관학교 정글 5기 **Team Project** _(2022.12.22 ~ 2023.1.28)_
 
-<img src='https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/PDL%EB%A1%9C%EA%B3%A0.png' width='20%' height='20%'>
+<img src='https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/PDL%EB%A1%9C%EA%B3%A0.png?raw=true' width='20%' height='20%'>
 
 <br>
 
@@ -27,19 +27,19 @@ PLAY DANCE LIVE! 는 실시간으로 1대 1 릴레이 댄스 배틀을 펼치고
 > **랜덤으로 나오는 댄스 챌린지를 소화하고 챔피언의 자리를 차지해라!**
 
 - 랜덤으로 플레이 곡 선정
-  ![랜덤룰렛](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EB%9E%9C%EB%8D%A4%EB%A3%B0%EB%A0%9B.gif)
+  ![랜덤룰렛](https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%EB%9E%9C%EB%8D%A4%EB%A3%B0%EB%A0%9B.gif?raw=true)
 
 - 챌린지 스타트! 실시간으로 응원하자
 
-  ![실시간응원](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EC%8B%A4%EC%8B%9C%EA%B0%84%EC%9D%91%EC%9B%90.gif)
+  ![실시간응원](https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%EC%8B%A4%EC%8B%9C%EA%B0%84%EC%9D%91%EC%9B%90.gif?raw=true)
 
 - 승자는 계속해서 플레이
 
-  ![연승화면](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EC%97%B0%EC%8A%B9%ED%99%94%EB%A9%B4.gif)
+  ![연승화면](https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%EC%97%B0%EC%8A%B9%ED%99%94%EB%A9%B4.gif?raw=true)
 
 ## 포스터
 
-![포스터 저용량 복사](https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg)
+![포스터 저용량 복사](https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%ED%8F%AC%EC%8A%A4%ED%84%B0.jpg?raw=true)
 
 <br>
 
@@ -254,7 +254,7 @@ location /some/path/ {
 
 ### BEFORE : WebSocket을 이용한 Local Audio 재생 타이밍 동기화
 
-<img width="80%" src="https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EA%B8%B0%EC%B1%8C1.png"/>
+<img width="80%" src="https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%EA%B8%B0%EC%B1%8C1.png?raw=true"/>
 
 <br>
 
@@ -267,7 +267,7 @@ location /some/path/ {
 
 ### AFTER : WebAudio API를 이용하여 직접 mp3파일을 AudioSource로 사용
 
-<img width="80%" src="https://raw.githubusercontent.com/ProdMoon/play-dance-live-dev/rivolt0421-READMEsrc/images/%EA%B8%B0%EC%B1%8C2.png"/>
+<img width="80%" src="https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%EA%B8%B0%EC%B1%8C2.png?raw=true"/>
 
 <br>
 
