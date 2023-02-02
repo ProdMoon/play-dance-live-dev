@@ -27,6 +27,7 @@ PLAY DANCE LIVE! 는 실시간으로 1대 1 릴레이 댄스 배틀을 펼치고
 > **랜덤으로 나오는 댄스 챌린지를 소화하고 챔피언의 자리를 차지해라!**
 
 - 랜덤으로 플레이 곡 선정
+
   ![랜덤룰렛](https://github.com/ProdMoon/play-dance-live-dev/blob/main/images/%EB%9E%9C%EB%8D%A4%EB%A3%B0%EB%A0%9B.gif?raw=true)
 
 - 챌린지 스타트! 실시간으로 응원하자
